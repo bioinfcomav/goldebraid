@@ -31,11 +31,28 @@ class Cvterm(models.Model):
     definition = models.TextField()
 
 
+class Contact(models.Model):
+    contact_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    email = models.EmailField(unique=True)
+
+
+class Stockcollection(models.Model):
+    stockcollection_id = models.AutoField(primary_key=True)
+    # type = models.ForeignKey(Cvterm)
+    contact = models.ForeignKey(Contact)
+    name = models.CharField(max_length=255)
+    uniquename = models.TextField()
+
+
 class Stock(models.Model):
     stock_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     uniquename = models.TextField()
     description = models.TextField()
+    stockcollection = models.ForeignKey(Stockcollection)
+    feature = models.ForeignKey("Feature", related_name='stocks',
+                                null=True)
 
 
 class ReadOnlyDict(dict):
@@ -56,7 +73,6 @@ class Feature(models.Model):
     type = models.ForeignKey(Cvterm)
     residues = models.TextField()
     dbxref = models.ForeignKey(Dbxref)
-    stocks = models.ManyToManyField(Stock)
     vector = models.ForeignKey("Feature", null=True)
     timecreation = models.DateTimeField(auto_now_add=True)
     timelastmodified = models.DateTimeField(auto_now=True)
@@ -83,18 +99,4 @@ class Featureprop(models.Model):
     type = models.ForeignKey(Cvterm)
     value = models.TextField()
 
-
-class Contact(models.Model):
-    contact_id = models.AutoField(primary_key=True)
-    name = models.CharField(unique=True, max_length=255)
-    email = models.EmailField()
-
-
-class Stockcollection(models.Model):
-    stockcollection_id = models.AutoField(primary_key=True)
-    # type = models.ForeignKey(Cvterm)
-    contact = models.ForeignKey(Contact)
-    name = models.CharField(max_length=255)
-    uniquename = models.TextField()
-    stocks = models.ManyToManyField(Stock, related_name='in_stockcollections')
 

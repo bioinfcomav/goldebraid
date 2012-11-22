@@ -50,22 +50,34 @@ class FeatureTest(TestCase):
         assert feat.vector.props['Enzyme'] == 'BSA1'
 
         # add a stock
-        contact = Contact(name='pepito', email='pepito@casa.net')
-        contact.save()
-        stock = Stock(name='vector1_stock', uniquename='stock1_vector',
-              description='vector1_stock description')
-        stock.save()
-        collection = Stockcollection(contact=contact, name='ibmcp',
-                                     uniquename='ibmcp')
-        collection.save()
+        ibmcp_contact = Contact(name='pepito', email='pepito@ibmcp.org')
+        ibmcp_contact.save()
+        ibmcp_collection = Stockcollection(contact=ibmcp_contact, name='ibmcp',
+                                           uniquename='ibmcp')
+        ibmcp_collection.save()
 
-        collection.stocks.add(stock)
+        ibmcp_vec_stock = Stock(name='vector1_stock_ibmcp',
+                                uniquename='stock_vector1_ibmcp',
+                                stockcollection=ibmcp_collection,
+                              description='vector1_stock in ibmcp description')
+        ibmcp_vec_stock.save()
+        # another collection
+        comav_contact = Contact(name='pepito', email='pepito@comav.org')
+        comav_contact.save()
+        comav_collection = Stockcollection(contact=comav_contact, name='comav',
+                                           uniquename='comav')
+        comav_collection.save()
+        comav_vec_stock = Stock(name='vector1_stock_comav',
+                                uniquename='stock_vector1_comav',
+                                stockcollection=comav_collection,
+                              description='vector1_stock in comav description')
+        comav_vec_stock.save()
+        assert ibmcp_collection.contact.name == 'pepito'
 
-        assert collection.contact.name == 'pepito'
-
-        feat.stocks.add(stock)
-
-        assert 'pepito' == stock.in_stockcollections.all()[0].contact.name
-
-
-
+        # There are various stocks of the vector feature
+        selected_vec_feat.stocks.add(ibmcp_vec_stock)
+        selected_vec_feat.stocks.add(comav_vec_stock)
+        stocks = selected_vec_feat.stocks.all()
+        stock_names = [stock.name for stock in stocks]
+        assert 'vector1_stock_ibmcp' in stock_names
+        assert 'vector1_stock_comav' in stock_names
