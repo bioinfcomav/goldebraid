@@ -1,0 +1,7 @@
+{% if feature.residues|length < 5000 %}
+<div class='sequence'>
+<p>Sequence:</p>
+<pre>{% include "seq_template.fasta" %}</pre>
+</div>
+{% endif %}
+

@@ -10,7 +10,7 @@ from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
 DB = settings.DB
 
 
-class FeatureTest(TestCase):
+class FeatureTestModels(TestCase):
 
     def test_create(self):
         'can we create a feature?'

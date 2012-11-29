@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Add feature {% endblock title %}
+{% block content %}
+<div id='main'>
+
+ <form action=""  enctype="multipart/form-data" method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Search" />
+  </form>
+  {{ form.kind.errors }}
+
+</div>
+{% endblock content %}

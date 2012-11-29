@@ -1,0 +1,18 @@
+[
+{
+    "fields": {
+        "accession": "vector_1_enz_in",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "1"
+},
+{
+    "fields": {
+        "accession": "vector_1_enz_out",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "2"
+}
+]

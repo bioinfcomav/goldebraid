@@ -1,0 +1,2 @@
+{% load goldenbraid_extras %}>{{ feature.name }}{% if feature.description %} {{ feature.description }}{% endif %}
+{{ feature.residues|letterwrap:80|upper }}

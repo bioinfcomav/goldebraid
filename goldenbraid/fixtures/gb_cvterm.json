@@ -1,0 +1,47 @@
+[
+{
+    "fields": {
+        "cv": "2",
+        "definition": "Vector type",
+        "name": "Vector"
+    },
+    "model": "goldenbraid.cvterm",
+    "pk": "1"
+},
+{
+    "fields": {
+        "cv": "2",
+        "definition": "enzyme type",
+        "name": "Enzyme"
+    },
+    "model": "goldenbraid.cvterm",
+    "pk": "2"
+},
+{
+    "fields": {
+        "cv": "2",
+        "definition": "enzyme in name",
+        "name": "Enzyme_in"
+    },
+    "model": "goldenbraid.cvterm",
+    "pk": "3"
+},
+{
+    "fields": {
+        "cv": "2",
+        "definition": "enzyme out name",
+        "name": "Enzyme_out"
+    },
+    "model": "goldenbraid.cvterm",
+    "pk": "4"
+},
+{
+    "fields": {
+        "cv": "2",
+        "definition": "Description name",
+        "name": "Description"
+    },
+    "model": "goldenbraid.cvterm",
+    "pk": "5"
+}
+]

@@ -1,0 +1,18 @@
+[
+{
+    "fields": {
+        "definition": "sequences",
+        "name": "sequences"
+    },
+    "model": "goldenbraid.cv",
+    "pk": "1"
+},
+{
+    "fields": {
+        "definition": "goldenbraid cv",
+        "name": "goldenbraid"
+    },
+    "model": "goldenbraid.cv",
+    "pk": "2"
+}
+]
