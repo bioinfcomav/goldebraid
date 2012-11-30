@@ -6,7 +6,8 @@ from django.test import TestCase
 from goldenbraid import settings
 from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
                                 Contact, Stock, Stockcollection)
-from goldenbraid.tags import ENZYME_IN_TYPE_NAME
+from goldenbraid.tags import ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME, \
+    VECTOR_TYPE_NAME
 
 DB = settings.DB
 
@@ -22,7 +23,8 @@ class FeatureTestModels(TestCase):
         part1_dbxref.save()
         cv = Cv(name='goldenbraid', definition='goldenbraid control voc')
         cv.save()
-        vector_cvterm = Cvterm(cv=cv, name='vector', definition='vector type')
+        vector_cvterm = Cvterm(cv=cv, name=VECTOR_TYPE_NAME,
+                               definition='vector type')
         vector_cvterm.save()
         vector_feat = Feature(uniquename='vector1', name='vector1',
                               type=vector_cvterm, residues='ATTTAGGCTC',
@@ -33,27 +35,32 @@ class FeatureTestModels(TestCase):
 
         assert selected_vec_feat.name == 'vector1'
 
-        enzyme_in_cvterm = Cvterm.objects.using(DB).create(cv=cv,
-                                                      name=ENZYME_IN_TYPE_NAME,
-                                                      definition='enzyme in')
+        enzyme_out_cvterm = Cvterm.objects.using(DB).create(cv=cv,
+                                                     name=ENZYME_OUT_TYPE_NAME,
+                                                     definition='enzyme out')
 
         Featureprop.objects.using(DB).create(feature=vector_feat,
-                                                         type=enzyme_in_cvterm,
+                                                         type=enzyme_out_cvterm,
                                                          value='BSA1', rank=0)
         Featureprop.objects.using(DB).create(feature=vector_feat,
-                                                         type=enzyme_in_cvterm,
+                                                         type=enzyme_out_cvterm,
                                                          value='BSA2', rank=1)
 
-        assert vector_feat.props[ENZYME_IN_TYPE_NAME] == ['BSA1', 'BSA2']
-
+        assert vector_feat.enzyme_out == ['BSA1', 'BSA2']
         part2_dbxref = Dbxref(db=db, accession='part2')
         part2_dbxref.save()
-        feat = Feature(uniquename='part1', name='part1',
-                              type=vector_cvterm, residues='ACTC',
-                              dbxref=part1_dbxref, vector=vector_feat)
-        feat.save()
+        promoter_cvterm = Cvterm.objects.using(DB).create(cv=cv,
+                                                     name='promoter',
+                                                     definition='promoter')
+        feat = Feature.objects.using(DB).create(uniquename='part1',
+                                                name='part1',
+                                                type=promoter_cvterm,
+                                                residues='ACTC',
+                                                dbxref=part1_dbxref,
+                                                vector=vector_feat)
 
-        assert feat.vector.props[ENZYME_IN_TYPE_NAME] == ['BSA1', 'BSA2']
+        assert feat.enzyme_in is None
+        assert feat.enzyme_out == ['BSA1', 'BSA2']
 
         # add a stock
         ibmcp_contact = Contact(name='pepito', email='pepito@ibmcp.org')

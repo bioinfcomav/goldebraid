@@ -1,6 +1,7 @@
 from django.db import models
 from goldenbraid import settings
-from goldenbraid.tags import DESCRIPTION_TYPE_NAME
+from goldenbraid.tags import DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME, \
+    VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME
 
 DB = settings.DB
 
@@ -103,6 +104,20 @@ class Feature(models.Model):
             prop_dict[type_] = values
 
         return ReadOnlyDict(prop_dict)
+
+    @property
+    def enzyme_in(self):
+        'It returns the enzyme ins  of the feture'
+        return self.props.get(ENZYME_IN_TYPE_NAME, None)
+
+    @property
+    def enzyme_out(self):
+        'It returns the enzyme out of the feture'
+        if self.type.name == VECTOR_TYPE_NAME:
+            return self.props[ENZYME_OUT_TYPE_NAME]
+        else:
+
+            return self.vector.enzyme_out
 
     @property
     def description(self):
