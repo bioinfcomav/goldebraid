@@ -1,5 +1,6 @@
 from django.db import models
 from goldenbraid import settings
+from goldenbraid.tags import DESCRIPTION_TYPE_NAME
 
 DB = settings.DB
 
@@ -67,6 +68,7 @@ class ReadOnlyDict(dict):
 
 
 class Feature(models.Model):
+    "The feature model"
     feature_id = models.AutoField(primary_key=True)
     uniquename = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
@@ -81,22 +83,44 @@ class Feature(models.Model):
     def seq_len(self):
         return len(self.residues)
 
-    def _get_props(self):
+    @property
+    def props(self):
         'It returns a list of cvterms'
-        prop_dict = {}
+        new_prop_dict = {}
         props = Featureprop.objects.using(DB).filter(feature=self)
         for prop in props:
             type_ = prop.type.name
             value = prop.value
-            prop_dict[type_] = value
+            rank = prop.rank
+            if type_ not in new_prop_dict:
+                new_prop_dict[type_] = []
+            new_prop_dict[type_].append((value, rank))
+        prop_dict = {}
+        for type_, values in new_prop_dict.items():
+
+            values = sorted(values, key=lambda x: x[1])
+            values = [value[0] for value in values]
+            prop_dict[type_] = values
+
         return ReadOnlyDict(prop_dict)
-    props = property(_get_props)
+
+    @property
+    def description(self):
+        'Get descrition if it has one'
+        try:
+            return self.props[DESCRIPTION_TYPE_NAME][0]
+        except KeyError:
+            return None
 
 
 class Featureprop(models.Model):
+    'Model to store the properties of the features'
     featureprop_id = models.AutoField(primary_key=True)
     feature = models.ForeignKey(Feature)
     type = models.ForeignKey(Cvterm)
     value = models.TextField()
+    rank = models.IntegerField()
 
+    class meta:
+        unique_together = ('feature', 'type', 'rank')
 

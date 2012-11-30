@@ -14,24 +14,26 @@ from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
 
 class FeatureForm(forms.Form):
     'Form to add features to db'
-    uniquename = forms.CharField(max_length=255)
     name = forms.CharField(max_length=255, required=False)
     description = forms.CharField(max_length=255, required=False)
     type = forms.CharField()
     vector = forms.CharField(required=False)
     enzyme_in = forms.CharField(required=False)
+    # TODO we have to change the widgte to allow multiple values
+    # Now we do spliting the text with a comma
     enzyme_out = forms.CharField(required=False)
+
     gbfile_label = 'Select a GenBank-formatted local file on your computer'
     gbfile = forms.FileField(label=gbfile_label, required=True)
 
-    def clean_uniquename(self):
-        'It checks that the unique name is unique in database'
-        uniquename = self.cleaned_data['uniquename']
-        try:
-            Feature.objects.using(DB).get(uniquename=uniquename)
-        except Feature.DoesNotExist:
-            return uniquename
-        raise ValidationError('There is already a feature with this uniquename')
+#    def clean_uniquename(self):
+#        'It checks that the unique name is unique in database'
+#        uniquename = self.cleaned_data['uniquename']
+#        try:
+#            Feature.objects.using(DB).get(uniquename=uniquename)
+#        except Feature.DoesNotExist:
+#            return uniquename
+#        raise ValidationError('There is already a feature with this uniquename')
 
     def clean_type(self):
         'It validates the type field'
@@ -74,31 +76,36 @@ class FeatureForm(forms.Form):
         If the feature is a vector is doe not validate anything
         if featuer is not a vector if validates that the vector
         is in the database'''
-        enzyme = self.cleaned_data['enzyme_{}'.format(kind)]
+        # TODO. change how we deal with two enzymes for the same field
+        enzymes = self.cleaned_data['enzyme_{}'.format(kind)].split(',')
         error_in_type = self._errors.get('type', False)
         error_in_vector = self._errors.get('vector', False)
 
         if error_in_type or error_in_vector:
-            return enzyme
+            return enzymes
 
         type_ = self.cleaned_data['type']
         if type_ == VECTOR_TYPE_NAME:
-            if not enzyme:
+            if enzymes[0] == u'':
                 err = 'A vector must have a enzyme {}'.format(kind)
                 raise ValidationError(err)
-            try:
-                enzyme_type = Cvterm.objects.using(DB).get(name=ENZYME_TYPE_NAME)
-                Feature.objects.using(DB).get(uniquename=enzyme,
-                                              type=enzyme_type)
-            except Feature.DoesNotExist:
-                raise ValidationError('The given enzyme in does not exist')
+
+            enzyme_type = Cvterm.objects.using(DB).get(name=ENZYME_TYPE_NAME)
+            for enzyme in enzymes:
+                enzyme = enzyme.strip()
+                try:
+                    Feature.objects.using(DB).get(uniquename=enzyme,
+                                                  type=enzyme_type)
+                except Feature.DoesNotExist:
+                    msg = 'The given enzyme {} does not exist'.format(enzyme)
+                    raise ValidationError(msg)
 
         else:
-            if enzyme:
+            if enzymes:
                 err = 'Only vectors have enzyme {}'.format(kind)
                 raise ValidationError(err)
 
-        return enzyme
+        return enzymes
 
     def clean_enzyme_in(self):
         return self._validate_enzyme('in')
@@ -112,7 +119,7 @@ def add_feature(form_data):
     seq = SeqIO.read(form_data['gbfile'], 'gb')
     residues = str(seq.seq)
     name = form_data['name']
-    uniquename = form_data['uniquename']
+    uniquename = seq.id
     type_ = Cvterm.objects.using(DB).get(name=form_data['type'])
     db = Db.objects.using(DB).get(name=GOLDEN_DB)
     dbxref = Dbxref.objects.using(DB).create(db=db, accession=uniquename)
@@ -131,14 +138,17 @@ def add_feature(form_data):
 
     props = {}
     if form_data['description']:
-        props[DESCRIPTION_TYPE_NAME] = form_data['description']
+        props[DESCRIPTION_TYPE_NAME] = [form_data['description']]
     if type_ == vector_type:
         props[ENZYME_IN_TYPE_NAME] = form_data['enzyme_in']
         props[ENZYME_OUT_TYPE_NAME] = form_data['enzyme_out']
-    for type_name, value in props.items():
+    for type_name, values in props.items():
         type_ = Cvterm.objects.using(DB).get(name=type_name)
-        Featureprop.objects.using(DB).create(feature=feature, type=type_,
-                                             value=value)
+        rank = 0
+        for value in values:
+            Featureprop.objects.using(DB).create(feature=feature, type=type_,
+                                             value=value, rank=rank)
+            rank += 1
     return feature
 
 

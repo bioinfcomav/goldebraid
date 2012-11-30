@@ -10,18 +10,20 @@
 <h1>{{ feature.type.name|capfirst|replaceunderscore }} {{ feature.uniquename }}</h1>
 <p><span class='key'>Accession:</span> <span class='value'>{{ feature.uniquename }}</span></p>
 <p><span class='key'>Name:</span> <span class='value'>{{ feature.name }}</span></p>
+{% if feature.description %}
+<p><span class='key'>Description:</span> <span class='value'>{{ feature.description }}</span></p>
+{% endif %}
  {% if feature.residues %}
   {% include "feature_sequence.html" %}
  {% endif %}
-
    {% if feature.props %}
    {% for key, values in feature.props.items %}
-    {% if key != 'description'%}
+    {% if key != 'Description'%}
        {% if values|length > 1 %}
            <p><span class='key'>{{ key|capfirst|replaceunderscore}}{{values|pluralize }}:</span></p>
            <ul class='property'>
            {% for value in values %}
-     <li><p><span class='key'>{{ value|capfirst|replaceunderscore|first_item:':'}}:</span> <span class='value'>{{value|not_first_item:':'}}</span></p></li>
+            <li><p><span class='value'>{{ value|capfirst|replaceunderscore}}</span></p></li>
            {% endfor %}
            </ul>
        {% else %}

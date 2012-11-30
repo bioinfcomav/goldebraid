@@ -72,7 +72,6 @@ class FeatureTestViews(TestCase):
         self.assertFalse(form.is_valid())
         enz_in = 'enzyme_in'
         assert 'A vector must have a enzyme i' in str(form._errors.get(enz_in))
-
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
                      'type': VECTOR_TYPE_NAME, 'enzyme_out': 'vector1_enz_out',
                      'enzyme_in': 'no_exist'}
@@ -83,8 +82,20 @@ class FeatureTestViews(TestCase):
         self.assertFalse(form.is_valid())
         enz_in = 'enzyme_in'
 
-        assert 'iven enzyme in does not exist' in str(form._errors.get(enz_in))
+        assert 'given enzyme ' in str(form._errors.get(enz_in))
 
+        # enzyme_out with two enzymes
+        gb_path = os.path.join(test_data, 'pAn11.gb')
+        post_dict = {'uniquename': 'vector1', 'name': 'vector1',
+                     'type': VECTOR_TYPE_NAME, 'enzyme_in': 'vector1_enz_in',
+                     'enzyme_out': 'vector1_enz_out,vector1_enz_out'}
+        uploaded_fhand = open(gb_path)
+        file_dict = {'gbfile': SimpleUploadedFile(uploaded_fhand.name,
+                                                  uploaded_fhand.read())}
+        form = FeatureForm(post_dict, file_dict)
+        form.is_valid()
+        print form._errors
+        # self.assertTrue(form.is_valid())
 
     def test_add_feature_view(self):
         # test of the form page
@@ -94,16 +105,15 @@ class FeatureTestViews(TestCase):
         gb_path = os.path.join(test_data, 'pAn11.gb')
         client = Client()
         url = reverse('add_feature')
-        response = client.post(url, {'uniquename': 'vector1',
-                                     'name': 'vector1',
+        response = client.post(url, {'name': 'vector1',
                                      'type': VECTOR_TYPE_NAME,
                                      'description': 'vector1 desc',
                                      'enzyme_in': 'vector1_enz_in',
-                                     'enzyme_out': 'vector1_enz_out',
-                                     'gbfile': open(gb_path)})
-        feat = Feature.objects.using(DB).get(uniquename='vector1')
+                            'enzyme_out': 'vector1_enz_out,vector1_enz_out',
+                            'gbfile': open(gb_path)})
+        feat = Feature.objects.using(DB).get(uniquename='pAn11')
         assert feat.name == 'vector1'
-        assert feat.props[DESCRIPTION_TYPE_NAME] == 'vector1 desc'
+        assert feat.description == 'vector1 desc'
         print response
 
 
