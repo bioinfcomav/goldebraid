@@ -9,7 +9,7 @@ from goldenbraid.models import Cvterm, Feature, Db, Dbxref, Featureprop
 from goldenbraid.settings import DB
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
-                              ENZYME_OUT_TYPE_NAME, ENZYME_TYPE_NAME)
+                              ENZYME_OUT_TYPE_NAME, ENZYME_TYPE_NAME, RESISTANCE_TYPE_NAME)
 
 
 class FeatureForm(forms.Form):
@@ -22,6 +22,7 @@ class FeatureForm(forms.Form):
     # TODO we have to change the widgte to allow multiple values
     # Now we do spliting the text with a comma
     enzyme_out = forms.CharField(required=False)
+    resistance = forms.CharField(required=False)
 
     gbfile_label = 'Select a GenBank-formatted local file on your computer'
     gbfile = forms.FileField(label=gbfile_label, required=True)
@@ -70,11 +71,12 @@ class FeatureForm(forms.Form):
 
         return vector
 
+
     def _validate_enzyme(self, kind):
         '''It validates the vector.
 
-        If the feature is a vector is doe not validate anything
-        if featuer is not a vector if validates that the vector
+        If the feature is a vector it does not validate anything
+        if feature is not a vector it validates that the vector
         is in the database'''
         # TODO. change how we deal with two enzymes for the same field
         enzymes = self.cleaned_data['enzyme_{}'.format(kind)].split(',')
@@ -89,6 +91,7 @@ class FeatureForm(forms.Form):
             if enzymes[0] == u'':
                 err = 'A vector must have a enzyme {}'.format(kind)
                 raise ValidationError(err)
+
 
             enzyme_type = Cvterm.objects.using(DB).get(name=ENZYME_TYPE_NAME)
             for enzyme in enzymes:
@@ -112,6 +115,40 @@ class FeatureForm(forms.Form):
 
     def clean_enzyme_out(self):
         return self._validate_enzyme('out')
+
+    def _validate_resistance(self, kind):
+        resistances = self.cleaned_data['resistance'.format(kind)]
+        error_in_type = self._errors.get('type', False)
+        error_in_vector = self._errors.get('vector', False)
+
+        if error_in_type or error_in_vector:
+            return resistances
+
+        type_ = self.cleaned_data['type']
+        if type_ == VECTOR_TYPE_NAME:
+            if resistances[0] == u'':
+                err = 'A vector must have a resistance {}'.format(kind)
+                raise ValidationError(err)
+
+        resistance_type = Cvterm.objects.using(DB).get(name=RESISTANCE_TYPE_NAME)
+        for resistance in resistances:
+            resistance = resistance.strip()
+            try:
+                Feature.objects.using(DB).get(uniquename=resistance,
+                                                  type=resistance_type)
+            except Feature.DoesNotExist:
+                msg = 'The given resistance {} does not exist'.format(resistance)
+                raise ValidationError(msg)
+
+        else:
+            if resistances:
+                err = 'Only vectors have resistance {}'.format(kind)
+                raise ValidationError(err)
+
+        return resistances
+
+        def clean_resistance(self):
+            return self._validate_resistance
 
 
 def add_feature(form_data):
@@ -142,6 +179,7 @@ def add_feature(form_data):
     if type_ == vector_type:
         props[ENZYME_IN_TYPE_NAME] = form_data['enzyme_in']
         props[ENZYME_OUT_TYPE_NAME] = form_data['enzyme_out']
+        props[RESISTANCE_TYPE_NAME] = form_data['resistance']
     for type_name, values in props.items():
         type_ = Cvterm.objects.using(DB).get(name=type_name)
         rank = 0

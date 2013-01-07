@@ -26,5 +26,19 @@
     },
     "model": "goldenbraid.feature",
     "pk": "2"
+},
+{
+    "fields": {
+        "name": "vector1_resistance",
+        "uniquename": "vector1_resistance",
+        "type": "2",
+        "residues": "ATTTTATZATGATZCT",
+        "dbxref": "2",
+        "vector":null,
+        "timecreation" :"2012-11-29 09:09:47.217685+00:00",
+        "timelastmodified" :"2012-11-29 09:09:47.217685+00:00"
+    },
+    "model": "goldenbraid.feature",
+    "pk": "3"
 }
 ]

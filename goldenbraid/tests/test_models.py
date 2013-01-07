@@ -7,7 +7,7 @@ from goldenbraid import settings
 from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
                                 Contact, Stock, Stockcollection)
 from goldenbraid.tags import ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME, \
-    VECTOR_TYPE_NAME
+    VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME
 
 DB = settings.DB
 
@@ -47,6 +47,15 @@ class FeatureTestModels(TestCase):
                                                          value='BSA2', rank=1)
 
         assert vector_feat.enzyme_out == ['BSA1', 'BSA2']
+        
+        resistance_cvterm = Cvterm.objects.using(DB).create(cv=cv,
+                                                            name=RESISTANCE_TYPE_NAME,
+                                                            definition='resistance')
+        Featureprop.objects.using(DB).create(feature=vector_feat,
+                                                        type=resistance_cvterm,
+                                                        value='Ampicillin', rank=0)
+        assert vector_feat.resistance == ['Ampicillin']
+        
         part2_dbxref = Dbxref(db=db, accession='part2')
         part2_dbxref.save()
         promoter_cvterm = Cvterm.objects.using(DB).create(cv=cv,
@@ -61,6 +70,7 @@ class FeatureTestModels(TestCase):
 
         assert feat.enzyme_in is None
         assert feat.enzyme_out == ['BSA1', 'BSA2']
+        assert feat.resistance == ['Ampicillin']
 
         # add a stock
         ibmcp_contact = Contact(name='pepito', email='pepito@ibmcp.org')

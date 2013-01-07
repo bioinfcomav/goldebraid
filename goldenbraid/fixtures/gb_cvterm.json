@@ -43,5 +43,14 @@
     },
     "model": "goldenbraid.cvterm",
     "pk": "5"
+},
+{
+	"fields": {
+		"cv":"2",
+		"definition": "Resistance name",
+		"name": "Resistance"
+	},
+	"model": "goldenbraid.cvterm",
+	"pk": "6"
 }
 ]

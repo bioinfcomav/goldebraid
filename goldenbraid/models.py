@@ -1,7 +1,7 @@
 from django.db import models
 from goldenbraid import settings
 from goldenbraid.tags import DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME, \
-    VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME
+    VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME, RESISTANCE_TYPE_NAME
 
 DB = settings.DB
 
@@ -120,12 +120,23 @@ class Feature(models.Model):
             return self.vector.enzyme_out
 
     @property
+    def resistance(self):
+        'It returns the resistance of the feature'
+        if self.type.name == VECTOR_TYPE_NAME:
+            return self.props[RESISTANCE_TYPE_NAME]
+        else:
+            
+            return self.vector.resistance
+        
+    
+    @property
     def description(self):
         'Get descrition if it has one'
         try:
             return self.props[DESCRIPTION_TYPE_NAME][0]
         except KeyError:
             return None
+
 
 
 class Featureprop(models.Model):

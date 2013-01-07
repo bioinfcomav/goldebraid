@@ -22,7 +22,7 @@ class FeatureTestViews(TestCase):
         gb_path = os.path.join(test_data, 'pAn11.gb')
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
                      'type': VECTOR_TYPE_NAME, 'enzyme_in': 'vector1_enz_in',
-                     'enzyme_out': 'vector1_enz_out'}
+                     'enzyme_out': 'vector1_enz_out', 'resistance': 'vector1_resistance'}
         uploaded_fhand = open(gb_path)
         file_dict = {'gbfile': SimpleUploadedFile(uploaded_fhand.name,
                                                   uploaded_fhand.read())}
@@ -33,7 +33,7 @@ class FeatureTestViews(TestCase):
         gb_path = os.path.join(test_data, 'pAn11.gb')
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
                      'type': VECTOR_TYPE_NAME, 'enzyme_out': 'vector1_enz_out',
-                     'enzyme_in': 'vector1_enz_in'}
+                     'enzyme_in': 'vector1_enz_in', 'resistance': 'vector1_resistance'}
         uploaded_fhand = open(gb_path)
         file_dict = {'gbfile': SimpleUploadedFile(uploaded_fhand.name,
                                                   uploaded_fhand.read())}
@@ -110,6 +110,7 @@ class FeatureTestViews(TestCase):
                                      'description': 'vector1 desc',
                                      'enzyme_in': 'vector1_enz_in',
                             'enzyme_out': 'vector1_enz_out,vector1_enz_out',
+                            'resistance': 'vector1_resistance',
                             'gbfile': open(gb_path)})
         feat = Feature.objects.using(DB).get(uniquename='pAn11')
         assert feat.name == 'vector1'
