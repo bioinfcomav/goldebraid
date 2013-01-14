@@ -9,13 +9,15 @@ from goldenbraid.models import Cvterm, Feature, Db, Dbxref, Featureprop
 from goldenbraid.settings import DB
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
-                              ENZYME_OUT_TYPE_NAME, ENZYME_TYPE_NAME, RESISTANCE_TYPE_NAME)
+                              ENZYME_OUT_TYPE_NAME, ENZYME_TYPE_NAME,
+                              RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME)
 
 
 class FeatureForm(forms.Form):
     'Form to add features to db'
     name = forms.CharField(max_length=255, required=False)
     description = forms.CharField(max_length=255, required=False)
+    reference = forms.CharField(max_length=255, required=False)
     type = forms.CharField()
     vector = forms.CharField(required=False)
     enzyme_in = forms.CharField(required=False)
@@ -48,8 +50,8 @@ class FeatureForm(forms.Form):
     def clean_vector(self):
         '''It validates the vector.
 
-        If the feature is a vector is doe not validate anything
-        if featuer is not a vector if validates that the vector
+        If the feature is a vector it does not validate anything
+        if feature is not a vector if validates that the vector
         is in the database'''
         vector = self.cleaned_data['vector']
         error_in_type = self._errors.get('type', False)
@@ -116,39 +118,38 @@ class FeatureForm(forms.Form):
     def clean_enzyme_out(self):
         return self._validate_enzyme('out')
 
-    def _validate_resistance(self, kind):
-        resistances = self.cleaned_data['resistance'.format(kind)]
+    #Validate that a vector must have a resistance,
+    #only vectors have resistance and
+    #if the resistance exists or not
+
+    def _validate_resistance(self):
+        resistance = self.cleaned_data['resistance']
         error_in_type = self._errors.get('type', False)
         error_in_vector = self._errors.get('vector', False)
 
         if error_in_type or error_in_vector:
-            return resistances
+            return resistance
 
         type_ = self.cleaned_data['type']
         if type_ == VECTOR_TYPE_NAME:
-            if resistances[0] == u'':
-                err = 'A vector must have a resistance {}'.format(kind)
-                raise ValidationError(err)
+            self.fields['resistance'].required = True
+            if not resistance:
+                raise ValidationError('A vector must have a resistance')
 
-        resistance_type = Cvterm.objects.using(DB).get(name=RESISTANCE_TYPE_NAME)
-        for resistance in resistances:
-            resistance = resistance.strip()
-            try:
-                Feature.objects.using(DB).get(uniquename=resistance,
-                                                  type=resistance_type)
-            except Feature.DoesNotExist:
-                msg = 'The given resistance {} does not exist'.format(resistance)
-                raise ValidationError(msg)
-
+            else:
+                try:
+                    resistance_type = Cvterm.objects.using(DB).get(name=RESISTANCE_TYPE_NAME)
+                    Feature.objects.using(DB).get(uniquename=resistance,
+                                              type=resistance_type)
+                except Feature.DoesNotExist:
+                    raise ValidationError('The given resistance does not exist')
         else:
-            if resistances:
-                err = 'Only vectors have resistance {}'.format(kind)
-                raise ValidationError(err)
+            if resistance:
+                    raise ValidationError('Only vectors have resistance')
+        return resistance
 
-        return resistances
-
-        def clean_resistance(self):
-            return self._validate_resistance
+    def clean_resistance(self):
+        return self._validate_resistance
 
 
 def add_feature(form_data):
@@ -176,6 +177,8 @@ def add_feature(form_data):
     props = {}
     if form_data['description']:
         props[DESCRIPTION_TYPE_NAME] = [form_data['description']]
+    if form_data['reference']:
+        props[REFERENCE_TYPE_NAME] = [form_data['reference']]
     if type_ == vector_type:
         props[ENZYME_IN_TYPE_NAME] = form_data['enzyme_in']
         props[ENZYME_OUT_TYPE_NAME] = form_data['enzyme_out']

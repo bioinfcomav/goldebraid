@@ -14,5 +14,13 @@
     },
     "model": "goldenbraid.dbxref",
     "pk": "2"
+},
+{
+	"fields": {
+		"accession": "vector_1_resistance",
+		"db": "2"
+	},
+	"model": "goldenbraid.dbxref",
+	"pk": "3"
 }
 ]

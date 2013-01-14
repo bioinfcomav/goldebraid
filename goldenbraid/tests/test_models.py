@@ -16,24 +16,31 @@ class FeatureTestModels(TestCase):
 
     def test_create(self):
         'can we create a feature?'
-        db = Db(name='goldebraid', description='testdb', urlprefix='/',
-                url='localhost/')
-        db.save()
-        part1_dbxref = Dbxref(db=db, accession='part11')
-        part1_dbxref.save()
-        cv = Cv(name='goldenbraid', definition='goldenbraid control voc')
-        cv.save()
-        vector_cvterm = Cvterm(cv=cv, name=VECTOR_TYPE_NAME,
-                               definition='vector type')
-        vector_cvterm.save()
-        vector_feat = Feature(uniquename='vector1', name='vector1',
-                              type=vector_cvterm, residues='ATTTAGGCTC',
-                              dbxref=part1_dbxref)
 
-        vector_feat.save()
+        db = Db.objects.using(DB).create(name='goldenbraid',
+                                         description='testdb', urlprefix='/',
+                                         url='localhost/')
+
+        part1_dbxref = Dbxref.objects.using(DB).create(db=db, accession='part11')
+
+        cv = Cv.objects.using(DB).create(name='goldenbraid',
+                                         definition='goldenbraid control voc')
+
+        vector_cvterm = Cvterm.objects.using(DB).create(cv=cv, name=VECTOR_TYPE_NAME,
+                                                        definition='vector type')
+
+
+        #create a feature that is a vector
+        vector_feat = Feature.objects.using(DB).create(uniquename='vector1',
+                                                       name='vector1',type=vector_cvterm,
+                                                       residues='ATTTAGGCTC',
+                                                       dbxref=part1_dbxref)
+
         selected_vec_feat = Feature.objects.using(DB).get(uniquename='vector1')
-
         assert selected_vec_feat.name == 'vector1'
+
+
+        # add the properties to the feature
 
         enzyme_out_cvterm = Cvterm.objects.using(DB).create(cv=cv,
                                                      name=ENZYME_OUT_TYPE_NAME,
@@ -45,19 +52,22 @@ class FeatureTestModels(TestCase):
         Featureprop.objects.using(DB).create(feature=vector_feat,
                                                          type=enzyme_out_cvterm,
                                                          value='BSA2', rank=1)
-
         assert vector_feat.enzyme_out == ['BSA1', 'BSA2']
-        
+
+
         resistance_cvterm = Cvterm.objects.using(DB).create(cv=cv,
                                                             name=RESISTANCE_TYPE_NAME,
                                                             definition='resistance')
+
         Featureprop.objects.using(DB).create(feature=vector_feat,
-                                                        type=resistance_cvterm,
-                                                        value='Ampicillin', rank=0)
+                                                type=resistance_cvterm,
+                                                value='Ampicillin', rank=0)
         assert vector_feat.resistance == ['Ampicillin']
-        
-        part2_dbxref = Dbxref(db=db, accession='part2')
-        part2_dbxref.save()
+
+        #create a second feature
+
+        part2_dbxref = Dbxref.objects.using(DB).create(db=db, accession='part2')
+
         promoter_cvterm = Cvterm.objects.using(DB).create(cv=cv,
                                                      name='promoter',
                                                      definition='promoter')
@@ -72,30 +82,67 @@ class FeatureTestModels(TestCase):
         assert feat.enzyme_out == ['BSA1', 'BSA2']
         assert feat.resistance == ['Ampicillin']
 
-        # add a stock
-        ibmcp_contact = Contact(name='pepito', email='pepito@ibmcp.org')
-        ibmcp_contact.save()
-        ibmcp_collection = Stockcollection(contact=ibmcp_contact, name='ibmcp',
-                                           uniquename='ibmcp')
-        ibmcp_collection.save()
+        #create a second vector
+        part3_dbxref = Dbxref.objects.using(DB).create(db=db, accession='part3')
 
-        ibmcp_vec_stock = Stock(name='vector1_stock_ibmcp',
+        vector2_feat = Feature.objects.using(DB).create(uniquename='vector2',
+                                                       name='vector2',type=vector_cvterm,
+                                                       residues='ATTCATTAGGCTC',
+                                                       dbxref=part3_dbxref)
+
+        enzyme_in_cvterm = Cvterm.objects.using(DB).create(cv=cv,
+                                                            name=ENZYME_IN_TYPE_NAME,
+                                                            definition='enzyme in')
+
+        Featureprop.objects.using(DB).create(feature=vector2_feat,
+                                                         type=enzyme_in_cvterm,
+                                                         value='BSA1', rank=0)
+        Featureprop.objects.using(DB).create(feature=vector2_feat,
+                                                         type=enzyme_out_cvterm,
+                                                         value='BSA2', rank=0)
+
+        Featureprop.objects.using(DB).create(feature=vector2_feat,
+                                                type=resistance_cvterm,
+                                                value='Kan', rank=0)
+        assert vector2_feat.enzyme_in == ['BSA1']
+
+
+
+        # add a stock
+        ibmcp_contact = Contact.objects.using(DB).create(name='pepito',
+                                                         email='pepito@ibmcp.org')
+
+        ibmcp_collection = Stockcollection.objects.using(DB).create(
+                                                contact=ibmcp_contact, name='ibmcp',
+                                                uniquename='ibmcp')
+
+        ibmcp_vec_stock = Stock.objects.using(DB).create(name='vector1_stock_ibmcp',
                                 uniquename='stock_vector1_ibmcp',
                                 stockcollection=ibmcp_collection,
-                              description='vector1_stock in ibmcp description')
-        ibmcp_vec_stock.save()
+                                description='vector1_stock in ibmcp description')
+
+        # a second stock in the ibmcp stockcollection
+        ibmcp_part_stock = Stock.objects.using(DB).create(name='part1_stock_ibmcp',
+                                uniquename='stock_part1_ibmcp',
+                                stockcollection=ibmcp_collection,
+                                description='part1_stock in ibmcp description')
+
         # another collection
-        comav_contact = Contact(name='pepito', email='pepito@comav.org')
-        comav_contact.save()
-        comav_collection = Stockcollection(contact=comav_contact, name='comav',
-                                           uniquename='comav')
-        comav_collection.save()
-        comav_vec_stock = Stock(name='vector1_stock_comav',
+        comav_contact = Contact.objects.using(DB).create(name='pepito',
+                                                         email='pepito@comav.org')
+
+        comav_collection = Stockcollection.objects.using(DB).create(
+                                            contact=comav_contact, name='comav',
+                                            uniquename='comav')
+
+        comav_vec_stock = Stock.objects.using(DB).create(name='vector1_stock_comav',
                                 uniquename='stock_vector1_comav',
                                 stockcollection=comav_collection,
                               description='vector1_stock in comav description')
-        comav_vec_stock.save()
+
         assert ibmcp_collection.contact.name == 'pepito'
+        assert comav_collection.contact.name == 'pepito'
+
 
         # There are various stocks of the vector feature
         selected_vec_feat.stocks.add(ibmcp_vec_stock)
@@ -104,3 +151,16 @@ class FeatureTestModels(TestCase):
         stock_names = [stock.name for stock in stocks]
         assert 'vector1_stock_ibmcp' in stock_names
         assert 'vector1_stock_comav' in stock_names
+
+
+        # There are various stocks in a stock collection
+        assert ibmcp_vec_stock.stockcollection.name == 'ibmcp'
+        assert ibmcp_part_stock.stockcollection.name == 'ibmcp'
+
+
+
+
+
+
+
+

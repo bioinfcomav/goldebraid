@@ -1,7 +1,7 @@
 from django.db import models
 from goldenbraid import settings
 from goldenbraid.tags import DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME, \
-    VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME, RESISTANCE_TYPE_NAME
+    VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME, RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME
 
 DB = settings.DB
 
@@ -107,33 +107,41 @@ class Feature(models.Model):
 
     @property
     def enzyme_in(self):
-        'It returns the enzyme ins  of the feture'
+        'It returns the enzyme in  of the feature'
         return self.props.get(ENZYME_IN_TYPE_NAME, None)
 
     @property
     def enzyme_out(self):
-        'It returns the enzyme out of the feture'
+        'It returns the enzyme out of the feature'
         if self.type.name == VECTOR_TYPE_NAME:
-            return self.props[ENZYME_OUT_TYPE_NAME]
+                return self.props[ENZYME_OUT_TYPE_NAME]
         else:
 
-            return self.vector.enzyme_out
+                return self.vector.enzyme_out
 
     @property
     def resistance(self):
         'It returns the resistance of the feature'
         if self.type.name == VECTOR_TYPE_NAME:
-            return self.props[RESISTANCE_TYPE_NAME]
+                return self.props[RESISTANCE_TYPE_NAME]
         else:
-            
-            return self.vector.resistance
-        
-    
+
+                return self.vector.resistance
+
+
     @property
     def description(self):
-        'Get descrition if it has one'
+        'Get description if it has one'
         try:
             return self.props[DESCRIPTION_TYPE_NAME][0]
+        except KeyError:
+            return None
+
+    @property
+    def reference(self):
+        'Get references of the feature if it has them'
+        try:
+            return self.props[REFERENCE_TYPE_NAME][0]
         except KeyError:
             return None
 

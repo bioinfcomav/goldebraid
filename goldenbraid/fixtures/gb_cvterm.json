@@ -52,5 +52,14 @@
 	},
 	"model": "goldenbraid.cvterm",
 	"pk": "6"
+},
+{
+	"fields": {
+		"cv":"2",
+		"definition": "Reference name",
+		"name": "Reference"
+	},
+	"model": "goldenbraid.cvterm",
+	"pk": "7"
 }
 ]
