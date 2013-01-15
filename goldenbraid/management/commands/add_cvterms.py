@@ -89,7 +89,6 @@ def load_cvterms(database, reader):
 
     cvname, cvterm_name, definition
     '''
-
     for line in reader:
         try:
             cv_name = line['cv']
