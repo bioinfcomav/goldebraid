@@ -6,11 +6,25 @@ from django.core.exceptions import ValidationError
 from Bio import SeqIO
 
 from goldenbraid.models import Cvterm, Feature, Db, Dbxref, Featureprop
-from goldenbraid.settings import DB
+from goldenbraid.settings import DB, REBASE_FILE
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               ENZYME_OUT_TYPE_NAME, ENZYME_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME)
+from django.db.utils import IntegrityError
+from django.http import HttpResponseServerError
+
+
+def _parse_rebase_file(fpath):
+    'It parses the rebase enzyme file and return a list with all the enzymes'
+    enzymes = []
+    for line in  open(fpath):
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith('<1>') or line.startswith('<2>'):
+            enzymes.extend(line[3:].split(','))
+    return [enz.upper() for enz in enzymes]
 
 
 class FeatureForm(forms.Form):
@@ -54,7 +68,7 @@ class FeatureForm(forms.Form):
         if feature is not a vector if validates that the vector
         is in the database'''
         vector = self.cleaned_data['vector']
-        error_in_type = self._errors.get('type', False)
+        error_in_type = self.errors.get('type', False)
         if error_in_type:
             return vector
         type_str = self.cleaned_data['type']
@@ -73,7 +87,6 @@ class FeatureForm(forms.Form):
 
         return vector
 
-
     def _validate_enzyme(self, kind):
         '''It validates the vector.
 
@@ -82,8 +95,8 @@ class FeatureForm(forms.Form):
         is in the database'''
         # TODO. change how we deal with two enzymes for the same field
         enzymes = self.cleaned_data['enzyme_{}'.format(kind)].split(',')
-        error_in_type = self._errors.get('type', False)
-        error_in_vector = self._errors.get('vector', False)
+        error_in_type = self.errors.get('type', False)
+        error_in_vector = self.errors.get('vector', False)
 
         if error_in_type or error_in_vector:
             return enzymes
@@ -93,17 +106,15 @@ class FeatureForm(forms.Form):
             if enzymes[0] == u'':
                 err = 'A vector must have a enzyme {}'.format(kind)
                 raise ValidationError(err)
-
-
-            enzyme_type = Cvterm.objects.using(DB).get(name=ENZYME_TYPE_NAME)
+            existing_enzymes = _parse_rebase_file(REBASE_FILE)
+            errors = []
             for enzyme in enzymes:
-                enzyme = enzyme.strip()
-                try:
-                    Feature.objects.using(DB).get(uniquename=enzyme,
-                                                  type=enzyme_type)
-                except Feature.DoesNotExist:
-                    msg = 'The given enzyme {} does not exist'.format(enzyme)
-                    raise ValidationError(msg)
+                if enzyme.upper() not in existing_enzymes:
+                    err = 'This enzyme: {} is not a known enzyme'
+                    err = err.format(enzyme)
+                    errors.append(err)
+            if errors:
+                raise ValidationError('\n'.join(errors))
 
         else:
             if enzymes:
@@ -113,43 +124,35 @@ class FeatureForm(forms.Form):
         return enzymes
 
     def clean_enzyme_in(self):
+        '''It validates the in enzyme'''
         return self._validate_enzyme('in')
 
     def clean_enzyme_out(self):
+        '''It validates the out enzyme'''
         return self._validate_enzyme('out')
 
-    #Validate that a vector must have a resistance,
-    #only vectors have resistance and
-    #if the resistance exists or not
+    # Validate that a vector must have a resistance,
+    # only vectors have resistance and
+    # if the resistance exists or not
 
-    def _validate_resistance(self):
+    def clean_resistance(self):
+        '''It validates the in resistance'''
         resistance = self.cleaned_data['resistance']
-        error_in_type = self._errors.get('type', False)
-        error_in_vector = self._errors.get('vector', False)
+        error_in_type = self.errors.get('type', False)
+        error_in_vector = self.errors.get('vector', False)
 
         if error_in_type or error_in_vector:
             return resistance
 
         type_ = self.cleaned_data['type']
         if type_ == VECTOR_TYPE_NAME:
-            self.fields['resistance'].required = True
             if not resistance:
                 raise ValidationError('A vector must have a resistance')
 
-            else:
-                try:
-                    resistance_type = Cvterm.objects.using(DB).get(name=RESISTANCE_TYPE_NAME)
-                    Feature.objects.using(DB).get(uniquename=resistance,
-                                              type=resistance_type)
-                except Feature.DoesNotExist:
-                    raise ValidationError('The given resistance does not exist')
         else:
             if resistance:
-                    raise ValidationError('Only vectors have resistance')
+                raise ValidationError('Only vectors have resistance')
         return resistance
-
-    def clean_resistance(self):
-        return self._validate_resistance
 
 
 def add_feature(form_data):
@@ -160,7 +163,11 @@ def add_feature(form_data):
     uniquename = seq.id
     type_ = Cvterm.objects.using(DB).get(name=form_data['type'])
     db = Db.objects.using(DB).get(name=GOLDEN_DB)
-    dbxref = Dbxref.objects.using(DB).create(db=db, accession=uniquename)
+    try:
+        dbxref = Dbxref.objects.using(DB).create(db=db, accession=uniquename)
+    except IntegrityError as error:
+        raise IntegrityError('feature already in db' + str(error))
+
     vector = form_data['vector']
     vector_type = Cvterm.objects.using(DB).get(name=VECTOR_TYPE_NAME)
     if vector:
@@ -168,11 +175,13 @@ def add_feature(form_data):
                                                type=vector_type)
     else:
         vector = None
-
-    feature = Feature.objects.using(DB).create(uniquename=uniquename,
-                                               name=name, type=type_,
-                                               residues=residues,
-                                               dbxref=dbxref, vector=vector)
+    try:
+        feature = Feature.objects.using(DB).create(uniquename=uniquename,
+                                                   name=name, type=type_,
+                                                   residues=residues,
+                                                  dbxref=dbxref, vector=vector)
+    except IntegrityError as error:
+        raise IntegrityError('feature already in db' + str(error))
 
     props = {}
     if form_data['description']:
@@ -182,7 +191,7 @@ def add_feature(form_data):
     if type_ == vector_type:
         props[ENZYME_IN_TYPE_NAME] = form_data['enzyme_in']
         props[ENZYME_OUT_TYPE_NAME] = form_data['enzyme_out']
-        props[RESISTANCE_TYPE_NAME] = form_data['resistance']
+        props[RESISTANCE_TYPE_NAME] = [form_data['resistance']]
     for type_name, values in props.items():
         type_ = Cvterm.objects.using(DB).get(name=type_name)
         rank = 0
@@ -208,11 +217,18 @@ def add_feature_view(request):
             feat_form_data = form.cleaned_data
             try:
                 feature = add_feature(feat_form_data)
+            except IntegrityError as error:
+                if 'feature already in db' in error:
+                    # TODO choose a template
+                    return render_to_response('feature_template.html',
+                                              {},
+                                    context_instance=RequestContext(request))
+                else:
+                    return HttpResponseServerError()
             except Exception as error:
-                print 'error', error
-                feature = None
-            if feature:
-                return render_to_response('feature_template.html',
+                return HttpResponseServerError()
+            # if everithing os fine we show the just added feature
+            return render_to_response('feature_template.html',
                                           {'feature': feature},
                                           context_instance=RequestContext(request))
 

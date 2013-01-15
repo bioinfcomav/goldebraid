@@ -6,8 +6,9 @@ from django.test import TestCase
 from goldenbraid import settings
 from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
                                 Contact, Stock, Stockcollection)
-from goldenbraid.tags import ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME, \
-    VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME
+from goldenbraid.tags import (ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
+                              VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME)
+from django.db.utils import IntegrityError
 
 DB = settings.DB
 
@@ -30,18 +31,28 @@ class FeatureTestModels(TestCase):
                                                         definition='vector type')
 
 
-        #create a feature that is a vector
+        # create a feature that is a vector
         vector_feat = Feature.objects.using(DB).create(uniquename='vector1',
-                                                       name='vector1',type=vector_cvterm,
+                                                       name='vector1',
+                                                       type=vector_cvterm,
                                                        residues='ATTTAGGCTC',
                                                        dbxref=part1_dbxref)
 
         selected_vec_feat = Feature.objects.using(DB).get(uniquename='vector1')
         assert selected_vec_feat.name == 'vector1'
 
+        # try to add again the same feat
+        try:
+            vector_feat = Feature.objects.using(DB).create(uniquename='vector1',
+                                                       name='vector1',
+                                                       type=vector_cvterm,
+                                                       residues='ATTTAGGCTC',
+                                                       dbxref=part1_dbxref)
+            self.fail()
+        except IntegrityError:
+            pass
 
         # add the properties to the feature
-
         enzyme_out_cvterm = Cvterm.objects.using(DB).create(cv=cv,
                                                      name=ENZYME_OUT_TYPE_NAME,
                                                      definition='enzyme out')
@@ -64,8 +75,7 @@ class FeatureTestModels(TestCase):
                                                 value='Ampicillin', rank=0)
         assert vector_feat.resistance == ['Ampicillin']
 
-        #create a second feature
-
+        # create a second feature
         part2_dbxref = Dbxref.objects.using(DB).create(db=db, accession='part2')
 
         promoter_cvterm = Cvterm.objects.using(DB).create(cv=cv,
@@ -82,11 +92,11 @@ class FeatureTestModels(TestCase):
         assert feat.enzyme_out == ['BSA1', 'BSA2']
         assert feat.resistance == ['Ampicillin']
 
-        #create a second vector
+        # create a second vector
         part3_dbxref = Dbxref.objects.using(DB).create(db=db, accession='part3')
 
         vector2_feat = Feature.objects.using(DB).create(uniquename='vector2',
-                                                       name='vector2',type=vector_cvterm,
+                                                       name='vector2', type=vector_cvterm,
                                                        residues='ATTCATTAGGCTC',
                                                        dbxref=part3_dbxref)
 

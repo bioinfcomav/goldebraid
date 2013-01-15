@@ -9,7 +9,8 @@ from goldenbraid.views import FeatureForm
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from goldenbraid.models import Feature
 from goldenbraid.settings import DB
-from goldenbraid.tags import VECTOR_TYPE_NAME, DESCRIPTION_TYPE_NAME
+from goldenbraid.tags import VECTOR_TYPE_NAME
+
 
 class FeatureTestViews(TestCase):
     fixtures = FIXTURES_TO_LOAD
@@ -20,9 +21,9 @@ class FeatureTestViews(TestCase):
         # test of the form
         gb_path = os.path.join(test_data, 'pAn11.gb')
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
-                     'type': VECTOR_TYPE_NAME, 'enzyme_in': 'vector1_enz_in',
-                     'enzyme_out': 'vector1_enz_out',
-                     'resistance':'vector1_resistance'}
+                     'type': VECTOR_TYPE_NAME, 'enzyme_in': 'AagI',
+                     'enzyme_out': 'AaaI',
+                     'resistance': 'pepe'}
         uploaded_fhand = open(gb_path)
         file_dict = {'gbfile': SimpleUploadedFile(uploaded_fhand.name,
                                                   uploaded_fhand.read())}
@@ -33,7 +34,7 @@ class FeatureTestViews(TestCase):
         gb_path = os.path.join(test_data, 'pAn11.gb')
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
                      'type': VECTOR_TYPE_NAME, 'enzyme_out': '',
-                     'enzyme_in': 'vector1_enz_in', 'resistance':''}
+                     'enzyme_in': 'vector1_enz_in', 'resistance': ''}
         uploaded_fhand = open(gb_path)
         file_dict = {'gbfile': SimpleUploadedFile(uploaded_fhand.name,
                                                   uploaded_fhand.read())}
@@ -48,7 +49,7 @@ class FeatureTestViews(TestCase):
                                                   uploaded_fhand.read())}
         form = FeatureForm(post_dict, file_dict)
         self.assertFalse(form.is_valid())
-        assert form._errors.get('type')
+        assert form.errors.get('type')
 
         # vector does not exist
         # test of the form with wrong type
@@ -60,9 +61,9 @@ class FeatureTestViews(TestCase):
                                                   uploaded_fhand.read())}
         form = FeatureForm(post_dict, file_dict)
         self.assertFalse(form.is_valid())
-        assert form._errors.get('vector')
+        assert form.errors.get('vector')
 
-        # enzyme_in not added wrong
+        # enzyme_in not added. fails because is required
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
                      'type': VECTOR_TYPE_NAME, 'enzyme_out': 'vector1_enz_out'}
         uploaded_fhand = open(gb_path)
@@ -71,7 +72,8 @@ class FeatureTestViews(TestCase):
         form = FeatureForm(post_dict, file_dict)
         self.assertFalse(form.is_valid())
         enz_in = 'enzyme_in'
-        assert 'A vector must have a enzyme in' in str(form._errors.get(enz_in))
+        assert 'vector must have a enzyme in' in str(form.errors.get(enz_in))
+
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
                      'type': VECTOR_TYPE_NAME, 'enzyme_out': 'vector1_enz_out',
                      'enzyme_in': 'no_exist'}
@@ -81,49 +83,30 @@ class FeatureTestViews(TestCase):
         form = FeatureForm(post_dict, file_dict)
         self.assertFalse(form.is_valid())
         enz_in = 'enzyme_in'
-
-        assert 'given enzyme ' in str(form._errors.get(enz_in))
-
+        assert 'This enzyme: no_exist is not a' in str(form.errors.get(enz_in))
 
         # enzyme_out with two enzymes
         gb_path = os.path.join(test_data, 'pAn11.gb')
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
-                     'type': VECTOR_TYPE_NAME, 'enzyme_in': 'vector1_enz_in',
-                     'enzyme_out': 'vector1_enz_out,vector1_enz_out'}
+                     'type': VECTOR_TYPE_NAME, 'enzyme_in': 'AagI',
+                     'enzyme_out': 'AamI,AauI', 'resistance': 'aa'}
         uploaded_fhand = open(gb_path)
         file_dict = {'gbfile': SimpleUploadedFile(uploaded_fhand.name,
                                                   uploaded_fhand.read())}
         form = FeatureForm(post_dict, file_dict)
-        form.is_valid()
-        print form._errors
-        #self.assertTrue(form.is_valid())
-
-
-
-
-
-
+        self.assertTrue(form.is_valid())
 
         # resistance not added to a vector
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
                      'type': VECTOR_TYPE_NAME, 'enzyme_out': 'vector1_enz_out',
-                     'enzyme_in': 'vector1_enz_in', 'resistance':''}
+                     'enzyme_in': 'vector1_enz_in', 'resistance': ''}
         uploaded_fhand = open(gb_path)
         file_dict = {'gbfile': SimpleUploadedFile(uploaded_fhand.name,
                                                   uploaded_fhand.read())}
         form = FeatureForm(post_dict, file_dict)
-        # the following assert fails, so something is wrong in the view
-        #self.assertFalse(form.is_valid())
-
-
-
-
-
-
-
-
-
-
+        self.assertFalse(form.is_valid())
+        err_str = form.errors.get('resistance')
+        assert 'A vector must have a resistance' in err_str
 
     def test_add_feature_view(self):
         # test of the form page
@@ -137,14 +120,18 @@ class FeatureTestViews(TestCase):
                                      'type': VECTOR_TYPE_NAME,
                                      'description': 'vector1 desc',
                                      'reference': 'vector1 ref',
-                                     'enzyme_in': 'vector1_enz_in',
-                            'enzyme_out': 'vector1_enz_out,vector1_enz_out',
+                                     'enzyme_in': 'AagI',
+                            'enzyme_out': 'AamI,AauI',
                             'resistance': 'vector1_resistance',
                             'gbfile': open(gb_path)})
         feat = Feature.objects.using(DB).get(uniquename='pAn11')
         assert feat.name == 'vector1'
-        #assert feat.description == 'vector1 desc'
-        print response
+        assert  feat.props == {u'Enzyme_in': [u'AagI'],
+                               u'Enzyme_out': [u'AamI', u'AauI'],
+                               u'Description': [u'vector1 desc'],
+                               u'Reference': [u'vector1 ref'],
+                               u'Resistance': [u'vector1_resistance']}
+        # print response
 
 
 
