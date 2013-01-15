@@ -155,50 +155,73 @@ class FeatureForm(forms.Form):
         return resistance
 
 
-def add_feature(form_data):
-    'With this function we add a feature to the database'
-    seq = SeqIO.read(form_data['gbfile'], 'gb')
+def add_feature(database, name, type_name, vector, genbank, props):
+    'it adds a feature to the database'
+
+    seq = SeqIO.read(genbank, 'gb')
     residues = str(seq.seq)
-    name = form_data['name']
+    name = name
     uniquename = seq.id
-    type_ = Cvterm.objects.using(DB).get(name=form_data['type'])
-    db = Db.objects.using(DB).get(name=GOLDEN_DB)
+    type_ = Cvterm.objects.using(database).get(name=type_name)
+    db = Db.objects.using(database).get(name=GOLDEN_DB)
     try:
-        dbxref = Dbxref.objects.using(DB).create(db=db, accession=uniquename)
+        dbxref = Dbxref.objects.using(database).create(db=db,
+                                                       accession=uniquename)
     except IntegrityError as error:
         raise IntegrityError('feature already in db' + str(error))
 
-    vector = form_data['vector']
-    vector_type = Cvterm.objects.using(DB).get(name=VECTOR_TYPE_NAME)
+    vector_type = Cvterm.objects.using(database).get(name=VECTOR_TYPE_NAME)
+    if vector and type_ == vector_type:
+        # already checked in form validation
+        raise RuntimeError("a vector feature can't  have a vector")
+
     if vector:
-        vector = Feature.objects.using(DB).get(uniquename=vector,
+        vector = Feature.objects.using(database).get(uniquename=vector,
                                                type=vector_type)
     else:
         vector = None
     try:
-        feature = Feature.objects.using(DB).create(uniquename=uniquename,
+        feature = Feature.objects.using(database).create(uniquename=uniquename,
                                                    name=name, type=type_,
                                                    residues=residues,
                                                   dbxref=dbxref, vector=vector)
     except IntegrityError as error:
         raise IntegrityError('feature already in db' + str(error))
 
-    props = {}
-    if form_data['description']:
-        props[DESCRIPTION_TYPE_NAME] = [form_data['description']]
-    if form_data['reference']:
-        props[REFERENCE_TYPE_NAME] = [form_data['reference']]
-    if type_ == vector_type:
-        props[ENZYME_IN_TYPE_NAME] = form_data['enzyme_in']
-        props[ENZYME_OUT_TYPE_NAME] = form_data['enzyme_out']
-        props[RESISTANCE_TYPE_NAME] = [form_data['resistance']]
     for type_name, values in props.items():
-        type_ = Cvterm.objects.using(DB).get(name=type_name)
+        try:
+            type_ = Cvterm.objects.using(DB).get(name=type_name)
+        except Cvterm.DoesNotExist:
+            msg = 'Trying to add a property which cvterm does not exist'
+            raise RuntimeError(msg)
         rank = 0
         for value in values:
             Featureprop.objects.using(DB).create(feature=feature, type=type_,
                                              value=value, rank=rank)
             rank += 1
+    return feature
+
+
+def add_feature_from_form(form_data):
+    'With this function we add a feature to the database'
+    props = {}
+    vector_type = Cvterm.objects.using(DB).get(name=VECTOR_TYPE_NAME)
+    feature_type_name = form_data['type']
+    if form_data['description']:
+        props[DESCRIPTION_TYPE_NAME] = [form_data['description']]
+    if form_data['reference']:
+        props[REFERENCE_TYPE_NAME] = [form_data['reference']]
+    if feature_type_name == vector_type.name:
+        props[ENZYME_IN_TYPE_NAME] = form_data['enzyme_in']
+        props[ENZYME_OUT_TYPE_NAME] = form_data['enzyme_out']
+        props[RESISTANCE_TYPE_NAME] = [form_data['resistance']]
+
+    feature = add_feature(database=DB,
+                          name=form_data['name'], type_name=feature_type_name,
+                          vector=form_data['vector'],
+                          genbank=form_data['gbfile'],
+                          props=props)
+
     return feature
 
 
@@ -216,7 +239,7 @@ def add_feature_view(request):
         if form.is_valid():
             feat_form_data = form.cleaned_data
             try:
-                feature = add_feature(feat_form_data)
+                feature = add_feature_from_form(feat_form_data)
             except IntegrityError as error:
                 if 'feature already in db' in error:
                     # TODO choose a template

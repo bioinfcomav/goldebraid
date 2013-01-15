@@ -115,20 +115,17 @@ class Feature(models.Model):
     def enzyme_out(self):
         'It returns the enzyme out of the feature'
         if self.type.name == VECTOR_TYPE_NAME:
-                return self.props[ENZYME_OUT_TYPE_NAME]
+            return self.props[ENZYME_OUT_TYPE_NAME]
         else:
-
-                return self.vector.enzyme_out
+            return self.vector.enzyme_out
 
     @property
     def resistance(self):
         'It returns the resistance of the feature'
         if self.type.name == VECTOR_TYPE_NAME:
-                return self.props[RESISTANCE_TYPE_NAME]
+            return self.props[RESISTANCE_TYPE_NAME]
         else:
-
-                return self.vector.resistance
-
+            return self.vector.resistance
 
     @property
     def description(self):
@@ -147,7 +144,6 @@ class Feature(models.Model):
             return None
 
 
-
 class Featureprop(models.Model):
     'Model to store the properties of the features'
     featureprop_id = models.AutoField(primary_key=True)
@@ -158,4 +154,3 @@ class Featureprop(models.Model):
 
     class meta:
         unique_together = ('feature', 'type', 'rank')
-
