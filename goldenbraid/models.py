@@ -13,31 +13,40 @@ class Db(models.Model):
     description = models.CharField(max_length=255)
     urlprefix = models.CharField(max_length=255)
     url = models.CharField(max_length=255)
+    class Meta:
+        db_table = u'db'
 
 
 class Cv(models.Model):
     cv_id = models.AutoField(primary_key=True)
     name = models.CharField(unique=True, max_length=255)
     definition = models.TextField()
+    class Meta:
+        db_table = u'cv'
 
 
 class Dbxref(models.Model):
     dbxref_id = models.AutoField(primary_key=True)
     db = models.ForeignKey(Db)
     accession = models.CharField(max_length=255)
-
+    class Meta:
+        db_table = u'dbxref'
 
 class Cvterm(models.Model):
     cvterm_id = models.AutoField(primary_key=True)
     cv = models.ForeignKey(Cv)
     name = models.CharField(max_length=1024)
     definition = models.TextField()
+    class Meta:
+        db_table = u'cvterm'
 
 
 class Contact(models.Model):
     contact_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
+    email = models.EmailField (unique=True)
+    class Meta:
+        db_table = u'contact'
 
 
 class Stockcollection(models.Model):
@@ -46,6 +55,8 @@ class Stockcollection(models.Model):
     contact = models.ForeignKey(Contact)
     name = models.CharField(max_length=255)
     uniquename = models.TextField()
+    class Meta:
+        db_table = u'stockcollection'
 
 
 class Stock(models.Model):
@@ -56,6 +67,8 @@ class Stock(models.Model):
     stockcollection = models.ForeignKey(Stockcollection)
     feature = models.ForeignKey("Feature", related_name='stocks',
                                 null=True)
+    class Meta:
+        db_table = u'stock'
 
 
 class ReadOnlyDict(dict):
@@ -80,6 +93,8 @@ class Feature(models.Model):
     vector = models.ForeignKey("Feature", null=True)
     timecreation = models.DateTimeField(auto_now_add=True)
     timelastmodified = models.DateTimeField(auto_now=True)
+    class Meta:
+        db_table = u'feature'
 
     @property
     def seq_len(self):
@@ -151,6 +166,6 @@ class Featureprop(models.Model):
     type = models.ForeignKey(Cvterm)
     value = models.TextField()
     rank = models.IntegerField()
-
-    class meta:
+    class Meta:
+        db_table = u'featureprop'
         unique_together = ('feature', 'type', 'rank')
