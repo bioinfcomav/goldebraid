@@ -20,7 +20,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         'Adds the given featuress to the pseudo_chado database'
         if not args:
-            raise CommandError('No database and features file given')
+            raise CommandError('No features file given')
         else:
             features_fpath = args[0]
         try:

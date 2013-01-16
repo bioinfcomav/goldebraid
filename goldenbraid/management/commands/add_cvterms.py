@@ -47,7 +47,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         'Adds the given cvterms to the chado database'
         if not args:
-            raise CommandError('No database and cvterm file given')
+            raise CommandError('No cvterm file given')
         else:
             cvterms_fpath = args[0]
         try:
