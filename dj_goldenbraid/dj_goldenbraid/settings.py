@@ -17,8 +17,10 @@ DATABASES = {
          'PASSWORD': '',  # Not used with sqlite3.
         'HOST': '',  # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',  # Set to empty string for default. Not used with sqlite3.
-    },
-    'goldenbraid': {
+    }
+}
+
+REMOTE_DATABASE = {
          'ENGINE': 'django.db.backends.postgresql_psycopg2',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
          'NAME': 'goldenbraid',  # Or path to database file if using sqlite3.
          'USER': 'goldendb_user',  # Not used with sqlite3.
@@ -26,7 +28,16 @@ DATABASES = {
          'HOST': '',  # Set to empty string for localhost. Not used with sqlite3.
          'PORT': '',  # Set to empty string for default. Not used with sqlite3.
       }
-}
+LOCAL_DATABASE = {
+        'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+         'NAME': 'goldenbraid.db',  # Or path to database file if using sqlite3.
+         'USER': '',  # Not used with sqlite3.
+         'PASSWORD': '',  # Not used with sqlite3.
+        'HOST': '',  # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',  # Set to empty string for default. Not used with sqlite3.
+    }
+
+DATABASES['goldenbraid'] = LOCAL_DATABASE
 
 GOLDENBRAID_DB = 'goldenbraid'
 DATABASE_ROUTERS = ['goldenbraid.database_router.GoldenbraidRouter']

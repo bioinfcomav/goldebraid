@@ -192,7 +192,8 @@ def add_feature(database, name, type_name, vector, genbank, props):
         try:
             type_ = Cvterm.objects.using(DB).get(name=type_name)
         except Cvterm.DoesNotExist:
-            msg = 'Trying to add a property which cvterm does not exist'
+            msg = 'Trying to add a property which cvterm does not exist: {0}'
+            msg = msg.format(type_name)
             raise RuntimeError(msg)
         rank = 0
         for value in values:

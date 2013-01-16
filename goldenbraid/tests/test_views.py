@@ -14,6 +14,7 @@ from goldenbraid.tags import VECTOR_TYPE_NAME
 
 class FeatureTestViews(TestCase):
     fixtures = FIXTURES_TO_LOAD
+    multi_db = True
 
     def test_add_feature_form(self):
         test_data = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
@@ -131,7 +132,7 @@ class FeatureTestViews(TestCase):
                                u'Description': [u'vector1 desc'],
                                u'Reference': [u'vector1 ref'],
                                u'Resistance': [u'vector1_resistance']}
-        # print response
+
 
 
 
