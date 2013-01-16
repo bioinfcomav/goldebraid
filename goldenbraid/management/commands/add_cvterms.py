@@ -51,12 +51,12 @@ class Command(BaseCommand):
         else:
             cvterms_fpath = args[0]
         try:
-            run_command(open(cvterms_fpath), DB, load_cvterms)
+            run_command(open(cvterms_fpath), DB, load_cvterms, MANDATORY_FIELDS)
         except Exception as error:
             raise CommandError(str(error))
 
 
-def run_command(fhand, database, loader_func):
+def run_command(fhand, database, loader_func, mandatory_fields):
     'it runs a command loading a csv file into the database'
     fhand.seek(0)
     file_sample = fhand.read(1024)
@@ -69,8 +69,7 @@ def run_command(fhand, database, loader_func):
     fhand.seek(0)
     header = fhand.readline().strip()
     col_names = [col_n.lower() for col_n in split_csv_items(header, dialect)]
-
-    for req_col in MANDATORY_FIELDS:
+    for req_col in mandatory_fields:
         if req_col not in col_names:
             msg = 'Column %s is required, but not found in header' % req_col
             raise RuntimeError(msg)

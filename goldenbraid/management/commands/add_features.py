@@ -24,7 +24,7 @@ class Command(BaseCommand):
         else:
             features_fpath = args[0]
         try:
-            run_command(open(features_fpath), DB, load_features)
+            run_command(open(features_fpath), DB, load_features, MANDATORY_FIELDS)
         except Exception as error:
             raise CommandError(str(error))
 
@@ -48,7 +48,8 @@ def load_features(database, reader):
         except KeyError:
             msg = 'Malformed line: ' + str(line)
             raise RuntimeError(msg)
-        props = dict([prop_pair.split('=') for prop_pair in props.split(';')])
+        
+        props = dict([prop_pair.strip().split('=') for prop_pair in props.split(';')])
         add_feature(database, name, type_name, vector, genbank_fpath,
                     props=props)
 
