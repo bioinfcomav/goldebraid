@@ -48,10 +48,12 @@ def load_features(database, reader):
         except KeyError:
             msg = 'Malformed line: ' + str(line)
             raise RuntimeError(msg)
-        if props:        
-            props = dict([prop_pair.strip().split('=') for prop_pair in props.split(';')])
+        if props:
+            prop_list = [prop_pair.strip().split('=') for prop_pair in props.split(';')]
+            props = dict([(prop[0], prop[1].split(',')) for prop in prop_list])
         else:
             props = {}
+
         add_feature(database, name, type_name, vector, genbank_fpath,
                     props=props)
 
