@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 import goldenbraid
-from goldenbraid.views import FeatureForm
+from goldenbraid.views.feature_views import FeatureForm
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from goldenbraid.models import Feature
 from goldenbraid.settings import DB

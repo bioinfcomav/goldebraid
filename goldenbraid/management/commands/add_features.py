@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from goldenbraid.management.commands.add_cvterms import run_command
 from goldenbraid.settings import DB
-from goldenbraid.views import add_feature
+from goldenbraid.views.feature_views import add_feature
 
 MANDATORY_FIELDS = ('name', 'type', 'vector', 'genbank_file', 'properties')
 FAIL_IF_EXISTS = False
