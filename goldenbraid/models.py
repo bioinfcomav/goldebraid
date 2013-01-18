@@ -91,8 +91,11 @@ class Feature(models.Model):
     residues = models.TextField()
     dbxref = models.ForeignKey(Dbxref)
     vector = models.ForeignKey("Feature", null=True)
+    prefix = models.CharField(max_length=4)
+    suffix = models.CharField(max_length=4)
     timecreation = models.DateTimeField(auto_now_add=True)
     timelastmodified = models.DateTimeField(auto_now=True)
+
     class Meta:
         db_table = u'feature'
 

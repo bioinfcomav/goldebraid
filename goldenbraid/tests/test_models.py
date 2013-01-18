@@ -36,7 +36,9 @@ class FeatureTestModels(TestCase):
                                                        name='vector1',
                                                        type=vector_cvterm,
                                                        residues='ATTTAGGCTC',
-                                                       dbxref=part1_dbxref)
+                                                       dbxref=part1_dbxref,
+                                                       prefix='ATCT',
+                                                       suffix='tttt')
 
         selected_vec_feat = Feature.objects.using(DB).get(uniquename='vector1')
         assert selected_vec_feat.name == 'vector1'
@@ -47,7 +49,9 @@ class FeatureTestModels(TestCase):
                                                        name='vector1',
                                                        type=vector_cvterm,
                                                        residues='ATTTAGGCTC',
-                                                       dbxref=part1_dbxref)
+                                                       dbxref=part1_dbxref,
+                                                       prefix='ATCT',
+                                                       suffix='tttt')
             self.fail()
         except IntegrityError:
             pass
@@ -86,7 +90,9 @@ class FeatureTestModels(TestCase):
                                                 type=promoter_cvterm,
                                                 residues='ACTC',
                                                 dbxref=part1_dbxref,
-                                                vector=vector_feat)
+                                                vector=vector_feat,
+                                                prefix='ATCT',
+                                                suffix='tttt')
 
         assert feat.enzyme_in is None
         assert feat.enzyme_out == ['BSA1', 'BSA2']
@@ -98,7 +104,9 @@ class FeatureTestModels(TestCase):
         vector2_feat = Feature.objects.using(DB).create(uniquename='vector2',
                                                        name='vector2', type=vector_cvterm,
                                                        residues='ATTCATTAGGCTC',
-                                                       dbxref=part3_dbxref)
+                                                       dbxref=part3_dbxref,
+                                                       prefix='ATCT',
+                                                       suffix='tttt')
 
         enzyme_in_cvterm = Cvterm.objects.using(DB).create(cv=cv,
                                                             name=ENZYME_IN_TYPE_NAME,
@@ -115,8 +123,6 @@ class FeatureTestModels(TestCase):
                                                 type=resistance_cvterm,
                                                 value='Kan', rank=0)
         assert vector2_feat.enzyme_in == ['BSA1']
-
-
 
         # add a stock
         ibmcp_contact = Contact.objects.using(DB).create(name='pepito',
