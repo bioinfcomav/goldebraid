@@ -241,9 +241,10 @@ def _pref_suf_from_rec_sites(seq, forw_site, rev_site, rec_site,
                              forw_cut_delta, rev_cut_delta):
 
     pref_size = rev_cut_delta - forw_cut_delta
+
     prefix_index = forw_site + len(rec_site) + forw_cut_delta
     if prefix_index >= len(seq):
-        prefix_index = len(seq) - prefix_index
+        prefix_index = prefix_index - len(seq)
     prefix = seq[prefix_index:prefix_index + pref_size]
 
     suffix_index = rev_site - rev_cut_delta
