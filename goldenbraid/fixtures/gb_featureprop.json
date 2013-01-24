@@ -1,0 +1,12 @@
+[
+{
+    "fields": {
+        "feature": "2",
+        "type": "2",
+        "value":"muy alto",
+        "rank": "0",
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "1"
+}
+]
