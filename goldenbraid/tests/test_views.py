@@ -227,10 +227,14 @@ class MultipartiteTestViews(TestCase):
 
     def test_empty_type(self):
         client = Client()
-        url = reverse('multipartite_view', kwargs={'multi_type':''})
+        url = reverse('multipartite_view', kwargs={'multi_type': ''})
         response = client.get(url)
         assert "<div id='main'>" in response.content
 
-#        url = reverse('multipartite_view', kwargs={'multi_type':'basic'})
-#        response = client.get(url)
+    def test_basic_type(self):
+        'It tests the basic typo of the form'
+        client = Client()
+        url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
+        response = client.get(url)
+        print response
 
