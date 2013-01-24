@@ -173,7 +173,7 @@ def _search_rec_sites(seq, rec_site):
     finded_site_indexes.append(residues.find(rec_site))
     ocurrences = residues.count(rec_site)
     if ocurrences > 2:
-        raise
+        raise RuntimeError('rec site found more than twice')
     elif ocurrences > 1:
         finded_site_indexes.append(residues.rfind(rec_site))
     corrected_site_indexes = []
@@ -230,11 +230,14 @@ def _get_prefix_an_suffix(seq, enzyme):
     forw_cut_delta, rev_cut_delta = int(forw_cut_delta), int(rev_cut_delta)
     forw_sites = _search_rec_sites(seq, rec_site)
     rec_seq = Seq(rec_site)
+    rec_seq.reverse_complement()
     rev_sites = _search_rec_sites(seq, str(rec_seq.reverse_complement()))
 
     forw_site, rev_site = _choose_rec_sites(forw_sites, rev_sites)
-    return _pref_suf_from_rec_sites(seq, forw_site, rev_site, rec_site,
-                                    forw_cut_delta, rev_cut_delta)
+    prefix, suffix = _pref_suf_from_rec_sites(seq, forw_site, rev_site,
+                                              rec_site, forw_cut_delta,
+                                              rev_cut_delta)
+    return prefix, suffix
 
 
 def _pref_suf_from_rec_sites(seq, forw_site, rev_site, rec_site,
@@ -277,7 +280,6 @@ def add_feature(database, name, type_name, vector, genbank, props):
     if vector and type_ == vector_type:
         # already checked in form validation
         raise RuntimeError("a vector feature can't  have a vector")
-
     if vector:
         vector = Feature.objects.using(database).get(uniquename=vector,
                                                type=vector_type)
@@ -290,24 +292,23 @@ def add_feature(database, name, type_name, vector, genbank, props):
                                                   dbxref=dbxref, vector=vector)
     except IntegrityError as error:
         raise IntegrityError('feature already in db' + str(error))
-
     for type_name, values in props.items():
         try:
-            type_ = Cvterm.objects.using(DB).get(name=type_name)
+            prop_type = Cvterm.objects.using(DB).get(name=type_name)
         except Cvterm.DoesNotExist:
             msg = 'Trying to add a property which cvterm does not exist: {0}'
             msg = msg.format(type_name)
             raise RuntimeError(msg)
         rank = 0
         for value in values:
-            Featureprop.objects.using(DB).create(feature=feature, type=type_,
-                                             value=value, rank=rank)
+            Featureprop.objects.using(DB).create(feature=feature,
+                                                 type=prop_type,
+                                                 value=value, rank=rank)
             rank += 1
     if type_ == vector_type:
-        enzyme = props[ENZYME_IN_TYPE_NAME]
+        enzyme = props[ENZYME_IN_TYPE_NAME][0]
     else:
-        enzyme = vector.enzyme_out
-
+        enzyme = vector.enzyme_out[0]
     prefix, suffix = _get_prefix_an_suffix(residues, enzyme)
     feature.prefix = prefix
     feature.suffix = suffix
