@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Multipartite Result Page{% endblock title %}
+{% block content %}
+{% load goldenbraid_extras %}
+
+<div id='main'>
+{% for key, values in used_parts.items %}
+    {% if key = 'Vector'%}
+           <p>You have assembled in the GoldenBraid destiny vector<span class='value'>{{value|capfirst|replaceunderscore}}</span>the following parts:</p>
+    {% else %}
+           <h1><span class='key'>{{ key|capfirst|replaceunderscore }}:</span> <span class='value'>{{ value|capfirst|replaceunderscore}}</span></h1>
+
+    {% endif %}
+
+{% endfor %}
+
+<p>The resulted sequence of the assembly is{{assembled_seq}}</p>
+
+<p>You can download a detailed protocol to fulfill the assembly in the lab from <a href=''>here</a>.</p>
+
+</div>
+
+{% endblock content %}
