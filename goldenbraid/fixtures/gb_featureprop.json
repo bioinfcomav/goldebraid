@@ -1,12 +1,72 @@
 [
 {
     "fields": {
-        "feature": "2",
-        "type": "2",
-        "value":"muy alto",
-        "rank": "0",
+        "feature": "1",
+        "type": "3",
+        "value":"BsmBI",
+        "rank": "0"
     },
     "model": "goldenbraid.featureprop",
     "pk": "1"
+},
+{
+    "fields": {
+        "feature": "1",
+        "type": "4",
+        "value":"BsaI",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "2"
+},
+{
+    "fields": {
+        "feature": "1",
+        "type": "4",
+        "value":"BtgZI",
+        "rank": "1"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "3"
+},
+{
+    "fields": {
+        "feature": "1",
+        "type": "6",
+        "value":"Ampicillin",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "4"
+},
+{
+    "fields": {
+        "feature": "1",
+        "type": "5",
+        "value":"This is the universal part domesticator",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "5"
+},
+{
+    "fields": {
+        "feature": "2",
+        "type": "5",
+        "value":"This is a fruit promoter",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "6"
+},
+{
+    "fields": {
+        "feature": "3",
+        "type": "7",
+        "value":"Reference",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "7"
 }
 ]

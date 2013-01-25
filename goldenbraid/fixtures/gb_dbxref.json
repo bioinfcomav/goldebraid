@@ -1,7 +1,7 @@
 [
 {
     "fields": {
-        "accession": "vector_1_enz_in",
+        "accession": "vector1",
         "db": "2"
     },
     "model": "goldenbraid.dbxref",
@@ -9,7 +9,7 @@
 },
 {
     "fields": {
-        "accession": "vector_1_enz_out",
+        "accession": "part1",
         "db": "2"
     },
     "model": "goldenbraid.dbxref",
@@ -17,10 +17,98 @@
 },
 {
 	"fields": {
-		"accession": "vector_1_resistance",
+		"accession": "part2",
 		"db": "2"
 	},
 	"model": "goldenbraid.dbxref",
 	"pk": "3"
+},
+{
+    "fields": {
+        "accession": "part3",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "4"
+},
+{
+    "fields": {
+        "accession": "part4",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "5"
+},
+{
+    "fields": {
+        "accession": "part5",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "6"
+},
+{
+    "fields": {
+        "accession": "part6",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "7"
+},
+{
+    "fields": {
+        "accession": "part7",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "8"
+},
+{
+    "fields": {
+        "accession": "part8",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "9"
+},
+{
+    "fields": {
+        "accession": "part9",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "10"
+},
+{
+    "fields": {
+        "accession": "part10",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "11"
+},
+{
+    "fields": {
+        "accession": "part11",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "12"
+},
+{
+    "fields": {
+        "accession": "vector2",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "13"
+},
+{
+    "fields": {
+        "accession": "part12",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "14"
 }
 ]

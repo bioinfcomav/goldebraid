@@ -61,5 +61,41 @@
 	},
 	"model": "goldenbraid.cvterm",
 	"pk": "7"
+},
+{
+    "fields": {
+        "cv": "2",
+        "definition": "Promoter+UTR+ATG",
+        "name": "PROM+UTR+ATG"
+    },
+    "model": "goldenbraid.cvterm",
+    "pk": "8"
+},
+{
+    "fields": {
+        "cv": "2",
+        "definition": "Coding sequence",
+        "name": "CDS"
+    },
+    "model": "goldenbraid.cvterm",
+    "pk": "9"
+},
+{
+    "fields": {
+        "cv": "2",
+        "definition": "Terminator",
+        "name": "TER"
+    },
+    "model": "goldenbraid.cvterm",
+    "pk": "10"
+},
+{
+    "fields": {
+        "cv": "2",
+        "definition": "Signal peptide",
+        "name": "SP"
+    },
+    "model": "goldenbraid.cvterm",
+    "pk": "11"
 }
 ]
