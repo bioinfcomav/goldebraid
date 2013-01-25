@@ -68,5 +68,25 @@
     },
     "model": "goldenbraid.featureprop",
     "pk": "7"
+},
+{
+    "fields": {
+        "feature": "13",
+        "type": "3",
+        "value":"BsaI",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "8"
+},
+{
+    "fields": {
+        "feature": "13",
+        "type": "4",
+        "value":"BsmBI",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "9"
 }
 ]

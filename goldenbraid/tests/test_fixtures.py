@@ -2,7 +2,7 @@ from django.test import TestCase
 from goldenbraid.models import Db
 from goldenbraid.settings import DB
 
-FIXTURES_TO_LOAD = ['db', 'cv', 'cvterm', 'dbxref', 'feature', 'featureprop']
+FIXTURES_TO_LOAD = ['db', 'cv', 'cvterm', 'dbxref', 'feature' , 'featureprop']
 #                    'feature_cvterm', ,
 #                    'feature_dbxref',
 #                    ]

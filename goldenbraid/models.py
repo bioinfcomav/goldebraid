@@ -169,6 +169,8 @@ class Featureprop(models.Model):
     type = models.ForeignKey(Cvterm)
     value = models.TextField()
     rank = models.IntegerField()
+
     class Meta:
         db_table = u'featureprop'
-        unique_together = ('feature', 'type', 'rank')
+
+

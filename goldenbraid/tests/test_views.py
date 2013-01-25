@@ -9,9 +9,9 @@ from Bio.Seq import Seq
 
 import goldenbraid
 from goldenbraid.views.feature_views import (FeatureForm,
-                                             _get_prefix_an_suffix,
+                                             get_prefix_and_suffix,
                                             _choose_rec_sites,
-    _pref_suf_from_rec_sites)
+    _pref_suf_index_from_rec_sites, _get_pref_suff_from_index)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from goldenbraid.models import Feature
 from goldenbraid.settings import DB
@@ -147,7 +147,7 @@ class FeatureTestViews(TestCase):
         gb_path = os.path.join(TEST_DATA, 'pAn11.gb')
         seq = SeqIO.read(gb_path, 'gb')
         seq = seq.seq
-        assert ('AATG', 'GCTT') == _get_prefix_an_suffix(seq, 'BsaI')
+        assert ('AATG', 'GCTT') == get_prefix_and_suffix(seq, 'BsaI')
 
     def test_choose_rec_sites(self):
         'it tests choose rec_sites func'
@@ -186,27 +186,42 @@ class FeatureTestViews(TestCase):
         rec_site = 'aaaaaa'
         forw_cut_delta = 1
         rev_cut_delta = 5
+        pref_size = rev_cut_delta - forw_cut_delta
         result = ('atct', 'ctga')
-        assert _pref_suf_from_rec_sites(seq, forw_site, rev_site, rec_site,
-                                       forw_cut_delta, rev_cut_delta) == result
+        p_idx, s_idx = _pref_suf_index_from_rec_sites(seq, forw_site, rev_site,
+                                                      rec_site,
+                                                      forw_cut_delta,
+                                                      rev_cut_delta)
+        assert _get_pref_suff_from_index(seq, p_idx, s_idx, pref_size) == \
+                                                                        result
 
         forw_site = 3
         rev_site = 30
         rec_site = 'aaaaaa'
         forw_cut_delta = 1
         rev_cut_delta = 5
+        pref_size = rev_cut_delta - forw_cut_delta
         result = ('actg', 'gact')
-        assert _pref_suf_from_rec_sites(seq, forw_site, rev_site, rec_site,
-                                       forw_cut_delta, rev_cut_delta) == result
+        p_idx, s_idx = _pref_suf_index_from_rec_sites(seq, forw_site, rev_site,
+                                                      rec_site,
+                                                      forw_cut_delta,
+                                                      rev_cut_delta)
+        assert _get_pref_suff_from_index(seq, p_idx, s_idx, pref_size) == \
+                                                                        result
 
         forw_site = 25
         rev_site = 3
         rec_site = 'aaaaaa'
         forw_cut_delta = 1
         rev_cut_delta = 5
+        pref_size = rev_cut_delta - forw_cut_delta
         result = ('cgat', 'atat')
-        assert _pref_suf_from_rec_sites(seq, forw_site, rev_site, rec_site,
-                                       forw_cut_delta, rev_cut_delta) == result
+        p_idx, s_idx = _pref_suf_index_from_rec_sites(seq, forw_site, rev_site,
+                                                      rec_site,
+                                                      forw_cut_delta,
+                                                      rev_cut_delta)
+        assert _get_pref_suff_from_index(seq, p_idx, s_idx, pref_size) == \
+                                                                        result
 
         forw_site = 4082
         rev_site = 1039
@@ -214,12 +229,14 @@ class FeatureTestViews(TestCase):
         rec_site = 'GGTCTC'
         forw_cut_delta = 1
         rev_cut_delta = 5
+        pref_size = rev_cut_delta - forw_cut_delta
         result = ('AATG', 'GCTT')
-        assert ('AATG', 'GCTT') == _pref_suf_from_rec_sites(seq, forw_site,
-                                                            rev_site, rec_site,
-                                                            forw_cut_delta,
-                                                            rev_cut_delta)
-
+        p_idx, s_idx = _pref_suf_index_from_rec_sites(seq, forw_site, rev_site,
+                                                      rec_site,
+                                                      forw_cut_delta,
+                                                      rev_cut_delta)
+        assert _get_pref_suff_from_index(seq, p_idx, s_idx, pref_size) == \
+                                                                        result
 
 class MultipartiteTestViews(TestCase):
     fixtures = FIXTURES_TO_LOAD
@@ -235,6 +252,29 @@ class MultipartiteTestViews(TestCase):
         'It tests the basic typo of the form'
         client = Client()
         url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
-        response = client.get(url)
-        print response
+        response = client.post(url)
+        # print response
+        assert """<p><label for="id_TER">Ter:</label>""" in str(response)
+        assert """<select name="TER" id="id_TER">""" in str(response)
+
+        # 'It tests the basic typo of the form'
+        client = Client()
+        url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
+        response = client.post(url, {"PROM+UTR+ATG": 'pPE8',
+                                     "CDS": 'pANT1',
+                                     "TER": 'pTnos',
+                                     'Vector':'pDGB1_alpha1'})
+
+        assert 'error' not in response
+
+        client = Client()
+        url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
+        response = client.post(url, {"PROM+UTR+ATG": 'pPE8',
+                                     "CDS": 'pANT1',
+                                     "TER": 'pTno'})
+
+        err1 = """<ul class="errorlist"><li>This field is required.</li></ul"""
+        assert err1 in str(response)
+        err2 = """<ul class="errorlist"><li>This feature does not exist in"""
+        assert err2 in str(response)
 

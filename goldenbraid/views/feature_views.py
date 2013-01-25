@@ -1,8 +1,12 @@
+import re
+
 from django.template.context import RequestContext
 from django.core.context_processors import csrf
 from django import forms
 from django.shortcuts import render_to_response
 from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
+from django.http import HttpResponseServerError
 from Bio import SeqIO
 from Bio.Seq import Seq
 
@@ -10,10 +14,8 @@ from goldenbraid.models import Cvterm, Feature, Db, Dbxref, Featureprop
 from goldenbraid.settings import DB, REBASE_FILE
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
-                              ENZYME_OUT_TYPE_NAME, ENZYME_TYPE_NAME,
-                              RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME)
-from django.db.utils import IntegrityError
-from django.http import HttpResponseServerError
+                              ENZYME_OUT_TYPE_NAME, RESISTANCE_TYPE_NAME,
+                              REFERENCE_TYPE_NAME)
 
 
 def _parse_rebase_file(fpath):
@@ -169,18 +171,18 @@ def _search_rec_sites(seq, rec_site):
     seq_elonged = seq + seq[:elong_size]
     residues = str(seq_elonged)
 
-    finded_site_indexes = []
-    finded_site_indexes.append(residues.find(rec_site))
-    ocurrences = residues.count(rec_site)
-    if ocurrences > 2:
-        raise RuntimeError('rec site found more than twice')
-    elif ocurrences > 1:
-        finded_site_indexes.append(residues.rfind(rec_site))
-    corrected_site_indexes = []
+    finded_site_indexes = [m.start() for m in re.finditer(rec_site.upper(),
+                                                          residues.upper())]
+    corrected_site_indexes = set()
     for site in finded_site_indexes:
         if site > len(seq):
             site -= len(seq)
-        corrected_site_indexes.append(site)
+        corrected_site_indexes.add(site)
+
+    if len(corrected_site_indexes) > 2:
+        raise RuntimeError('rec site found more than twice')
+    corrected_site_indexes = list(corrected_site_indexes)
+    corrected_site_indexes.sort()
     return corrected_site_indexes
 
 
@@ -220,46 +222,61 @@ def _choose_rec_sites(forward_sites, rev_sites):
     return forw_site, rev_site
 
 
-def _get_prefix_an_suffix(seq, enzyme):
-    'it gets the prefix and the suffix of the feature seq'
+def get_prefix_and_suffix_index(seq, enzyme):
+    'it gets the prefix and the suffix indexes of the feature seq'
     restriction_site = _parse_rebase_file(REBASE_FILE)[enzyme]
     if '^' in restriction_site:
         raise NotImplementedError
     rec_site, cut_site = restriction_site.split('(')
     forw_cut_delta, rev_cut_delta = cut_site.rstrip(')').split('/')
     forw_cut_delta, rev_cut_delta = int(forw_cut_delta), int(rev_cut_delta)
+
     forw_sites = _search_rec_sites(seq, rec_site)
     rec_seq = Seq(rec_site)
     rec_seq.reverse_complement()
     rev_sites = _search_rec_sites(seq, str(rec_seq.reverse_complement()))
-
     forw_site, rev_site = _choose_rec_sites(forw_sites, rev_sites)
-    prefix, suffix = _pref_suf_from_rec_sites(seq, forw_site, rev_site,
-                                              rec_site, forw_cut_delta,
-                                              rev_cut_delta)
-    return prefix, suffix
+    prefix_index, suffix_index = _pref_suf_index_from_rec_sites(seq,
+                                                                forw_site,
+                                                                rev_site,
+                                                                rec_site,
+                                                                forw_cut_delta,
+                                                                rev_cut_delta)
+
+    return prefix_index, suffix_index, rev_cut_delta - forw_cut_delta
 
 
-def _pref_suf_from_rec_sites(seq, forw_site, rev_site, rec_site,
-                             forw_cut_delta, rev_cut_delta):
+def get_prefix_and_suffix(seq, enzyme):
+    'it gets the prefix and the suffix of the feature seq'
+    prefix_index, suffix_index, prefix_size = get_prefix_and_suffix_index(seq,
+                                                                        enzyme)
+    return _get_pref_suff_from_index(seq, prefix_index, suffix_index,
+                                     prefix_size)
 
-    pref_size = rev_cut_delta - forw_cut_delta
+
+def _get_pref_suff_from_index(seq, prefix_index, suffix_index, prefix_size):
+
+    prefix = seq[prefix_index:prefix_index + prefix_size]
+    suffix = seq[suffix_index:suffix_index + prefix_size]
+
+    if len(suffix) < prefix_size:
+        remaining = prefix_size - len(suffix)
+        suffix += seq[0:remaining]
+
+    return str(prefix), str(suffix)
+
+
+def _pref_suf_index_from_rec_sites(seq, forw_site, rev_site, rec_site,
+                                   forw_cut_delta, rev_cut_delta):
 
     prefix_index = forw_site + len(rec_site) + forw_cut_delta
     if prefix_index >= len(seq):
         prefix_index = prefix_index - len(seq)
-    prefix = seq[prefix_index:prefix_index + pref_size]
 
     suffix_index = rev_site - rev_cut_delta
     if suffix_index < 0:
         suffix_index = len(seq) - abs(suffix_index)
-        remaining = pref_size - (len(seq) - suffix_index)
-        suffix = seq[suffix_index:len(seq)]
-        if remaining:
-            suffix += seq[0:remaining]
-    else:
-        suffix = seq[suffix_index: suffix_index + pref_size]
-    return str(prefix), str(suffix)
+    return prefix_index, suffix_index
 
 
 def add_feature(database, name, type_name, vector, genbank, props):
@@ -309,7 +326,7 @@ def add_feature(database, name, type_name, vector, genbank, props):
         enzyme = props[ENZYME_IN_TYPE_NAME][0]
     else:
         enzyme = vector.enzyme_out[0]
-    prefix, suffix = _get_prefix_an_suffix(residues, enzyme)
+    prefix, suffix = get_prefix_and_suffix(residues, enzyme)
     feature.prefix = prefix
     feature.suffix = suffix
     feature.save(using=database)
