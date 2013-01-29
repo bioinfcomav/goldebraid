@@ -11,7 +11,8 @@ import goldenbraid
 from goldenbraid.views.feature_views import (FeatureForm,
                                              get_prefix_and_suffix,
                                             _choose_rec_sites,
-    _pref_suf_index_from_rec_sites, _get_pref_suff_from_index)
+                                            _pref_suf_index_from_rec_sites,
+                                            _get_pref_suff_from_index)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from goldenbraid.models import Feature
 from goldenbraid.settings import DB
@@ -277,4 +278,21 @@ class MultipartiteTestViews(TestCase):
         assert err1 in str(response)
         err2 = """<ul class="errorlist"><li>This feature does not exist in"""
         assert err2 in str(response)
+
+    def test_protocol_view(self):
+        'it test that the protocol file is generated'
+        client = Client()
+        url = reverse('multipartite_protocol_view')
+        response = client.get(url)
+        assert response.status_code == 400
+
+        response = client.get(url, {'assembled_seq':'aaa',
+                                    'multi_type':'basic',
+                                    "PROM+UTR+ATG": 'pPE8',
+                                     "CDS": 'pANT1',
+                                     "TER": 'pTnos',
+                                     'Vector':'pDGB1_alpha1'})
+        assert "75 ng of pPE8" in str(response)
+
+
 

@@ -4,19 +4,27 @@
 {% load goldenbraid_extras %}
 
 <div id='main'>
-{% for key, values in used_parts.items %}
-    {% if key = 'Vector'%}
-           <p>You have assembled in the GoldenBraid destiny vector<span class='value'>{{value|capfirst|replaceunderscore}}</span>the following parts:</p>
-    {% else %}
+<p>You have assembled in the GoldenBraid destiny vector {{used_parts.Vector}} the following parts:</p>
+{% for key, value in used_parts.items %}
+    {% if key != 'Vector' or  key != 'csrfmiddlewaretoken'%}
            <h1><span class='key'>{{ key|capfirst|replaceunderscore }}:</span> <span class='value'>{{ value|capfirst|replaceunderscore}}</span></h1>
 
     {% endif %}
 
 {% endfor %}
 
-<p>The resulted sequence of the assembly is{{assembled_seq}}</p>
+<p>The resulted sequence of the assembly is </p>
+{{assembled_seq|letterwrap:80|upper }}
 
-<p>You can download a detailed protocol to fulfill the assembly in the lab from <a href=''>here</a>.</p>
+<p>You can download a detailed protocol to fulfill the assembly in the lab from
+<form action='/multipartite/protocol' method='GET'>
+    {% for key, value in used_parts.items %}
+    <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+    <INPUT type="hidden" name="assembled_seq" value="{{ assembled_seq }}">
+    <INPUT type="hidden" name="multi_type" value="{{ multi_type }}">
+    <INPUT type="submit" value="here">
+</form>
 
 </div>
 

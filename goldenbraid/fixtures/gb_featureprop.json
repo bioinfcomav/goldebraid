@@ -88,5 +88,15 @@
     },
     "model": "goldenbraid.featureprop",
     "pk": "9"
+},
+{
+    "fields": {
+        "feature": "13",
+        "type": "6",
+        "value":"Kanamycine",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "10"
 }
 ]
