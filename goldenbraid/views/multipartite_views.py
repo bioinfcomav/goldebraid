@@ -18,7 +18,10 @@ from goldenbraid.settings import DB
 
 from goldenbraid.tags import VECTOR_TYPE_NAME
 from goldenbraid.views.feature_views import get_prefix_and_suffix_index
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 
 PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
