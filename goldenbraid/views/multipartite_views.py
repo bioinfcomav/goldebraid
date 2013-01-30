@@ -243,7 +243,7 @@ def write_protocol(protocol_data):
         fragments.append(part_name)
     part_str = "({0}){1}".format(":".join(fragments), protocol_data[VECTOR_TYPE_NAME])
 
-    protocol.append("Entities to assemble: {}".format(part_str))
+    protocol.append("Entities to assemble: {0}".format(part_str))
     protocol.append("Reaction should be performed as follows:")
 
     part_types.append(VECTOR_TYPE_NAME)
