@@ -280,6 +280,14 @@ def _pref_suf_index_from_rec_sites(seq, forw_site, rev_site, rec_site,
     return prefix_index, suffix_index
 
 
+def _get_fhand(file_, writable=False):
+    'Given an fhand or and fpath it returns an fhand'
+    if isinstance(file_, basestring):
+        mode = 'w' if  writable else 'r'
+        file_ = open(file_, mode)
+    return file_
+
+
 def add_feature(database, name, type_name, vector, genbank, props):
     'it adds a feature to the database'
     seq = SeqIO.read(genbank, 'gb')
@@ -288,7 +296,7 @@ def add_feature(database, name, type_name, vector, genbank, props):
     uniquename = seq.id
     type_ = Cvterm.objects.using(database).get(name=type_name)
     db = Db.objects.using(database).get(name=GOLDEN_DB)
-    genbank_file = File(genbank)
+    genbank_file = File(_get_fhand(genbank))
     try:
         dbxref = Dbxref.objects.using(database).create(db=db,
                                                        accession=uniquename)
