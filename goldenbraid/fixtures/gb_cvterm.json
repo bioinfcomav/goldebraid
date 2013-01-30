@@ -97,5 +97,23 @@
     },
     "model": "goldenbraid.cvterm",
     "pk": "11"
+},
+{
+    "fields": {
+        "cv": "2",
+        "definition": "Transcriptional unit",
+        "name": "TU"
+    },
+    "model": "goldenbraid.cvterm",
+    "pk": "12"
+},
+{
+    "fields": {
+        "cv": "2",
+        "definition": "Phrase",
+        "name": "Phrase"
+    },
+    "model": "goldenbraid.cvterm",
+    "pk": "13"
 }
 ]

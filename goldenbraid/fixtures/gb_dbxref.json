@@ -110,5 +110,45 @@
     },
     "model": "goldenbraid.dbxref",
     "pk": "14"
+},
+{
+    "fields": {
+        "accession": "tu1",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "15"
+},
+{
+    "fields": {
+        "accession": "tu2",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "16"
+},
+{
+    "fields": {
+        "accession": "tu3",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "17"
+},
+{
+    "fields": {
+        "accession": "vector3",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "18"
+},
+{
+    "fields": {
+        "accession": "vector4",
+        "db": "2"
+    },
+    "model": "goldenbraid.dbxref",
+    "pk": "19"
 }
 ]

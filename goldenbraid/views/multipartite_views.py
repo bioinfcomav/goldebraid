@@ -30,7 +30,45 @@ PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
                      'secreted': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
                                  ('SP', 'AATG', 'AGCC'),
                                  ('CDS', 'AGCC', 'GCTT'),
-                                 ('TER', 'GCTT', 'CGCT')]
+                                 ('TER', 'GCTT', 'CGCT')],
+                     'ct-fusion': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
+				 					('CDS', 'AATG', 'GCAG'),
+				 					('CT', 'GCAG', 'GCTT'),
+                                 	('TER', 'GCTT', 'CGCT')],
+		    		 'nt-fusion': [('PROM+UTR', 'GGAG', 'CCAT'),
+									('NT', 'CCAT', 'AATG'),
+				 					('CDS', 'AATG', 'GCTT'),
+                                 	('TER', 'GCTT', 'CGCT')],
+		   			 'nt-ct-fusion': [('PROM+UTR', 'GGAG', 'CCAT'),
+                     		          	('NT', 'CCAT', 'AATG'),
+										('CDS', 'AATG', 'GCAG'),
+				 						('CT', 'GCAG', 'GCTT'),
+                                 		('TER', 'GCTT', 'CGCT')],
+		     		 'operated-promoter': [('OP', 'GGAG', 'TCCC'),
+                                 			('MinPROM', 'TCCC', 'AATG'),
+				 							('CDS', 'AATG', 'GCTT'),
+                                 			('TER', 'GCTT', 'CGCT')],
+		     		'operated-promoter': [('PROM', 'GGAG', 'TGAC'),
+				 						('OP', 'TGAC', 'TCCC'),
+                                 		('MinPROM', 'TCCC', 'AATG'),
+				 						('CDS', 'AATG', 'GCTT'),
+                                 		('TER', 'GCTT', 'CGCT')],
+		      		'protein-interaction': [('InteractionADAPTOR', 'GGAG', 'AATG'),
+				 						('CDS', 'AATG', 'GCTT'),
+                                		('TER', 'GCTT', 'CGCT')],
+		      		'amiRNA':  [('PROM+UTR', 'GGAG', 'CCAT'),
+                                ('5FS', 'CCAT', 'GTGA'),
+				 				('Target', 'GTGA', 'TCTC'),
+				 				('3FS', 'TCTC', 'GCTT'),
+                                ('TER', 'GCTT', 'CGCT')],
+		     		'hpRNA':  [('PROM+UTR', 'GGAG', 'CCAT'),
+				 				('goi', 'CCAT', 'GTGA'),
+				 				('int', 'GTGA', 'TCTC'),
+				 				('iog', 'TCTC', 'GCTT'),
+                                ('TER', 'GCTT', 'CGCT')],
+		      		'tasiRNA':  [('PROM+UTR+mir173', 'GGAG', 'CCAT'),
+				 				('goi', 'CCAT', 'GCTT'),
+                                ('TER', 'GCTT', 'CGCT')]
                      }
 
 
@@ -163,7 +201,7 @@ def write_protocol(protocol_data):
     part_str = "({}){}".format(":".join(fragments), protocol_data[VECTOR_TYPE_NAME])
 
     protocol.append("Entities to assemble: {}".format(part_str))
-    protocol.append("Reactions should be peformed as follows:")
+    protocol.append("Reaction should be performed as follows:")
 
     part_types.append(VECTOR_TYPE_NAME)
     for part_type in part_types:
@@ -183,7 +221,7 @@ def write_protocol(protocol_data):
 
     lline2 = "One microlitre of the reaction is enough to be transform E.coli "
     lline2 += "electrocompetent cells. Positive clones are selected in {}"
-    lline2 += " (50 micrograme ml-1), IPTG (0.5mM) and Xgal (40 micrograme ml-1) plates"
+    lline2 += " (50 microgram ml-1), IPTG (0.5mM) and Xgal (40 microgram ml-1) plates"
     lline2 += " You will distinguish between colonies carrying intact vectors "
     lline2 += "(blue) and those transformed with your construction (white)."
     vector = Feature.objects.using(DB).get(uniquename=protocol_data[VECTOR_TYPE_NAME])
@@ -195,7 +233,7 @@ def write_protocol(protocol_data):
 
 
 def get_enzymes_for_protocol(protocol_data):
-    'it gets the necesary enzymes'
+    'it gets the necessary enzymes'
     enzymes = set()
     vector = Feature.objects.using(DB).get(uniquename=protocol_data[VECTOR_TYPE_NAME])
     vec_enzyme_in = vector.enzyme_in[0]

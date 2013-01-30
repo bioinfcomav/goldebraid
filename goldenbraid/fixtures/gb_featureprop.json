@@ -98,5 +98,65 @@
     },
     "model": "goldenbraid.featureprop",
     "pk": "10"
+},
+{
+    "fields": {
+        "feature": "18",
+        "type": "3",
+        "value":"BsaI",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "11"
+},
+{
+    "fields": {
+        "feature": "18",
+        "type": "4",
+        "value":"BsmBI",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "12"
+},
+{
+    "fields": {
+        "feature": "18",
+        "type": "6",
+        "value":"Kanamycine",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "13"
+},
+{
+    "fields": {
+        "feature": "19",
+        "type": "3",
+        "value":"BsmBI",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "14"
+},
+{
+    "fields": {
+        "feature": "19",
+        "type": "4",
+        "value":"BsaI",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "15"
+},
+{
+    "fields": {
+        "feature": "19",
+        "type": "6",
+        "value":"Spectinomycin",
+        "rank": "0"
+    },
+    "model": "goldenbraid.featureprop",
+    "pk": "16"
 }
 ]
