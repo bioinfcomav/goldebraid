@@ -7,6 +7,7 @@ from django.shortcuts import render_to_response
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 from django.http import HttpResponseServerError
+from django.core.files import File
 from Bio import SeqIO
 from Bio.Seq import Seq
 
@@ -287,6 +288,7 @@ def add_feature(database, name, type_name, vector, genbank, props):
     uniquename = seq.id
     type_ = Cvterm.objects.using(database).get(name=type_name)
     db = Db.objects.using(database).get(name=GOLDEN_DB)
+    genbank_file = File(genbank)
     try:
         dbxref = Dbxref.objects.using(database).create(db=db,
                                                        accession=uniquename)
@@ -306,9 +308,11 @@ def add_feature(database, name, type_name, vector, genbank, props):
         feature = Feature.objects.using(database).create(uniquename=uniquename,
                                                    name=name, type=type_,
                                                    residues=residues,
-                                                  dbxref=dbxref, vector=vector)
+                                                  dbxref=dbxref, vector=vector,
+                                                  genbank_file=genbank_file)
     except IntegrityError as error:
         raise IntegrityError('feature already in db' + str(error))
+
     for type_name, values in props.items():
         try:
             prop_type = Cvterm.objects.using(DB).get(name=type_name)
@@ -330,7 +334,6 @@ def add_feature(database, name, type_name, vector, genbank, props):
     feature.prefix = prefix
     feature.suffix = suffix
     feature.save(using=database)
-
     return feature
 
 
@@ -347,7 +350,6 @@ def add_feature_from_form(form_data):
         props[ENZYME_IN_TYPE_NAME] = form_data['enzyme_in']
         props[ENZYME_OUT_TYPE_NAME] = form_data['enzyme_out']
         props[RESISTANCE_TYPE_NAME] = [form_data['resistance']]
-
     feature = add_feature(database=DB,
                           name=form_data['name'], type_name=feature_type_name,
                           vector=form_data['vector'],

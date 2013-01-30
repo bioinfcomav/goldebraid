@@ -4,6 +4,12 @@ Created on 2013 urt 17
 
 @author: peio
 '''
+import os
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+
 from django.core.exceptions import ValidationError
 from django.forms.widgets import Select
 from django.core.context_processors import csrf
@@ -11,17 +17,19 @@ from django.template.context import RequestContext
 from django.shortcuts import render_to_response
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from django import forms
+from django.conf import settings as proj_settings
+from django.core.files.base import File
+
 from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio.Alphabet import generic_dna
+from Bio import SeqIO
 
 from goldenbraid.models import Feature
 from goldenbraid.settings import DB
-
 from goldenbraid.tags import VECTOR_TYPE_NAME
 from goldenbraid.views.feature_views import get_prefix_and_suffix_index
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+
 
 
 PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
@@ -32,43 +40,44 @@ PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
                                  ('CDS', 'AGCC', 'GCTT'),
                                  ('TER', 'GCTT', 'CGCT')],
                      'ct-fusion': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
-                   ('CDS', 'AATG', 'GCAG'),
-                   ('CT', 'GCAG', 'GCTT'),
+                                   ('CDS', 'AATG', 'GCAG'),
+                                   ('CT', 'GCAG', 'GCTT'),
                                    ('TER', 'GCTT', 'CGCT')],
-             'nt-fusion': [('PROM+UTR', 'GGAG', 'CCAT'),
-                  ('NT', 'CCAT', 'AATG'),
-                   ('CDS', 'AATG', 'GCTT'),
+                     'nt-fusion': [('PROM+UTR', 'GGAG', 'CCAT'),
+                                   ('NT', 'CCAT', 'AATG'),
+                                   ('CDS', 'AATG', 'GCTT'),
                                    ('TER', 'GCTT', 'CGCT')],
-              'nt-ct-fusion': [('PROM+UTR', 'GGAG', 'CCAT'),
-                                     ('NT', 'CCAT', 'AATG'),
-                    ('CDS', 'AATG', 'GCAG'),
-                     ('CT', 'GCAG', 'GCTT'),
-                                     ('TER', 'GCTT', 'CGCT')],
-              'operated-promoter': [('OP', 'GGAG', 'TCCC'),
-                                       ('MinPROM', 'TCCC', 'AATG'),
-                       ('CDS', 'AATG', 'GCTT'),
-                                       ('TER', 'GCTT', 'CGCT')],
-             'operated-promoter': [('PROM', 'GGAG', 'TGAC'),
-                     ('OP', 'TGAC', 'TCCC'),
-                                     ('MinPROM', 'TCCC', 'AATG'),
-                     ('CDS', 'AATG', 'GCTT'),
-                                     ('TER', 'GCTT', 'CGCT')],
-              'protein-interaction': [('InteractionADAPTOR', 'GGAG', 'AATG'),
-                     ('CDS', 'AATG', 'GCTT'),
-                                    ('TER', 'GCTT', 'CGCT')],
-              'amiRNA':  [('PROM+UTR', 'GGAG', 'CCAT'),
-                                ('5FS', 'CCAT', 'GTGA'),
-                 ('Target', 'GTGA', 'TCTC'),
-                 ('3FS', 'TCTC', 'GCTT'),
+                     'nt-ct-fusion': [('PROM+UTR', 'GGAG', 'CCAT'),
+                                      ('NT', 'CCAT', 'AATG'),
+                                      ('CDS', 'AATG', 'GCAG'),
+                                      ('CT', 'GCAG', 'GCTT'),
+                                      ('TER', 'GCTT', 'CGCT')],
+                     'operated-promoter': [('OP', 'GGAG', 'TCCC'),
+                                           ('MinPROM', 'TCCC', 'AATG'),
+                                           ('CDS', 'AATG', 'GCTT'),
+                                           ('TER', 'GCTT', 'CGCT')],
+                     'operated-promoter': [('PROM', 'GGAG', 'TGAC'),
+                                           ('OP', 'TGAC', 'TCCC'),
+                                           ('MinPROM', 'TCCC', 'AATG'),
+                                           ('CDS', 'AATG', 'GCTT'),
+                                           ('TER', 'GCTT', 'CGCT')],
+                     'protein-interaction': [('InteractionADAPTOR', 'GGAG',
+                                              'AATG'),
+                                             ('CDS', 'AATG', 'GCTT'),
+                                             ('TER', 'GCTT', 'CGCT')],
+                     'amiRNA':  [('PROM+UTR', 'GGAG', 'CCAT'),
+                                 ('5FS', 'CCAT', 'GTGA'),
+                                 ('Target', 'GTGA', 'TCTC'),
+                                 ('3FS', 'TCTC', 'GCTT'),
+                                 ('TER', 'GCTT', 'CGCT')],
+                     'hpRNA':  [('PROM+UTR', 'GGAG', 'CCAT'),
+                                ('goi', 'CCAT', 'GTGA'),
+                                ('int', 'GTGA', 'TCTC'),
+                                ('iog', 'TCTC', 'GCTT'),
                                 ('TER', 'GCTT', 'CGCT')],
-             'hpRNA':  [('PROM+UTR', 'GGAG', 'CCAT'),
-                 ('goi', 'CCAT', 'GTGA'),
-                 ('int', 'GTGA', 'TCTC'),
-                 ('iog', 'TCTC', 'GCTT'),
-                                ('TER', 'GCTT', 'CGCT')],
-              'tasiRNA':  [('PROM+UTR+mir173', 'GGAG', 'CCAT'),
-                 ('goi', 'CCAT', 'GCTT'),
-                                ('TER', 'GCTT', 'CGCT')]
+                     'tasiRNA':  [('PROM+UTR+mir173', 'GGAG', 'CCAT'),
+                                  ('goi', 'CCAT', 'GCTT'),
+                                  ('TER', 'GCTT', 'CGCT')]
                      }
 
 
@@ -126,10 +135,13 @@ def _assemble_parts(parts, multi_type):
     'We build the parts using the form data'
     part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
     part_types.append(VECTOR_TYPE_NAME)
-    joined_seq = Seq('')
+    joined_seq = SeqRecord(Seq('', alphabet=generic_dna))
     for part_type in part_types:
         part_uniquename = parts[part_type]
         part = Feature.objects.using(DB).get(uniquename=part_uniquename)
+        gb_path = os.path.join(proj_settings.MEDIA_ROOT,
+                               part.genbank_file.name)
+        part_record = SeqIO.read(gb_path, 'gb')
         seq = Seq(part.residues)
         if part.type.name == VECTOR_TYPE_NAME:
             enzyme = part.enzyme_in[0]
@@ -137,16 +149,21 @@ def _assemble_parts(parts, multi_type):
             enzyme = part.enzyme_out[0]
         pref_idx, suf_idx = get_prefix_and_suffix_index(seq, enzyme)[:2]
         if suf_idx >= pref_idx:
-            part_sub_seq = seq[pref_idx:suf_idx]
+            part_sub_seq = part_record[pref_idx:suf_idx]
         else:
-            part_sub_seq = seq[pref_idx:]
-            part_sub_seq += seq[:suf_idx]
+            part_sub_seq = part_record[pref_idx:]
+            part_sub_seq += part_record[:suf_idx]
+
         joined_seq += part_sub_seq
+    joined_seq.id = 'assembled_parts'
+    joined_seq.name = joined_seq.id
+
     return joined_seq
 
 
-def multipartite_view(request, multi_type=None):
+def multipartite_view_genbank(request, multi_type=None):
     'view of the multipartite tool'
+
     if multi_type is None:
         return render_to_response('multipartite_initial.html', {},
                                   context_instance=RequestContext(request))
@@ -166,17 +183,43 @@ def multipartite_view(request, multi_type=None):
         form = form_class(request_data)
         if form.is_valid():
             multi_form_data = form.cleaned_data
-            used_parts = OrderedDict()
-            for part_type in [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]:
-                used_parts[part_type] = request_data[part_type]
-            used_parts[VECTOR_TYPE_NAME] = request_data[VECTOR_TYPE_NAME]
             assembled_seq = _assemble_parts(multi_form_data, multi_type)
-            return render_to_response('multipartite_result_template.html',
-                                          {'assembled_seq': assembled_seq,
-                                           'used_parts': used_parts,
-                                           'multi_type': multi_type},
-                                    context_instance=RequestContext(request))
 
+            return  HttpResponse(assembled_seq.format('genbank'),
+                                 mimetype='text/plain')
+    return HttpResponseBadRequest()
+
+
+def multipartite_view(request, multi_type=None):
+    if multi_type is None:
+        return render_to_response('multipartite_initial.html', {},
+                                  context_instance=RequestContext(request))
+    elif multi_type not in PARTS_TO_ASSEMBLE.keys():
+        return Http404
+
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    elif request.method == 'GET':
+        request_data = request.GET
+    else:
+        request_data = None
+    form_class = _get_multipartite_form(multi_type)
+    if request_data:
+        form = form_class(request_data)
+        if form.is_valid():
+            used_parts = OrderedDict()
+            multi_form_data = form.cleaned_data
+            for part_type in [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]:
+                used_parts[part_type] = multi_form_data[part_type]
+                used_parts[VECTOR_TYPE_NAME] = multi_form_data[VECTOR_TYPE_NAME]
+            posted_data = multi_form_data
+            return render_to_response('multipartite_result_template.html',
+                                      {'used_parts': used_parts,
+                                       'multi_type': multi_type,
+                                       'posted_data': posted_data},
+                                context_instance=RequestContext(request))
     else:
         form = form_class()
 
@@ -256,10 +299,10 @@ def get_enzymes_for_protocol(protocol_data):
 
 def multipartite_protocol_view(request):
     "it returns the protocol "
-    if not request.GET:
+    if not request.POST:
         msg = "To show the protocol you need first to assemble parts"
         return HttpResponseBadRequest(msg)
-    protocol = write_protocol(request.GET)
+    protocol = write_protocol(request.POST)
     return HttpResponse(protocol, mimetype='text/plain')
 
 

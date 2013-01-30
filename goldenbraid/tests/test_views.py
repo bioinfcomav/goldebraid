@@ -3,6 +3,8 @@ import os.path
 from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.files import File
+from django.conf import settings as proj_settings
 
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -12,11 +14,14 @@ from goldenbraid.views.feature_views import (FeatureForm,
                                              get_prefix_and_suffix,
                                             _choose_rec_sites,
                                             _pref_suf_index_from_rec_sites,
-                                            _get_pref_suff_from_index)
+                                            _get_pref_suff_from_index,
+    add_feature)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from goldenbraid.models import Feature
 from goldenbraid.settings import DB
-from goldenbraid.tags import VECTOR_TYPE_NAME
+from goldenbraid import settings
+from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME, \
+    ENZYME_OUT_TYPE_NAME
 
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                                  'goldenbraid', 'tests', 'data')
@@ -25,6 +30,16 @@ TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
 class FeatureTestViews(TestCase):
     fixtures = FIXTURES_TO_LOAD
     multi_db = True
+
+    def setUp(self):
+        dir_ = os.path.join(proj_settings.MEDIA_ROOT, settings.GENBANK_DIR)
+        for file_ in os.listdir(dir_):
+            os.remove(os.path.join(dir_, file_))
+
+    def tearDown(self):
+        dir_ = os.path.join(proj_settings.MEDIA_ROOT, settings.GENBANK_DIR)
+        for file_ in os.listdir(dir_):
+            os.remove(os.path.join(dir_, file_))
 
     def test_add_feature_form(self):
         test_data = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
@@ -131,17 +146,22 @@ class FeatureTestViews(TestCase):
                                      'type': VECTOR_TYPE_NAME,
                                      'description': 'vector1 desc',
                                      'reference': 'vector1 ref',
-                                     'enzyme_in': 'AagI',
+                                     'enzyme_in': 'BsaI',
                             'enzyme_out': 'AamI,AauI',
                             'resistance': 'vector1_resistance',
                             'gbfile': open(gb_path)})
+        assert response.status_code == 200
+        # TODO url to genbank file
+        # response = client.get('/media/genbank_files/pAn11.gb')
+
         feat = Feature.objects.using(DB).get(uniquename='pAn11')
         assert feat.name == 'vector1'
-        assert  feat.props == {u'Enzyme_in': [u'AagI'],
+        assert  feat.props == {u'Enzyme_in': [u'BsaI'],
                                u'Enzyme_out': [u'AamI', u'AauI'],
                                u'Description': [u'vector1 desc'],
                                u'Reference': [u'vector1 ref'],
                                u'Resistance': [u'vector1_resistance']}
+
 
     def test_get_prefix_and_suffix(self):
         'it tests get a suffix and prefix test'
@@ -239,9 +259,27 @@ class FeatureTestViews(TestCase):
         assert _get_pref_suff_from_index(seq, p_idx, s_idx, pref_size) == \
                                                                         result
 
+    def test_add_feature(self):
+        'It tests the add_feature function'
+        name = 'test_name'
+        type_name = VECTOR_TYPE_NAME
+        vector = None
+        genbank = gb_path = os.path.join(TEST_DATA, 'pAn11.gb')
+        props = {ENZYME_IN_TYPE_NAME:['BsaI'],
+                 ENZYME_OUT_TYPE_NAME:['BsaI']}
+        add_feature(DB, name, type_name, vector, genbank, props)
+        feat = Feature.objects.using(DB).get(uniquename='pAn11')
+        assert feat.uniquename == "pAn11"
+
+
 class MultipartiteTestViews(TestCase):
     fixtures = FIXTURES_TO_LOAD
     multi_db = True
+
+    def setUp(self):
+        dir_ = os.path.join(proj_settings.MEDIA_ROOT, settings.GENBANK_DIR)
+        for file_ in os.listdir(dir_):
+            os.remove(os.path.join(dir_, file_))
 
     def test_empty_type(self):
         client = Client()
@@ -259,6 +297,12 @@ class MultipartiteTestViews(TestCase):
         assert """<select name="TER" id="id_TER">""" in str(response)
 
         # 'It tests the basic typo of the form'
+        for uniq in ('pPE8', 'pANT1', 'pTnos', 'pDGB1_alpha1'):
+            feat = Feature.objects.using(DB).get(uniquename=uniq)
+            feat.genbank_file = File(open(os.path.join(TEST_DATA,
+                                                       '{0}.gb'.format(uniq))))
+            feat.save()
+
         client = Client()
         url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
         response = client.post(url, {"PROM+UTR+ATG": 'pPE8',
@@ -266,8 +310,17 @@ class MultipartiteTestViews(TestCase):
                                      "TER": 'pTnos',
                                      'Vector':'pDGB1_alpha1'})
 
+        # print response
         assert 'error' not in response
+        assert response.status_code == 200
 
+        client = Client()
+        url = reverse('multipartite_view_genbank', kwargs={'multi_type': 'basic'})
+        response = client.post(url, {"PROM+UTR+ATG": 'pPE8',
+                                     "CDS": 'pANT1',
+                                     "TER": 'pTnos',
+                                     'Vector':'pDGB1_alpha1'})
+        assert "LOCUS" in  str(response)
         client = Client()
         url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
         response = client.post(url, {"PROM+UTR+ATG": 'pPE8',
@@ -286,7 +339,7 @@ class MultipartiteTestViews(TestCase):
         response = client.get(url)
         assert response.status_code == 400
 
-        response = client.get(url, {'assembled_seq':'aaa',
+        response = client.post(url, {'assembled_seq':'aaa',
                                     'multi_type':'basic',
                                     "PROM+UTR+ATG": 'pPE8',
                                      "CDS": 'pANT1',
@@ -294,5 +347,8 @@ class MultipartiteTestViews(TestCase):
                                      'Vector':'pDGB1_alpha1'})
         assert "75 ng of pPE8" in str(response)
 
-
+    def tearDown(self):
+        dir_ = os.path.join(proj_settings.MEDIA_ROOT, settings.GENBANK_DIR)
+        for file_ in os.listdir(dir_):
+            os.remove(os.path.join(dir_, file_))
 

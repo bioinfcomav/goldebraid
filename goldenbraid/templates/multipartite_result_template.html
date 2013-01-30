@@ -17,7 +17,7 @@
 {{assembled_seq|letterwrap:80|upper }}
 
 <p>You can download a detailed protocol to fulfill the assembly in the lab from
-<form action='/multipartite/protocol' method='GET'>
+<form action='/multipartite/protocol' method='POST'>
     {% for key, value in used_parts.items %}
     <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
@@ -26,6 +26,15 @@
     <INPUT type="submit" value="here">
 </form>
 
+<form action='/multipartite/{{ multi_type }}/genbank' method='POST'>
+    {% for key, value in posted_data.items %}
+    <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+
+    <INPUT type="submit" value="genbank_file">
+</form>
+
+{{genbank_url}}
 </div>
 
 {% endblock content %}

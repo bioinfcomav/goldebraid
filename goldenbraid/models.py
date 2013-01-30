@@ -93,6 +93,7 @@ class Feature(models.Model):
     vector = models.ForeignKey("Feature", null=True)
     prefix = models.CharField(max_length=4)
     suffix = models.CharField(max_length=4)
+    genbank_file = models.FileField(upload_to=settings.GENBANK_DIR)
     timecreation = models.DateTimeField(auto_now_add=True)
     timelastmodified = models.DateTimeField(auto_now=True)
 

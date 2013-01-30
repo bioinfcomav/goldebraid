@@ -1,14 +1,20 @@
 '''
 tests the goldenbraid models
 '''
-
+import os
 from django.test import TestCase
+from django.db.utils import IntegrityError
+from django.core.files import File
+
+import goldenbraid
 from goldenbraid import settings
 from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
                                 Contact, Stock, Stockcollection)
 from goldenbraid.tags import (ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME)
-from django.db.utils import IntegrityError
+
+TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
+                                 'goldenbraid', 'tests', 'data')
 
 DB = settings.DB
 
@@ -17,7 +23,7 @@ class FeatureTestModels(TestCase):
 
     def test_create(self):
         'can we create a feature?'
-
+        gb_file = File(open(os.path.join(TEST_DATA, 'pAn11.gb')))
         db = Db.objects.using(DB).create(name='goldenbraid',
                                          description='testdb', urlprefix='/',
                                          url='localhost/')
@@ -30,7 +36,6 @@ class FeatureTestModels(TestCase):
         vector_cvterm = Cvterm.objects.using(DB).create(cv=cv, name=VECTOR_TYPE_NAME,
                                                         definition='vector type')
 
-
         # create a feature that is a vector
         vector_feat = Feature.objects.using(DB).create(uniquename='vector1',
                                                        name='vector1',
@@ -38,10 +43,16 @@ class FeatureTestModels(TestCase):
                                                        residues='ATTTAGGCTC',
                                                        dbxref=part1_dbxref,
                                                        prefix='ATCT',
-                                                       suffix='tttt')
+                                                       suffix='tttt',
+                                                       genbank_file=gb_file)
 
         selected_vec_feat = Feature.objects.using(DB).get(uniquename='vector1')
         assert selected_vec_feat.name == 'vector1'
+
+        # assert selected_vec_feat.genbank_file.name == 'genbank_files/pAn11.gb'
+        # assert selected_vec_feat.genbank_file.url == '/media/genbank_files/pAn11.gb'
+        # os.remove(os.path.join(proj_settings.MEDIA_ROOT,
+        # selected_vec_feat.genbank_file.name))
 
         # try to add again the same feat
         try:
@@ -172,11 +183,3 @@ class FeatureTestModels(TestCase):
         # There are various stocks in a stock collection
         assert ibmcp_vec_stock.stockcollection.name == 'ibmcp'
         assert ibmcp_part_stock.stockcollection.name == 'ibmcp'
-
-
-
-
-
-
-
-
