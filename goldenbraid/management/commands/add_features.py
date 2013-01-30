@@ -3,10 +3,12 @@ Created on 2013 urt 15
 
 @author: peio
 '''
+import os
 from django.core.management.base import BaseCommand, CommandError
-
+from django.conf import settings as proj_settings
 from goldenbraid.management.commands.add_cvterms import run_command
 from goldenbraid.settings import DB
+from goldenbraid import settings
 from goldenbraid.views.feature_views import add_feature
 
 MANDATORY_FIELDS = ('name', 'type', 'vector', 'genbank_file', 'properties')
@@ -53,6 +55,14 @@ def load_features(database, reader):
             props = dict([(prop[0], prop[1].split(',')) for prop in prop_list])
         else:
             props = {}
+
+        # remove the file from media root if exists for duplicity problems
+        path_in_media = os.path.join(proj_settings.MEDIA_ROOT,
+                                     settings.GENBANK_DIR,
+                                     os.path.basename(genbank_fpath))
+        if os.path.exists(path_in_media):
+            os.remove(path_in_media)
+
 
         add_feature(database, name, type_name, vector, genbank_fpath,
                     props=props)
