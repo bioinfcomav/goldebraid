@@ -32,42 +32,42 @@ PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
                                  ('CDS', 'AGCC', 'GCTT'),
                                  ('TER', 'GCTT', 'CGCT')],
                      'ct-fusion': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
-				 					('CDS', 'AATG', 'GCAG'),
-				 					('CT', 'GCAG', 'GCTT'),
-                                 	('TER', 'GCTT', 'CGCT')],
-		    		 'nt-fusion': [('PROM+UTR', 'GGAG', 'CCAT'),
-									('NT', 'CCAT', 'AATG'),
-				 					('CDS', 'AATG', 'GCTT'),
-                                 	('TER', 'GCTT', 'CGCT')],
-		   			 'nt-ct-fusion': [('PROM+UTR', 'GGAG', 'CCAT'),
-                     		          	('NT', 'CCAT', 'AATG'),
-										('CDS', 'AATG', 'GCAG'),
-				 						('CT', 'GCAG', 'GCTT'),
-                                 		('TER', 'GCTT', 'CGCT')],
-		     		 'operated-promoter': [('OP', 'GGAG', 'TCCC'),
-                                 			('MinPROM', 'TCCC', 'AATG'),
-				 							('CDS', 'AATG', 'GCTT'),
-                                 			('TER', 'GCTT', 'CGCT')],
-		     		'operated-promoter': [('PROM', 'GGAG', 'TGAC'),
-				 						('OP', 'TGAC', 'TCCC'),
-                                 		('MinPROM', 'TCCC', 'AATG'),
-				 						('CDS', 'AATG', 'GCTT'),
-                                 		('TER', 'GCTT', 'CGCT')],
-		      		'protein-interaction': [('InteractionADAPTOR', 'GGAG', 'AATG'),
-				 						('CDS', 'AATG', 'GCTT'),
-                                		('TER', 'GCTT', 'CGCT')],
-		      		'amiRNA':  [('PROM+UTR', 'GGAG', 'CCAT'),
+                   ('CDS', 'AATG', 'GCAG'),
+                   ('CT', 'GCAG', 'GCTT'),
+                                   ('TER', 'GCTT', 'CGCT')],
+             'nt-fusion': [('PROM+UTR', 'GGAG', 'CCAT'),
+                  ('NT', 'CCAT', 'AATG'),
+                   ('CDS', 'AATG', 'GCTT'),
+                                   ('TER', 'GCTT', 'CGCT')],
+              'nt-ct-fusion': [('PROM+UTR', 'GGAG', 'CCAT'),
+                                     ('NT', 'CCAT', 'AATG'),
+                    ('CDS', 'AATG', 'GCAG'),
+                     ('CT', 'GCAG', 'GCTT'),
+                                     ('TER', 'GCTT', 'CGCT')],
+              'operated-promoter': [('OP', 'GGAG', 'TCCC'),
+                                       ('MinPROM', 'TCCC', 'AATG'),
+                       ('CDS', 'AATG', 'GCTT'),
+                                       ('TER', 'GCTT', 'CGCT')],
+             'operated-promoter': [('PROM', 'GGAG', 'TGAC'),
+                     ('OP', 'TGAC', 'TCCC'),
+                                     ('MinPROM', 'TCCC', 'AATG'),
+                     ('CDS', 'AATG', 'GCTT'),
+                                     ('TER', 'GCTT', 'CGCT')],
+              'protein-interaction': [('InteractionADAPTOR', 'GGAG', 'AATG'),
+                     ('CDS', 'AATG', 'GCTT'),
+                                    ('TER', 'GCTT', 'CGCT')],
+              'amiRNA':  [('PROM+UTR', 'GGAG', 'CCAT'),
                                 ('5FS', 'CCAT', 'GTGA'),
-				 				('Target', 'GTGA', 'TCTC'),
-				 				('3FS', 'TCTC', 'GCTT'),
+                 ('Target', 'GTGA', 'TCTC'),
+                 ('3FS', 'TCTC', 'GCTT'),
                                 ('TER', 'GCTT', 'CGCT')],
-		     		'hpRNA':  [('PROM+UTR', 'GGAG', 'CCAT'),
-				 				('goi', 'CCAT', 'GTGA'),
-				 				('int', 'GTGA', 'TCTC'),
-				 				('iog', 'TCTC', 'GCTT'),
+             'hpRNA':  [('PROM+UTR', 'GGAG', 'CCAT'),
+                 ('goi', 'CCAT', 'GTGA'),
+                 ('int', 'GTGA', 'TCTC'),
+                 ('iog', 'TCTC', 'GCTT'),
                                 ('TER', 'GCTT', 'CGCT')],
-		      		'tasiRNA':  [('PROM+UTR+mir173', 'GGAG', 'CCAT'),
-				 				('goi', 'CCAT', 'GCTT'),
+              'tasiRNA':  [('PROM+UTR+mir173', 'GGAG', 'CCAT'),
+                 ('goi', 'CCAT', 'GCTT'),
                                 ('TER', 'GCTT', 'CGCT')]
                      }
 
@@ -117,7 +117,7 @@ def _get_multipartite_form(multi_type):
     form = type('MultiPartiteForm', (forms.BaseForm,),
                 {'base_fields': form_fields})
     for field_name in form_fields.keys():
-        setattr(form, 'clean_{}'.format(field_name),
+        setattr(form, 'clean_{0}'.format(field_name),
                 create_field_validator(field_name))
     return form
 
@@ -198,7 +198,7 @@ def write_protocol(protocol_data):
     for part_type in part_types:
         part_name = protocol_data[part_type]
         fragments.append(part_name)
-    part_str = "({}){}".format(":".join(fragments), protocol_data[VECTOR_TYPE_NAME])
+    part_str = "({0}){1}".format(":".join(fragments), protocol_data[VECTOR_TYPE_NAME])
 
     protocol.append("Entities to assemble: {}".format(part_str))
     protocol.append("Reaction should be performed as follows:")
@@ -206,10 +206,10 @@ def write_protocol(protocol_data):
     part_types.append(VECTOR_TYPE_NAME)
     for part_type in part_types:
         part_name = protocol_data[part_type]
-        protocol.append("\t75 ng of {}".format(part_name))
+        protocol.append("\t75 ng of {0}".format(part_name))
 
     for enzyme in get_enzymes_for_protocol(protocol_data):
-        protocol.append("\t3u of {}".format(enzyme))
+        protocol.append("\t3u of {0}".format(enzyme))
     protocol.append("")
     protocol.append(u"\t1 microlitre Ligase Buffer")
     protocol.append("")
@@ -220,7 +220,7 @@ def write_protocol(protocol_data):
     protocol.append(long_line1)
 
     lline2 = "One microlitre of the reaction is enough to be transform E.coli "
-    lline2 += "electrocompetent cells. Positive clones are selected in {}"
+    lline2 += "electrocompetent cells. Positive clones are selected in {0}"
     lline2 += " (50 microgram ml-1), IPTG (0.5mM) and Xgal (40 microgram ml-1) plates"
     lline2 += " You will distinguish between colonies carrying intact vectors "
     lline2 += "(blue) and those transformed with your construction (white)."

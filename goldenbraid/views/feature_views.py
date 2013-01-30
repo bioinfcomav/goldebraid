@@ -103,7 +103,7 @@ class FeatureForm(forms.Form):
         if feature is not a vector it validates that the vector
         is in the database'''
         # TODO. change how we deal with two enzymes for the same field
-        enzymes = self.cleaned_data['enzyme_{}'.format(kind)].split(',')
+        enzymes = self.cleaned_data['enzyme_{0}'.format(kind)].split(',')
         error_in_type = self.errors.get('type', False)
         error_in_vector = self.errors.get('vector', False)
 
@@ -113,13 +113,13 @@ class FeatureForm(forms.Form):
         type_ = self.cleaned_data['type']
         if type_ == VECTOR_TYPE_NAME:
             if enzymes[0] == u'':
-                err = 'A vector must have a enzyme {}'.format(kind)
+                err = 'A vector must have a enzyme {0}'.format(kind)
                 raise ValidationError(err)
             existing_enzymes = _parse_rebase_file(REBASE_FILE)
             errors = []
             for enzyme in enzymes:
                 if enzyme not in existing_enzymes.keys():
-                    err = 'This enzyme: {} is not a known enzyme'
+                    err = 'This enzyme: {0} is not a known enzyme'
                     err = err.format(enzyme)
                     errors.append(err)
             if errors:
@@ -127,7 +127,7 @@ class FeatureForm(forms.Form):
 
         else:
             if enzymes:
-                err = 'Only vectors have enzyme {}'.format(kind)
+                err = 'Only vectors have enzyme {0}'.format(kind)
                 raise ValidationError(err)
 
         return enzymes
