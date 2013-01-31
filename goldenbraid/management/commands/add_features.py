@@ -54,7 +54,7 @@ def load_features(database, reader):
         else:
             props = {}
 
-        add_feature(database, name, type_name, vector, genbank_fpath,
+        add_feature(database, name, type_name, vector, open(genbank_fpath),
                     props=props)
 
 
