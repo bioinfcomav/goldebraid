@@ -5,6 +5,7 @@ import os
 from django.test import TestCase
 from django.db.utils import IntegrityError
 from django.core.files import File
+from django.conf import settings as proj_settings
 
 import goldenbraid
 from goldenbraid import settings
@@ -12,6 +13,7 @@ from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
                                 Contact, Stock, Stockcollection)
 from goldenbraid.tags import (ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME)
+from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                                  'goldenbraid', 'tests', 'data')
@@ -20,21 +22,18 @@ DB = settings.DB
 
 
 class FeatureTestModels(TestCase):
+    fixtures = FIXTURES_TO_LOAD
+    multi_db = True
 
     def test_create(self):
         'can we create a feature?'
-        gb_file = File(open(os.path.join(TEST_DATA, 'pAn11.gb')))
-        db = Db.objects.using(DB).create(name='goldenbraid',
-                                         description='testdb', urlprefix='/',
-                                         url='localhost/')
-
+        gb_file = File(open(os.path.join(TEST_DATA, 'pAn11_uniq.gb')))
+        db = Db.objects.using(DB).get(name='goldenbraid')
         part1_dbxref = Dbxref.objects.using(DB).create(db=db, accession='part11')
+        cv = Cv.objects.using(DB).get(name='goldenbraid')
 
-        cv = Cv.objects.using(DB).create(name='goldenbraid',
-                                         definition='goldenbraid control voc')
-
-        vector_cvterm = Cvterm.objects.using(DB).create(cv=cv, name=VECTOR_TYPE_NAME,
-                                                        definition='vector type')
+        vector_cvterm = Cvterm.objects.using(DB).get(cv=cv,
+                                                     name=VECTOR_TYPE_NAME)
 
         # create a feature that is a vector
         vector_feat = Feature.objects.using(DB).create(uniquename='vector1',
@@ -48,11 +47,6 @@ class FeatureTestModels(TestCase):
 
         selected_vec_feat = Feature.objects.using(DB).get(uniquename='vector1')
         assert selected_vec_feat.name == 'vector1'
-
-        # assert selected_vec_feat.genbank_file.name == 'genbank_files/pAn11.gb'
-        # assert selected_vec_feat.genbank_file.url == '/media/genbank_files/pAn11.gb'
-        # os.remove(os.path.join(proj_settings.MEDIA_ROOT,
-        # selected_vec_feat.genbank_file.name))
 
         # try to add again the same feat
         try:
@@ -68,9 +62,8 @@ class FeatureTestModels(TestCase):
             pass
 
         # add the properties to the feature
-        enzyme_out_cvterm = Cvterm.objects.using(DB).create(cv=cv,
-                                                     name=ENZYME_OUT_TYPE_NAME,
-                                                     definition='enzyme out')
+        enzyme_out_cvterm = Cvterm.objects.using(DB).get(cv=cv,
+                                                     name=ENZYME_OUT_TYPE_NAME)
 
         Featureprop.objects.using(DB).create(feature=vector_feat,
                                                          type=enzyme_out_cvterm,
@@ -80,10 +73,8 @@ class FeatureTestModels(TestCase):
                                                          value='BSA2', rank=1)
         assert vector_feat.enzyme_out == ['BSA1', 'BSA2']
 
-
-        resistance_cvterm = Cvterm.objects.using(DB).create(cv=cv,
-                                                            name=RESISTANCE_TYPE_NAME,
-                                                            definition='resistance')
+        resistance_cvterm = Cvterm.objects.using(DB).get(cv=cv,
+                                                    name=RESISTANCE_TYPE_NAME)
 
         Featureprop.objects.using(DB).create(feature=vector_feat,
                                                 type=resistance_cvterm,
@@ -104,6 +95,8 @@ class FeatureTestModels(TestCase):
                                                 vector=vector_feat,
                                                 prefix='ATCT',
                                                 suffix='tttt')
+        os.remove(os.path.join(proj_settings.MEDIA_ROOT,
+                           vector_feat.genbank_file.name))
 
         assert feat.enzyme_in is None
         assert feat.enzyme_out == ['BSA1', 'BSA2']
@@ -119,9 +112,8 @@ class FeatureTestModels(TestCase):
                                                        prefix='ATCT',
                                                        suffix='tttt')
 
-        enzyme_in_cvterm = Cvterm.objects.using(DB).create(cv=cv,
-                                                            name=ENZYME_IN_TYPE_NAME,
-                                                            definition='enzyme in')
+        enzyme_in_cvterm = Cvterm.objects.using(DB).get(cv=cv,
+                                                        name=ENZYME_IN_TYPE_NAME)
 
         Featureprop.objects.using(DB).create(feature=vector2_feat,
                                                          type=enzyme_in_cvterm,

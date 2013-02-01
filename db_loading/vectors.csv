@@ -1,0 +1,19 @@
+name	type	vector	genbank_file	properties
+pDGB1_alpha1	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB1_alpha1.gb	Description=This is a pGreen destiny vector of the alpha level;Enzyme_in=BsaI; Enzyme_out=BsmBI;Resistance=Kanamycin
+pDGB1_alpha2	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB1_alpha2.gb	Description=This is a pGreen destiny vector of the alpha level;Enzyme_in=BsaI; Enzyme_out=BsmBI;Resistance=Kanamycin
+pDGB1_alpha1R	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB1_alpha1R.gb	Description=This is a pGreen destiny vector of the alpha level;Enzyme_in=BsaI; Enzyme_out=BsmBI;Resistance=Kanamycin
+pDGB1_alpha2R	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB1_alpha2R.gb	Description=This is a pGreen destiny vector of the alpha level;Enzyme_in=BsaI; Enzyme_out=BsmBI;Resistance=Kanamycin
+pDGB1_omega1	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB1_omega1.gb	Description=This is a pGreen destiny vector of the omega level;Enzyme_in=BsmBI;Enzyme_out=BsaI;Resistance=Spectinomycin
+pDGB1_omega2	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB1_omega2.gb	Description=This is a pGreen destiny vector of the omega level;Enzyme_in=BsmBI;Enzyme_out=BsaI;Resistance=Spectinomycin
+pDGB1_omega1R	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB1_omega1R.gb	Description=This is a pGreen destiny vector of the omega level;Enzyme_in=BsmBI;Enzyme_out=BsaI;Resistance=Spectinomycin
+pDGB1_omega2R	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB1_omega2R.gb	Description=This is a pGreen destiny vector of the omega level;Enzyme_in=BsmBI;Enzyme_out=BsaI;Resistance=Spectinomycin
+pDGB2_alpha1	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB2_alpha1.gb	Description=This is a pCambia destiny vector of the alpha level;Enzyme_in=BsaI;Enzyme_out=BsmBI;Resistance=Kanamycin
+pDGB2_alpha2	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB2_alpha2.gb	Description=This is a pCambia destiny vector of the alpha level;Enzyme_in=BsaI;Enzyme_out=BsmBI;Resistance=Kanamycin
+pDGB2_alpha1R	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB2_alpha1R.gb	Description=This is a pCambia destiny vector of the alpha level;Enzyme_in=BsaI;Enzyme_out=BsmBI;Resistance=Kanamycin
+pDGB2_alpha2R	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB2_alpha2R.gb	Description=This is a pCambia destiny vector of the alpha level;Enzyme_in=BsaI;Enzyme_out=BsmBI;Resistance=Kanamycin
+pDGB2_omega1	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB2_omega1.gb	Description=This is a pCambia destiny vector of the omega level;Enzyme_in=BsmBI;Enzyme_out=BsaI;Resistance=Spectinomycin
+pDGB2_omega2	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB2_omega2.gb	Description=This is a pCambia destiny vector of the omega level;Enzyme_in=BsmBI;Enzyme_out=BsaI;Resistance=Spectinomycin
+pDGB2_omega1R	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB2_omega1R.gb	Description=This is a pCambia destiny vector of the omega level;Enzyme_in=BsmBI;Enzyme_out=BsaI;Resistance=Spectinomycin
+pDGB2_omega2R	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pDGB2_omega2R.gb	Description=This is a pCambia destiny vector of the omega level;Enzyme_in=BsmBI;Enzyme_out=BsaI;Resistance=Spectinomycin
+pUPD	Vector		/home/peio/devel/goldenbraid/db_loading/genbank/pUPD.gb	Description=This is the universal part domesticator plasmid;Enzyme_in=BsmBI;Enzyme_out=BsaI,BtgZI;Resistance=Ampicillin
+

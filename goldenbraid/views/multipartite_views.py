@@ -160,9 +160,11 @@ def _assemble_parts(parts, multi_type):
             part_sub_seq = part_record[pref_idx:]
             part_sub_seq += part_record[:suf_idx]
 
-        joined_seq += part_sub_seq
-
-    # TODO vectors can be reverse
+        # VECTOR must be always the last part to add
+        if part.type.name == VECTOR_TYPE_NAME and part.direction == REVERSE:
+            joined_seq = joined_seq.reverse_complement() + part_sub_seq
+        else:
+            joined_seq += part_sub_seq
 
     joined_seq.id = 'assembled_parts'
     joined_seq.name = joined_seq.id

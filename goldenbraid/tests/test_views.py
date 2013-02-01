@@ -1,9 +1,9 @@
 import os.path
+from cStringIO import StringIO
 
 from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.files import File
 from django.conf import settings as proj_settings
 
 from Bio import SeqIO
@@ -15,37 +15,26 @@ from goldenbraid.views.feature_views import (FeatureForm,
                                             _choose_rec_sites,
                                             _pref_suf_index_from_rec_sites,
                                             _get_pref_suff_from_index,
-    add_feature)
+                                            add_feature)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from goldenbraid.models import Feature
 from goldenbraid.settings import DB
-from goldenbraid import settings
-from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME, \
-    ENZYME_OUT_TYPE_NAME
+from goldenbraid.tags import (VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME,
+                              ENZYME_OUT_TYPE_NAME)
 
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
-                                 'goldenbraid', 'tests', 'data')
+                         'goldenbraid', 'tests', 'data')
 
 
 class FeatureTestViews(TestCase):
     fixtures = FIXTURES_TO_LOAD
     multi_db = True
 
-    def setUp(self):
-        dir_ = os.path.join(proj_settings.MEDIA_ROOT, settings.GENBANK_DIR)
-        for file_ in os.listdir(dir_):
-            os.remove(os.path.join(dir_, file_))
-
-    def tearDown(self):
-        dir_ = os.path.join(proj_settings.MEDIA_ROOT, settings.GENBANK_DIR)
-        for file_ in os.listdir(dir_):
-            os.remove(os.path.join(dir_, file_))
-
     def test_add_feature_form(self):
         test_data = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                                  'goldenbraid', 'tests', 'data')
         # test of the form
-        gb_path = os.path.join(test_data, 'pAn11.gb')
+        gb_path = os.path.join(test_data, 'pAn11_uniq.gb')
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
                      'type': VECTOR_TYPE_NAME, 'enzyme_in': 'AagI',
                      'enzyme_out': 'AaaI',
@@ -55,11 +44,10 @@ class FeatureTestViews(TestCase):
                                                   uploaded_fhand.read())}
         form = FeatureForm(post_dict, file_dict)
         form.is_valid()
-        print form.errors
         self.assertTrue(form.is_valid())
 
         # test of the form with blanck values
-        gb_path = os.path.join(test_data, 'pAn11.gb')
+        gb_path = os.path.join(test_data, 'pAn11_uniq.gb')
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
                      'type': VECTOR_TYPE_NAME, 'enzyme_out': '',
                      'enzyme_in': 'vector1_enz_in', 'resistance': ''}
@@ -114,7 +102,7 @@ class FeatureTestViews(TestCase):
         assert 'This enzyme: no_exist is not a' in str(form.errors.get(enz_in))
 
         # enzyme_out with two enzymes
-        gb_path = os.path.join(test_data, 'pAn11.gb')
+        gb_path = os.path.join(test_data, 'pAn11_uniq.gb')
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
                      'type': VECTOR_TYPE_NAME, 'enzyme_in': 'AagI',
                      'enzyme_out': 'AamI,AauI', 'resistance': 'aa'}
@@ -139,7 +127,7 @@ class FeatureTestViews(TestCase):
     def test_add_feature_view(self):
         # test of the form page
         # test of the form
-        gb_path = os.path.join(TEST_DATA, 'pAn11.gb')
+        gb_path = os.path.join(TEST_DATA, 'pAn11_uniq.gb')
         client = Client()
         url = reverse('add_feature')
         response = client.post(url, {'name': 'vector1',
@@ -154,7 +142,7 @@ class FeatureTestViews(TestCase):
         # TODO url to genbank file
         # response = client.get('/media/genbank_files/pAn11.gb')
 
-        feat = Feature.objects.using(DB).get(uniquename='pAn11')
+        feat = Feature.objects.using(DB).get(uniquename='pAn11_uniq')
         assert feat.name == 'vector1'
         assert  feat.props == {u'Enzyme_in': [u'BsaI'],
                                u'Enzyme_out': [u'AamI', u'AauI'],
@@ -162,10 +150,13 @@ class FeatureTestViews(TestCase):
                                u'Reference': [u'vector1 ref'],
                                u'Resistance': [u'vector1_resistance']}
 
+        os.remove(os.path.join(proj_settings.MEDIA_ROOT,
+                               feat.genbank_file.name))
+
 
     def test_get_prefix_and_suffix(self):
         'it tests get a suffix and prefix test'
-        gb_path = os.path.join(TEST_DATA, 'pAn11.gb')
+        gb_path = os.path.join(TEST_DATA, 'pAn11_uniq.gb')
         seq = SeqIO.read(gb_path, 'gb')
         seq = seq.seq
         assert ('AATG', 'GCTT') == get_prefix_and_suffix(seq, 'BsaI')
@@ -264,22 +255,19 @@ class FeatureTestViews(TestCase):
         name = 'test_name'
         type_name = VECTOR_TYPE_NAME
         vector = None
-        genbank = gb_path = os.path.join(TEST_DATA, 'pAn11.gb')
-        props = {ENZYME_IN_TYPE_NAME:['BsaI'],
-                 ENZYME_OUT_TYPE_NAME:['BsaI']}
-        add_feature(DB, name, type_name, vector, genbank, props)
-        feat = Feature.objects.using(DB).get(uniquename='pAn11')
-        assert feat.uniquename == "pAn11"
+        genbank = os.path.join(TEST_DATA, 'pANT1_uniq.gb')
+        props = {ENZYME_IN_TYPE_NAME: ['BsaI'],
+                 ENZYME_OUT_TYPE_NAME: ['BsaI']}
+        add_feature(DB, name, type_name, vector, open(genbank), props)
+        feat = Feature.objects.using(DB).get(uniquename='pANT1_uniq')
+        assert feat.uniquename == "pANT1_uniq"
+        os.remove(os.path.join(proj_settings.MEDIA_ROOT,
+                               feat.genbank_file.name))
 
 
 class MultipartiteTestViews(TestCase):
     fixtures = FIXTURES_TO_LOAD
     multi_db = True
-
-    def setUp(self):
-        dir_ = os.path.join(proj_settings.MEDIA_ROOT, settings.GENBANK_DIR)
-        for file_ in os.listdir(dir_):
-            os.remove(os.path.join(dir_, file_))
 
     def test_empty_type(self):
         client = Client()
@@ -296,12 +284,12 @@ class MultipartiteTestViews(TestCase):
         assert """<p><label for="id_TER">Ter:</label>""" in str(response)
         assert """<select name="TER" id="id_TER">""" in str(response)
 
-        # 'It tests the basic typo of the form'
-        for uniq in ('pPE8', 'pANT1', 'pTnos', 'pDGB1_alpha1'):
-            feat = Feature.objects.using(DB).get(uniquename=uniq)
-            feat.genbank_file = File(open(os.path.join(TEST_DATA,
-                                                       '{0}.gb'.format(uniq))))
-            feat.save()
+#        # 'It tests the basic typo of the form'
+#        for uniq in ('pPE8', 'pANT1', 'pTnos', 'pDGB1_alpha1', 'pDGB1_alpha1R'):
+#            feat = Feature.objects.using(DB).get(uniquename=uniq)
+#            feat.genbank_file = File(open(os.path.join(TEST_DATA,
+#                                                       '{0}.gb'.format(uniq))))
+#            feat.save()
 
         client = Client()
         url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
@@ -319,7 +307,7 @@ class MultipartiteTestViews(TestCase):
         response = client.post(url, {"PROM+UTR+ATG": 'pPE8',
                                      "CDS": 'pANT1',
                                      "TER": 'pTnos',
-                                     'Vector':'pDGB1_alpha1'})
+                                     'Vector': 'pDGB1_alpha1'})
         assert "LOCUS" in  str(response)
         client = Client()
         url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
@@ -331,6 +319,15 @@ class MultipartiteTestViews(TestCase):
         assert err1 in str(response)
         err2 = """<ul class="errorlist"><li>This feature does not exist in"""
         assert err2 in str(response)
+
+        # reverse vector
+        url = reverse('multipartite_view_genbank', kwargs={'multi_type': 'basic'})
+        response = client.post(url, {"PROM+UTR+ATG": 'pPE8',
+                                     "CDS": 'pANT1',
+                                     "TER": 'pTnos',
+                                     'Vector': 'pDGB1_alpha1R'})
+        seqrec = SeqIO.read(StringIO(str(response)), 'gb')
+        # seqrec = seqIO.read(tu fichero, 'genbank')
 
     def test_protocol_view(self):
         'it test that the protocol file is generated'
@@ -346,9 +343,3 @@ class MultipartiteTestViews(TestCase):
                                      "TER": 'pTnos',
                                      'Vector':'pDGB1_alpha1'})
         assert "75 ng of pPE8" in str(response)
-
-    def tearDown(self):
-        dir_ = os.path.join(proj_settings.MEDIA_ROOT, settings.GENBANK_DIR)
-        for file_ in os.listdir(dir_):
-            os.remove(os.path.join(dir_, file_))
-

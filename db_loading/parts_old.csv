@@ -1,0 +1,27 @@
+name	type	vector	genbank_file	properties
+pAn11	CDS	pUPD	/home/golden/db_loading/genbank/pAn11.gb	Description=Solanum lycopersicum transcription factor
+pAnt1	CDS	pUPD	/home/golden/db_loading/genbank/pANT1.gb	Description=Solanum lycopersicum transcription factor
+pBFP	CDS	pUPD	/home/golden/db_loading/genbank/pBFP.gb	Description=Blue Fluorescent Protein
+pDelila	CDS	pUPD	/home/golden/db_loading/genbank/pDelila.gb	Description=Antirrhinum majus transcription factor
+pJaf13	CDS	pUPD	/home/golden/db_loading/genbank/pJAF13.gb	Description=Solanum lycopersicum transcription factor
+pLuciferase	CDS	pUPD	/home/golden/db_loading/genbank/pLuciferase.gb	
+pMyb12	CDS	pUPD	/home/golden/db_loading/genbank/pMYB12.gb	Description=Solanum lycopersicum transcription factor
+pP2A11	PROM+UTR+ATG	pUPD	/home/golden/db_loading/genbank/pP2A11.gb	Description=Solanum lycopersicum fruit promoter
+pP35S	PROM+UTR+ATG	pUPD	/home/golden/db_loading/genbank/pP35S.gb	Description=CaMV 35S promoter
+pP35SnoATG	PROM+UTR	pUPD	/home/golden/db_loading/genbank/pP35SNOATG.gb	Description=CaMV 35S promoter
+pPAct2	PROM+UTR+ATG	pUPD	/home/golden/db_loading/genbank/pPAct.gb	Description=Arabidopsis thaliana Actin2 promoter
+pPAtS23-2	PROM+UTR+ATG	pUPD	/home/golden/db_loading/genbank/pPAtS23-2.gb	Description=Arabidopsis thaliana seed promoter
+pPE8	PROM+UTR+ATG	pUPD	/home/golden/db_loading/genbank/pPE8.gb	Description=Solanum lycopersicum fruit promoter
+pPmtb	PROM+UTR+ATG	pUPD	/home/golden/db_loading/genbank/pPmtb.gb	Description=Solanum lycopersicum promoter
+pPPG	PROM+UTR+ATG	pUPD	/home/golden/db_loading/genbank/pPPG.gb	Description=Solanum lycopersicum fruit promoter
+pPtctp	PROM+UTR+ATG	pUPD	/home/golden/db_loading/genbank/pPtctp.gb	Description=Solanum lycopersicum promoter
+pPUbc	PROM+UTR+ATG	pUPD	/home/golden/db_loading/genbank/pPUbc.gb	Description=Solanum lycopersicum promoter
+pRosea	CDS	pUPD	/home/golden/db_loading/genbank/pRosea.gb	Description=Solanum lycopersicum transcription factor
+pT35S	TER	pUPD	/home/golden/db_loading/genbank/pT35S.gb	Description=CaMV 35S terminator
+pT2A11	TER	pUPD	/home/golden/db_loading/genbank/pTerm2A11.gb	Description=Solanum lycopersicum terminator
+pTAct2	TER	pUPD	/home/golden/db_loading/genbank/pTermAct2.gb	Description=Arabidopsis thaliana terminator
+pTE8	TER	pUPD	/home/golden/db_loading/genbank/pTermE8.gb	Description=Solanum lycopersicum terminator
+pTmtb	TER	pUPD	/home/golden/db_loading/genbank/pTermMtb.gb	Description=Solanum lycopersicum terminator
+pTPG	TER	pUPD	/home/golden/db_loading/genbank/pTermPG.gb	Description=Solanum lycopersicum promoter
+pTnos	TER	pUPD	/home/golden/db_loading/genbank/pTnos.gb	Description=Agrobacterium tumefaciens terminator
+pYFP	CDS	pUPD	/home/golden/db_loading/genbank/pYFP.gb	Description=Yellow Fluorescence Protein

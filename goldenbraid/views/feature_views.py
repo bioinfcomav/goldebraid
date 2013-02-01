@@ -4,7 +4,7 @@ from django.template.context import RequestContext
 from django.core.context_processors import csrf
 from django import forms
 from django.shortcuts import render_to_response
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.db.utils import IntegrityError
 from django.http import HttpResponseServerError
 from django.core.files import File
@@ -280,13 +280,6 @@ def _pref_suf_index_from_rec_sites(seq, forw_site, rev_site, rec_site,
     return prefix_index, suffix_index
 
 
-    'Given an fhand or and fpath it returns an fhand'
-    if isinstance(file_, basestring):
-        mode = 'w' if  writable else 'r'
-        file_ = open(file_, mode)
-    return file_
-
-
 def add_feature(database, name, type_name, vector, genbank, props):
     'it adds a feature to the database'
     seq = SeqIO.read(genbank, 'gb')
@@ -327,6 +320,14 @@ def add_feature(database, name, type_name, vector, genbank, props):
             msg = 'Trying to add a property which cvterm does not exist: {0}'
             msg = msg.format(type_name)
             raise RuntimeError(msg)
+        except MultipleObjectsReturned:
+            for p in Cvterm.objects.using(DB).filter(name=type_name):
+                print p.name
+                print p.cvterm_id
+                print p.definition
+            print "type_name", type_name
+            print "feature", feature.uniquename
+            raise
         rank = 0
         for value in values:
             Featureprop.objects.using(DB).create(feature=feature,
