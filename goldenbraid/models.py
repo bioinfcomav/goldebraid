@@ -2,7 +2,8 @@ from django.db import models
 from goldenbraid import settings
 from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
-                              RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME)
+                              RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
+    FORWARD, REVERSE)
 
 DB = settings.DB
 
@@ -161,6 +162,23 @@ class Feature(models.Model):
             return self.props[REFERENCE_TYPE_NAME][0]
         except KeyError:
             return None
+
+    @property
+    def direction(self):
+        'direction of the feature'
+        if self.type.name != VECTOR_TYPE_NAME:
+            vec_suffix = self.vector.suffix
+            vec_prefix = self.vector.prefix
+        else:
+            vec_suffix = self.suffix
+            vec_prefix = self.prefix
+        if vec_prefix == 'CGCT' and vec_suffix == 'GGAG':
+            direction = FORWARD
+        elif vec_prefix == 'AGCG' and vec_suffix == 'CTCC':
+            direction = REVERSE
+        else:
+            direction = None
+        return direction
 
 
 class Featureprop(models.Model):

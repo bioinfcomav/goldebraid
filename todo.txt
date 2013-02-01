@@ -1,0 +1,4 @@
+.-
+.-
+.-Cuando seleccionas el vector en multipartito, que sepas si estas construyendo directa o reversa.
+.-

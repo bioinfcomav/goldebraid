@@ -18,7 +18,6 @@ from django.shortcuts import render_to_response
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from django import forms
 from django.conf import settings as proj_settings
-from django.core.files.base import File
 
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -27,9 +26,8 @@ from Bio import SeqIO
 
 from goldenbraid.models import Feature
 from goldenbraid.settings import DB
-from goldenbraid.tags import VECTOR_TYPE_NAME
+from goldenbraid.tags import VECTOR_TYPE_NAME, FORWARD, REVERSE
 from goldenbraid.views.feature_views import get_prefix_and_suffix_index
-
 
 
 PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
@@ -52,11 +50,11 @@ PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
                                       ('CDS', 'AATG', 'GCAG'),
                                       ('CT', 'GCAG', 'GCTT'),
                                       ('TER', 'GCTT', 'CGCT')],
-                     'operated-promoter': [('OP', 'GGAG', 'TCCC'),
+                     'operated-promoter-a': [('OP', 'GGAG', 'TCCC'),
                                            ('MinPROM', 'TCCC', 'AATG'),
                                            ('CDS', 'AATG', 'GCTT'),
                                            ('TER', 'GCTT', 'CGCT')],
-                     'operated-promoter': [('PROM', 'GGAG', 'TGAC'),
+                     'operated-promoter-b': [('PROM', 'GGAG', 'TGAC'),
                                            ('OP', 'TGAC', 'TCCC'),
                                            ('MinPROM', 'TCCC', 'AATG'),
                                            ('CDS', 'AATG', 'GCTT'),
@@ -105,8 +103,16 @@ def _get_multipartite_form(multi_type):
     vector_suffix = part_defs[0][1]
     vector_prefix = part_defs[-1][2]
     vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
-    vectors = vectors.filter(prefix=vector_prefix, suffix=vector_suffix)
-    for vector in vectors:
+
+    for_vectors = vectors.filter(prefix=vector_prefix, suffix=vector_suffix)
+    rev_vectors = vectors.filter(prefix=Seq(vector_suffix).reverse_complement(),
+                                     suffix=Seq(vector_prefix).reverse_complement())
+
+    vector_choices.append(('', 'Forward vectors'))
+    for vector in for_vectors:
+        vector_choices.append((vector.uniquename, vector.uniquename))
+    vector_choices.append(('', 'Reverse vectors'))
+    for vector in rev_vectors:
         vector_choices.append((vector.uniquename, vector.uniquename))
 
     form_fields[VECTOR_TYPE_NAME] = forms.CharField(max_length=100,
@@ -155,6 +161,9 @@ def _assemble_parts(parts, multi_type):
             part_sub_seq += part_record[:suf_idx]
 
         joined_seq += part_sub_seq
+
+    # TODO vectors can be reverse
+
     joined_seq.id = 'assembled_parts'
     joined_seq.name = joined_seq.id
 
