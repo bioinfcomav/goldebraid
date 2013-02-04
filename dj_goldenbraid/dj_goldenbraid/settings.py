@@ -1,6 +1,6 @@
 # Django settings for dj_goldenbraid project.
 import os
-PROJECT_DIR = '/home/peio/devel/goldenbraid/dj_goldenbraid/'
+PROJECT_DIR = os.path.abspath(os.path.join(__file__, '..'))
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
