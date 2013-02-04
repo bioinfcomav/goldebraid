@@ -308,6 +308,7 @@ class MultipartiteTestViews(TestCase):
                                      "CDS": 'pANT1',
                                      "TER": 'pTnos',
                                      'Vector': 'pDGB1_alpha1'})
+
         assert "LOCUS" in  str(response)
         client = Client()
         url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
@@ -322,12 +323,17 @@ class MultipartiteTestViews(TestCase):
 
         # reverse vector
         url = reverse('multipartite_view_genbank', kwargs={'multi_type': 'basic'})
-        response = client.post(url, {"PROM+UTR+ATG": 'pPE8',
-                                     "CDS": 'pANT1',
-                                     "TER": 'pTnos',
-                                     'Vector': 'pDGB1_alpha1R'})
-        seqrec = SeqIO.read(StringIO(str(response)), 'gb')
-        # seqrec = seqIO.read(tu fichero, 'genbank')
+        response = client.post(url, {"PROM+UTR+ATG": 'pP2A11',
+                                     "CDS": 'pMYB12',
+                                     "TER": 'pT2A11',
+                                     'Vector': 'pDGB1_alpha2R'})
+
+        seqrec1 = SeqIO.read(StringIO(str(response)), 'genbank')
+        multipartite_seq1 = seqrec1.seq
+        genbank = os.path.join(TEST_DATA, 'pEGBMybrev_uniq.gb')
+        seqrec2 = SeqIO.read(genbank, 'genbank')
+        multipartite_seq2 = seqrec2.seq
+        assert multipartite_seq1 == multipartite_seq2
 
     def test_protocol_view(self):
         'it test that the protocol file is generated'
