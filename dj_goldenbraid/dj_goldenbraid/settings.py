@@ -1,6 +1,6 @@
 # Django settings for dj_goldenbraid project.
 import os
-PROJECT_DIR = os.path.abspath(os.path.join(__file__, '..'))
+PROJECT_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -173,5 +173,5 @@ LOGGING = {
         },
     }
 }
-
+GOLDENBRAID_SEARCH_MENU_TYPE_CHOICES = ('PROM+UTR+ATG', 'CDS', 'TER')
 

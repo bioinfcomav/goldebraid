@@ -30,6 +30,13 @@ class FeatureTestViews(TestCase):
     fixtures = FIXTURES_TO_LOAD
     multi_db = True
 
+    def test_feature_page(self):
+        client = Client()
+        url = reverse('feature_view', kwargs={'uniquename': 'pAn11'})
+        response = client.get(url)
+        assert response.status_code == 200
+        assert "Feature pAn11" in str(response)
+
     def test_add_feature_form(self):
         test_data = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                                  'goldenbraid', 'tests', 'data')
@@ -153,7 +160,6 @@ class FeatureTestViews(TestCase):
         os.remove(os.path.join(proj_settings.MEDIA_ROOT,
                                feat.genbank_file.name))
 
-
     def test_get_prefix_and_suffix(self):
         'it tests get a suffix and prefix test'
         gb_path = os.path.join(TEST_DATA, 'pAn11_uniq.gb')
@@ -264,6 +270,20 @@ class FeatureTestViews(TestCase):
         os.remove(os.path.join(proj_settings.MEDIA_ROOT,
                                feat.genbank_file.name))
 
+    def test_search_feature(self):
+        client = Client()
+        url = reverse('search_features')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert  "<option value=" in str(response)
+
+        response = client.post(url, {'name_or_description': 'pAn11'})
+        assert response.status_code == 302
+
+        response = client.post(url, {'kind': 'TER'})
+        assert response.status_code == 200
+        assert  "<td>Agrobacterium tumefaciens terminator" in str(response)
+
 
 class MultipartiteTestViews(TestCase):
     fixtures = FIXTURES_TO_LOAD
@@ -320,14 +340,15 @@ class MultipartiteTestViews(TestCase):
         assert err1 in str(response)
         err2 = """<ul class="errorlist"><li>This feature does not exist in"""
         assert err2 in str(response)
-
         # reverse vector
         url = reverse('multipartite_view_genbank', kwargs={'multi_type': 'basic'})
         response = client.post(url, {"PROM+UTR+ATG": 'pP2A11',
                                      "CDS": 'pMYB12',
-                                     "TER": 'pT2A11',
+                                     "TER": 'pTerm2A11',
                                      'Vector': 'pDGB1_alpha2R'})
 
+        assert response.status_code == 200
+        return
         seqrec1 = SeqIO.read(StringIO(str(response)), 'genbank')
         multipartite_seq1 = seqrec1.seq
         genbank = os.path.join(TEST_DATA, 'pEGBMybrev_uniq.gb')

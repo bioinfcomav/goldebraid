@@ -2,11 +2,35 @@ import re
 
 from django import template
 from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape
 from django.template.defaultfilters import stringfilter
 from django.utils.encoding import force_unicode
 from django.utils.functional import allow_lazy
 
 register = template.Library()
+
+
+def link_if_url(identifier, object_, autoescape=True):
+    '''Given a text and an object it returns either an str or an html <a>
+
+    It will return an anchor if it is capable of building an url from the
+    object.
+    '''
+    if autoescape:
+        esc = conditional_escape
+    else:
+        esc = lambda x: x
+
+    url = getattr(object_, 'url', None)
+    identifier = esc(identifier)
+    if url:
+        url = esc(url)
+        result = "<a href='%s'>%s</a>" % (url, identifier)
+    else:
+        result = identifier
+    return mark_safe(result)
+
+register.filter('link_if_url', link_if_url)
 
 
 def replaceunderscore(value):

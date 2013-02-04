@@ -11,3 +11,6 @@ if not DB:
 GENBANK_DIR = getattr(settings, 'GOLDENBRAID_GENBANK_DIR', 'genbank_files')
 REBASE = os.path.join(goldenbraid.__path__[0], 'rebase', 'withrefm.301')
 REBASE_FILE = getattr(settings, 'GOLDENBRAID_REBASE_FILE', REBASE)
+SEARCH_MENU_TYPE_CHOICES = getattr(settings,
+                                   'GOLDENBRAID_SEARCH_MENU_TYPE_CHOICES',
+                                   None)

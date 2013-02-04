@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load goldenbraid_extras %}
+{% block title %}Feature search {% endblock title %}
+{% block content %}
+
+<div id='main'>
+
+{% if search_criteria and not features_page.paginator.count %}
+  <p>No features found</p>
+{% endif %}
+{% if features_page.object_list %}
+  <p>
+  {% if 'kind' in search_criteria %}
+  {{ features_page.object_list.0.type.name|replaceunderscore|capfirst }}{{ features_page.paginator.count|pluralize }} found: {{ features_page.paginator.count }} </p>
+  {% else %}
+  Features found: {{ features_page.paginator.count }} </p>
+  {% endif%}
+
+  {% with features=features_page.object_list %}
+    {% include "feature_table.html" %}
+  {% endwith %}
+  {% with search_criteria=search_criteria page=features_page %}
+    {% include "pagination.html" %}
+  {% endwith %}
+
+  {% url search_features_view as base_url %}
+    {% load urlbuilder %}
+    <p><a href='{% build_url base_url search_criteria download_search=True %}'>Download search result</a>.</p>
+{% else %}
+
+<form action="{% url search_features %}" method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Search" />
+  </form>
+  {{ form.kind.errors }}
+
+{% endif %}
+</div>
+{% endblock content %}

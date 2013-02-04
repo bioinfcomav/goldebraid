@@ -180,7 +180,6 @@ def multipartite_view_genbank(request, multi_type=None):
                                   context_instance=RequestContext(request))
     elif multi_type not in PARTS_TO_ASSEMBLE.keys():
         return Http404
-
     context = RequestContext(request)
     context.update(csrf(request))
     if request.method == 'POST':
@@ -192,6 +191,7 @@ def multipartite_view_genbank(request, multi_type=None):
     form_class = _get_multipartite_form(multi_type)
     if request_data:
         form = form_class(request_data)
+
         if form.is_valid():
             multi_form_data = form.cleaned_data
             assembled_seq = _assemble_parts(multi_form_data, multi_type)
