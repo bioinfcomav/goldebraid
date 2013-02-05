@@ -340,20 +340,38 @@ class MultipartiteTestViews(TestCase):
         assert err1 in str(response)
         err2 = """<ul class="errorlist"><li>This feature does not exist in"""
         assert err2 in str(response)
+
+
+        # forward vector
+        url = reverse('multipartite_view_genbank', kwargs={'multi_type': 'basic'})
+        response = client.post(url, {"PROM+UTR+ATG": 'pP35S',
+                                     "CDS": 'pMYB12',
+                                     "TER": 'pTnos',
+                                     'Vector': 'pDGB1_omega2'})
+
+        seqrec1 = SeqIO.read(StringIO(str(response)), 'gb')
+        multipartite_seq1 = str(seqrec1.seq)
+        gb_path = os.path.join(TEST_DATA, 'pEGBMyb_uniq.gb')
+        seqrec2 = SeqIO.read(gb_path, 'gb')
+        multipartite_seq2 = str(seqrec2.seq)
+        assert multipartite_seq1 == multipartite_seq2
+
+
         # reverse vector
         url = reverse('multipartite_view_genbank', kwargs={'multi_type': 'basic'})
         response = client.post(url, {"PROM+UTR+ATG": 'pP2A11',
                                      "CDS": 'pMYB12',
                                      "TER": 'pTerm2A11',
-                                     'Vector': 'pDGB1_alpha2R'})
+                                     'Vector': 'pDGB1_alpha1R'})
 
         assert response.status_code == 200
 
         seqrec1 = SeqIO.read(StringIO(str(response)), 'gb')
-        multipartite_seq1 = seqrec1.seq
+        multipartite_seq1 = str(seqrec1.seq)
         gb_path = os.path.join(TEST_DATA, 'pEGBMybrev_uniq.gb')
         seqrec2 = SeqIO.read(gb_path, 'gb')
-        multipartite_seq2 = seqrec2.seq
+        multipartite_seq2 = str(seqrec2.seq)
+
         assert multipartite_seq1 == multipartite_seq2
 
     def test_protocol_view(self):
@@ -376,10 +394,18 @@ class BipartiteViewTest(TestCase):
     def test_bipartite(self):
         client = Client()
         # do initial
-        # do page 1
+        url = reverse('bipartite_view')
+        response = client.post(url, {'part_1': 'GB0125'})
 
+
+        # do page 1
         url = reverse('bipartite_view', kwargs={'form_num': '1'})
-        response = client.post(url, {'part_1': 'GB0125', 'part_2': 'GB0125'})
-        print response
+        response = client.post(url, {'part_1': 'GB0125', 'part_2': 'GB0126'})
+
+
+        # do page 2
+        url = reverse('bipartite_view', kwargs={'form_num': '2'})
+        response = client.post(url, {'part_1': 'GB0125', 'part_2': 'GB0126', 'Vector': 'pDGB1_omega1'})
+
 
 

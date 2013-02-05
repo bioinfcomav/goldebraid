@@ -183,7 +183,7 @@ class Feature(models.Model):
             vec_prefix = self.prefix
         if vec_prefix == 'CGCT' and vec_suffix == 'GGAG':
             direction = FORWARD
-        elif vec_prefix == 'AGCG' and vec_suffix == 'CTCC':
+        elif vec_prefix == 'CTCC' and vec_suffix == 'AGCG':
             direction = REVERSE
         else:
             direction = None

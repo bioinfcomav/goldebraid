@@ -111,7 +111,6 @@ def vector_by_direction_choice(vectors, vector_prefix, vector_suffix):
 
     return vector_choices
 
-
 def _get_multipartite_form(multi_type):
     'It returns a form for the given multipartite'
     form_fields = {}
@@ -169,6 +168,7 @@ def assemble_parts(parts, part_types):
 
         # VECTOR must be always the last part to add
         if part.type.name == VECTOR_TYPE_NAME and part.direction == REVERSE:
+            print joined_seq
             joined_seq = joined_seq.reverse_complement() + part_sub_seq
         else:
             joined_seq += part_sub_seq
