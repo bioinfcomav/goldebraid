@@ -1,0 +1,9 @@
+name	type	vector	genbank_file	properties
+pEGB 35S:Myb12:Tnos	TU	pDGB1_omega2	/home/peio/devel/goldenbraid/db_loading/genbank/pEGBMyb.gb	
+pEGB 35S:Rosea:Tnos	TU	pDGB1_alpha1	/home/peio/devel/goldenbraid/db_loading/genbank/pEGBRosea.gb	
+pEGB 35S:Delila:Tnos	TU	pDGB1_alpha2	/home/peio/devel/goldenbraid/db_loading/genbank/pEGBDelila.gb	
+pEGB 35S:Rosea:Tnos-35S:Delila:Tnos	Phrase	pDGB1_omega1	/home/peio/devel/goldenbraid/db_loading/genbank/pEGBRosDel.gb	
+pEGB 2A11:Myb12:T2A11	TU	pDGB1_alpha1R	/home/peio/devel/goldenbraid/db_loading/genbank/pEGBMyb_reverse1.gb	
+pEGB 2A11:Myb12:T2A11	TU	pDGB1_alpha2R	/home/peio/devel/goldenbraid/db_loading/genbank/pEGBMyb_reverse2.gb	
+pEGB 2A11:Myb12:T2A11	TU	pDGB1_omega1R	/home/peio/devel/goldenbraid/db_loading/genbank/pEGBMyb_reverse3.gb	
+pEGB 2A11:Myb12:Tnos	TU	pDGB1_omega2R	/home/peio/devel/goldenbraid/db_loading/genbank/pEGBMyb_reverse4.gb	

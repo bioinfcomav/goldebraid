@@ -10,13 +10,14 @@ DB_LOADING = '/home/peio/devel/goldenbraid/db_loading'
 CVTERMS_PATH = join(DB_LOADING, 'cvterms.csv')
 VECTORS_PATH = join(DB_LOADING, 'vectors.csv')
 PARTS_PATH = join(DB_LOADING, 'parts.csv')
+TUS_PATH = join(DB_LOADING, 'tus.csv')
 
 
 def create_database():
     'It creates the melonomics chado database'
     check_call(['rm', GOLDENBRAID_DB_PATH])
     _syncdb_django()
-    
+
 
 def _syncdb_django():
     'it runs the syncsdb of the goldenbraid database'
@@ -49,22 +50,20 @@ def load_initial_data():
     insert = "insert into db(name, description, urlprefix, url) values ('{0}',"
     insert += " '{1}', '{2}', '{3}');"
     insert = insert.format('goldenbraid', '', '/', '/')
-    print "1"
     cmd = ['sqlite3', GOLDENBRAID_DB_PATH, insert]
     check_call(cmd)
-    #load cvterms
-    print "2"
+    # load cvterms
     _add_cvterms(CVTERMS_PATH)
     # load vectors
-    print "3"
     _add_feature(VECTORS_PATH)
-    #load parts
-    print "4"
+    # load parts
     _add_feature(PARTS_PATH)
+    # load uts
+    _add_feature(TUS_PATH)
 
 
 def main():
-    
+
     actions = [create_database, load_initial_data]
     # actions = all_actions
     for action in actions:

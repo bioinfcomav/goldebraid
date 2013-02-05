@@ -14,6 +14,7 @@ class Db(models.Model):
     description = models.CharField(max_length=255)
     urlprefix = models.CharField(max_length=255)
     url = models.CharField(max_length=255)
+
     class Meta:
         db_table = u'db'
 
@@ -22,6 +23,7 @@ class Cv(models.Model):
     cv_id = models.AutoField(primary_key=True)
     name = models.CharField(unique=True, max_length=255)
     definition = models.TextField()
+
     class Meta:
         db_table = u'cv'
 
@@ -30,14 +32,21 @@ class Dbxref(models.Model):
     dbxref_id = models.AutoField(primary_key=True)
     db = models.ForeignKey(Db)
     accession = models.CharField(max_length=255)
+
     class Meta:
         db_table = u'dbxref'
+
+    @property
+    def url(self):
+        return  self.db.urlprefix + self.accession
+
 
 class Cvterm(models.Model):
     cvterm_id = models.AutoField(primary_key=True)
     cv = models.ForeignKey(Cv)
     name = models.CharField(max_length=1024)
     definition = models.TextField()
+
     class Meta:
         db_table = u'cvterm'
 
@@ -128,7 +137,7 @@ class Feature(models.Model):
 
     @property
     def enzyme_in(self):
-        'It returns the enzyme in  of the feature'
+        'It returns the enzyme in of the feature'
         return self.props.get(ENZYME_IN_TYPE_NAME, None)
 
     @property

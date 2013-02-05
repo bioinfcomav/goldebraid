@@ -11,6 +11,7 @@ from goldenbraid.models import Cvterm, Feature
 from goldenbraid.settings import DB
 from goldenbraid.views.feature_views import feature_view
 from goldenbraid import settings
+from goldenbraid.tags import DESCRIPTION_TYPE_NAME
 
 
 def _prepare_feature_kind(database):
@@ -50,12 +51,14 @@ class SearchFeatureForm(forms.Form):
 def _build_name_or_prop_query(query, text, exact):
     'It looks in the name or in the feature property tables'
     if exact == 'True':
-        name_criteria = Q(name__iexact=text)
+        name_criteria = Q(name__iexact=text) | Q(uniquename__iexact=text)
     else:
-        name_criteria = Q(name__icontains=text)
+        name_criteria = (Q(name__icontains=text) |
+                         Q(uniquename__icontains=text) |
+                         Q(Q(featureprop__type__name=DESCRIPTION_TYPE_NAME) &
+                           Q(featureprop__value__icontains=text)))
 
-    # prop_criteria_value = Q(featureprop__value__icontains=text)
-    query = query.filter(name_criteria)  # | prop_criteria_value)
+    query = query.filter(name_criteria)
     return query
 
 

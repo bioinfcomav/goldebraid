@@ -1,7 +1,7 @@
 from django.test import TestCase
 from goldenbraid.models import Db
 
-FIXTURES_TO_LOAD = ['initial_data.json']
+FIXTURES_TO_LOAD = ['initial_data2.json']
 
 
 class TestFixtures(TestCase):

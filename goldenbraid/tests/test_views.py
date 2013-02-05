@@ -370,3 +370,16 @@ class MultipartiteTestViews(TestCase):
                                      "TER": 'pTnos',
                                      'Vector':'pDGB1_alpha1'})
         assert "75 ng of pPE8" in str(response)
+
+
+class BipartiteViewTest(TestCase):
+    def test_bipartite(self):
+        client = Client()
+        # do initial
+        # do page 1
+
+        url = reverse('bipartite_view', kwargs={'form_num': '1'})
+        response = client.post(url, {'part_1': 'GB0125', 'part_2': 'GB0125'})
+        print response
+
+
