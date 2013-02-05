@@ -99,7 +99,6 @@ def _get_multipartite_form(multi_type):
     part_defs = PARTS_TO_ASSEMBLE[multi_type]
 
     # first we need to add the vector to the form
-    vector_choices = [('', '')]
     vector_suffix = part_defs[0][1]
     vector_prefix = part_defs[-1][2]
     vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
@@ -108,12 +107,16 @@ def _get_multipartite_form(multi_type):
     rev_vectors = vectors.filter(prefix=Seq(vector_suffix).reverse_complement(),
                                      suffix=Seq(vector_prefix).reverse_complement())
 
-    vector_choices.append(('', 'Forward vectors'))
+    for_vector_choices = []
     for vector in for_vectors:
-        vector_choices.append((vector.uniquename, vector.uniquename))
-    vector_choices.append(('', 'Reverse vectors'))
+        for_vector_choices.append((vector.uniquename, vector.uniquename))
+    rev_vector_choices = []
     for vector in rev_vectors:
-        vector_choices.append((vector.uniquename, vector.uniquename))
+        rev_vector_choices.append((vector.uniquename, vector.uniquename))
+
+    vector_choices = (('', ''),
+                      ('Forward_vectors', for_vector_choices),
+                      ('Reverse vectors', rev_vector_choices))
 
     form_fields[VECTOR_TYPE_NAME] = forms.CharField(max_length=100,
                                         widget=Select(choices=vector_choices))
