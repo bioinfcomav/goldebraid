@@ -348,11 +348,11 @@ class MultipartiteTestViews(TestCase):
                                      'Vector': 'pDGB1_alpha2R'})
 
         assert response.status_code == 200
-        return
-        seqrec1 = SeqIO.read(StringIO(str(response)), 'genbank')
+
+        seqrec1 = SeqIO.read(StringIO(str(response)), 'gb')
         multipartite_seq1 = seqrec1.seq
-        genbank = os.path.join(TEST_DATA, 'pEGBMybrev_uniq.gb')
-        seqrec2 = SeqIO.read(genbank, 'genbank')
+        gb_path = os.path.join(TEST_DATA, 'pEGBMybrev_uniq.gb')
+        seqrec2 = SeqIO.read(gb_path, 'gb')
         multipartite_seq2 = seqrec2.seq
         assert multipartite_seq1 == multipartite_seq2
 
