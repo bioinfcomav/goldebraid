@@ -13,7 +13,7 @@
 
 {% endfor %}
 
-<form action='/multipartite/protocol/' method='POST'>{% csrf_token %}
+<form action='/do/multipartite/protocol/' method='POST'>{% csrf_token %}
     {% for key, value in used_parts.items %}
     <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
@@ -22,7 +22,7 @@
     <span>You can download a detailed protocol to fulfill the assembly in the lab from</span> <INPUT type="submit" value="here">
 </form>
 
-<form action='/multipartite/{{ multi_type }}/genbank/' method='POST'>{% csrf_token %}
+<form action='/do/multipartite/{{ multi_type }}/genbank/' method='POST'>{% csrf_token %}
     {% for key, value in posted_data.items %}
     <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}

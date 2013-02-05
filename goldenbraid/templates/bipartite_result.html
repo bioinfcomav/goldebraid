@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Bipartite Result Page{% endblock title %}
+{% block content %}
+{% load goldenbraid_extras %}
+<div id='main'>
+ <p>You have assembled in the GoldenBraid destiny vector <a href='/feature/{{used_parts.Vector}}'>{{used_parts.Vector}}</a> the following parts:</p>
+{% for key, value in used_parts.items %}
+    {% if key != 'Vector' %}
+        <p>{{ key|capfirst|replaceunderscore }}:<a href='/feature/{{value}}'>{{ value}}</a></p>
+
+    {% endif %}
+
+{% endfor %}
+
+</div>
+
+<form action='/do/bipartite/genbank/' method='POST'>{% csrf_token %}
+    {% for key, value in used_parts.items %}
+    <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+    <span>The resulted sequence of the assembly is</span>  <INPUT type="submit" value="genbank_file">
+</form>
+{% endblock content %}

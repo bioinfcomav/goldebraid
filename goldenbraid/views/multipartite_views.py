@@ -79,7 +79,7 @@ PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
                      }
 
 
-def create_field_validator(field_name):
+def create_feature_validator(field_name):
 
     def validator(self):
         uniquename_str = self.cleaned_data[field_name]
@@ -92,16 +92,7 @@ def create_field_validator(field_name):
     return validator
 
 
-def _get_multipartite_form(multi_type):
-    'It returns a form for the given multipartite'
-    form_fields = {}
-
-    part_defs = PARTS_TO_ASSEMBLE[multi_type]
-
-    # first we need to add the vector to the form
-    vector_suffix = part_defs[0][1]
-    vector_prefix = part_defs[-1][2]
-    vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
+def vector_by_direction_choice(vectors, vector_prefix, vector_suffix):
 
     for_vectors = vectors.filter(prefix=vector_prefix, suffix=vector_suffix)
     rev_vectors = vectors.filter(prefix=Seq(vector_suffix).reverse_complement(),
@@ -115,9 +106,23 @@ def _get_multipartite_form(multi_type):
         rev_vector_choices.append((vector.uniquename, vector.uniquename))
 
     vector_choices = (('', ''),
-                      ('Forward_vectors', for_vector_choices),
+                      ('Forward vectors', for_vector_choices),
                       ('Reverse vectors', rev_vector_choices))
 
+    return vector_choices
+
+
+def _get_multipartite_form(multi_type):
+    'It returns a form for the given multipartite'
+    form_fields = {}
+
+    part_defs = PARTS_TO_ASSEMBLE[multi_type]
+
+    # first we need to add the vector to the form
+    vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
+    vector_suffix = part_defs[0][1]
+    vector_prefix = part_defs[-1][2]
+    vector_choices = vector_by_direction_choice(vectors, vector_suffix, vector_prefix)
     form_fields[VECTOR_TYPE_NAME] = forms.CharField(max_length=100,
                                         widget=Select(choices=vector_choices))
 
@@ -136,13 +141,12 @@ def _get_multipartite_form(multi_type):
                 {'base_fields': form_fields})
     for field_name in form_fields.keys():
         setattr(form, 'clean_{0}'.format(field_name),
-                create_field_validator(field_name))
+                create_feature_validator(field_name))
     return form
 
 
-def _assemble_parts(parts, multi_type):
+def assemble_parts(parts, part_types):
     'We build the parts using the form data'
-    part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
     part_types.append(VECTOR_TYPE_NAME)
     joined_seq = SeqRecord(Seq('', alphabet=generic_dna))
     for part_type in part_types:
@@ -197,7 +201,8 @@ def multipartite_view_genbank(request, multi_type=None):
 
         if form.is_valid():
             multi_form_data = form.cleaned_data
-            assembled_seq = _assemble_parts(multi_form_data, multi_type)
+            part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
+            assembled_seq = assemble_parts(multi_form_data, part_types)
 
             return  HttpResponse(assembled_seq.format('genbank'),
                                  mimetype='text/plain')

@@ -137,7 +137,7 @@ class Feature(models.Model):
 
     @property
     def enzyme_in(self):
-        'It returns the enzyme in  of the feature'
+        'It returns the enzyme in of the feature'
         return self.props.get(ENZYME_IN_TYPE_NAME, None)
 
     @property
