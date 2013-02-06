@@ -183,7 +183,8 @@ def assemble_parts(parts, part_types):
 
     joined_seq.id = 'assembled_seq'
     joined_seq.name = joined_seq.id
-    joined_seq.description = "({}){}".format(','.join(names['parts']), names['vector'])
+    joined_seq.description = "({}){}".format(','.join(names['parts']),
+                                             names['vector'])
 
     return joined_seq
 
@@ -328,5 +329,3 @@ def multipartite_protocol_view(request):
     part_order = [p[0] for p in PARTS_TO_ASSEMBLE[request.POST['multi_type']]]
     protocol = write_protocol(request.POST, 'multipartite', part_order)
     return HttpResponse(protocol, mimetype='text/plain')
-
-

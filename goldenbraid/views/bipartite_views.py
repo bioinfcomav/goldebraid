@@ -173,11 +173,12 @@ def bipartite_view(request, form_num):
             form = BipartiteForm3(request_data)
             if form.is_valid():
                 used_parts = OrderedDict()
-                used_parts['part_1'] = form.cleaned_data['part_1']
-                used_parts['part_2'] = form.cleaned_data['part_2']
-                used_parts[VECTOR_TYPE_NAME] = form.cleaned_data[VECTOR_TYPE_NAME]
+                cleaned_data = form.cleaned_data
+                used_parts['part_1'] = cleaned_data['part_1']
+                used_parts['part_2'] = cleaned_data['part_2']
+                used_parts[VECTOR_TYPE_NAME] = cleaned_data[VECTOR_TYPE_NAME]
                 return render_to_response('bipartite_result.html',
-                                          {'used_parts': form.cleaned_data},
+                                          {'used_parts': used_parts},
                                     context_instance=RequestContext(request))
             else:
                 context['form_num'] = '3'

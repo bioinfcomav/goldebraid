@@ -8,6 +8,8 @@ from goldenbraid.views.multipartite_views import (multipartite_view,
 from goldenbraid.views.bipartite_views import (bipartite_view,
                                                bipartite_view_genbank,
                                                bipartite_view_protocol)
+from goldenbraid.views.domestication_view import domestication_view
+
 
 urlpatterns = patterns('',
         url(r'^add/feature', add_feature_view, name='add_feature'),
@@ -28,6 +30,9 @@ urlpatterns = patterns('',
             name='bipartite_view_protocol'),
         url(r'do/bipartite/(?P<form_num>.+)?/?$', bipartite_view,
             name='bipartite_view'),
+        url(r'do/domestication/$', domestication_view,
+            name='domestication_view'),
+
 
                        )
 
