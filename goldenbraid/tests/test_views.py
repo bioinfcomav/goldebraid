@@ -370,7 +370,8 @@ class MultipartiteTestViews(TestCase):
         multipartite_seq1 = str(seqrec1.seq)
         gb_path = os.path.join(TEST_DATA, 'pEGBMybrev_uniq.gb')
         seqrec2 = SeqIO.read(gb_path, 'gb')
-        multipartite_seq2 = str(seqrec2.seq)
+        multipartite_seq2 = str(seqrec2.seq)[4:]
+        multipartite_seq2 += str(seqrec2.seq)[:4]
 
         assert multipartite_seq1 == multipartite_seq2
 

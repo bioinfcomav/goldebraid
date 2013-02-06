@@ -111,6 +111,7 @@ def vector_by_direction_choice(vectors, vector_prefix, vector_suffix):
 
     return vector_choices
 
+
 def _get_multipartite_form(multi_type):
     'It returns a form for the given multipartite'
     form_fields = {}
@@ -160,17 +161,21 @@ def assemble_parts(parts, part_types):
         else:
             enzyme = part.enzyme_out[0]
         pref_idx, suf_idx = get_prefix_and_suffix_index(seq, enzyme)[:2]
-        if suf_idx >= pref_idx:
-            part_sub_seq = part_record[pref_idx:suf_idx]
-        else:
-            part_sub_seq = part_record[pref_idx:]
-            part_sub_seq += part_record[:suf_idx]
-
         # VECTOR must be always the last part to add
         if part.type.name == VECTOR_TYPE_NAME and part.direction == REVERSE:
-            print joined_seq
+            if suf_idx >= pref_idx and suf_idx + 4 < len(seq):
+                part_sub_seq = part_record[pref_idx + 4:suf_idx + 4]
+            else:
+                part_sub_seq = part_record[pref_idx + 4:]
+                part_sub_seq += part_record[:suf_idx + 4]
+
             joined_seq = joined_seq.reverse_complement() + part_sub_seq
         else:
+            if suf_idx >= pref_idx:
+                part_sub_seq = part_record[pref_idx:suf_idx]
+            else:
+                part_sub_seq = part_record[pref_idx:]
+                part_sub_seq += part_record[:suf_idx]
             joined_seq += part_sub_seq
 
     joined_seq.id = 'assembled_parts'
