@@ -3,6 +3,11 @@ Created on 2013 ots 5
 
 @author: peio
 '''
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+
 from Bio.Seq import Seq
 from django.template.context import RequestContext
 from django.core.context_processors import csrf
@@ -14,9 +19,10 @@ from django.db.models import Q
 from goldenbraid.models import Feature
 from goldenbraid.settings import DB
 from goldenbraid.views.multipartite_views import (create_feature_validator,
-                                                  vector_by_direction_choice,
+                                                  vectors_to_choice,
                                                   assemble_parts,
-                                                  PARTS_TO_ASSEMBLE)
+                                                  PARTS_TO_ASSEMBLE,
+    write_protocol)
 from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME
 from django.http import HttpResponse, HttpResponseBadRequest
 
@@ -28,7 +34,7 @@ SITE_B = 'CGCT'
 SITE_C = 'GTCA'
 
 
-def _select_part_choices(parts):
+def _parts_to_choice(parts):
     parts_forw = parts.filter(vector__prefix=SITE_B, vector__suffix=SITE_A)
     parts_rev = parts.filter(vector__prefix=Seq(SITE_A).reverse_complement(),
                              vector__suffix=Seq(SITE_B).reverse_complement())
@@ -47,11 +53,10 @@ def _select_part_choices(parts):
 
 
 class BipartiteForm1(forms.Form):
-    # vector
     _bi_parts = Feature.objects.using(DB).filter(
                                         type__name__in=BIPARTITE_ALLOWED_PARTS)
     _parts = _bi_parts.filter(prefix=SITE_A, suffix=SITE_C)
-    _part_choices = _select_part_choices(_parts)
+    _part_choices = _parts_to_choice(_parts)
 
     part_1 = forms.CharField(max_length=100,
                                          widget=Select(choices=_part_choices))
@@ -117,19 +122,13 @@ def _get_part2_choices(part1_uniquename):
 
 def _get_bipart_vector_choices(part_uniquename):
     part = Feature.objects.using(DB).get(uniquename=part_uniquename)
-    part_enzyme_out = part.enzyme_out
+    part_enzyme_out = part.enzyme_out[0]
 
     vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
     vectors = vectors.filter(featureprop__type__name=ENZYME_IN_TYPE_NAME,
                              featureprop__value=part_enzyme_out)
-    print vectors.query
-    for vector in vectors:
-        print vector.enzyme_in, part_enzyme_out
-    part_def = PARTS_TO_ASSEMBLE.values()[0]
 
-    vector_suffix = part_def[0][1]
-    vector_prefix = part_def[-1][2]
-    return vector_by_direction_choice(vectors, vector_prefix, vector_suffix)
+    return vectors_to_choice(vectors)
 
 
 def bipartite_view(request, form_num):
@@ -173,6 +172,10 @@ def bipartite_view(request, form_num):
         if request_data:
             form = BipartiteForm3(request_data)
             if form.is_valid():
+                used_parts = OrderedDict()
+                used_parts['part_1'] = form.cleaned_data['part_1']
+                used_parts['part_2'] = form.cleaned_data['part_2']
+                used_parts[VECTOR_TYPE_NAME] = form.cleaned_data[VECTOR_TYPE_NAME]
                 return render_to_response('bipartite_result.html',
                                           {'used_parts': form.cleaned_data},
                                     context_instance=RequestContext(request))
@@ -204,3 +207,12 @@ def bipartite_view_genbank(request):
             return  HttpResponse(seq.format('genbank'),
                              mimetype='text/plain')
     return HttpResponseBadRequest()
+
+
+def bipartite_view_protocol(request):
+    "it returns the protocol "
+    if not request.POST:
+        msg = "To show the protocol you need first to assemble parts"
+        return HttpResponseBadRequest(msg)
+    protocol = write_protocol(request.POST, "bipartite", ['part_1', 'part_2'])
+    return HttpResponse(protocol, mimetype='text/plain')

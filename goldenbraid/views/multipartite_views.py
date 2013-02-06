@@ -26,7 +26,7 @@ from Bio import SeqIO
 
 from goldenbraid.models import Feature
 from goldenbraid.settings import DB
-from goldenbraid.tags import VECTOR_TYPE_NAME, FORWARD, REVERSE
+from goldenbraid.tags import VECTOR_TYPE_NAME, REVERSE
 from goldenbraid.views.feature_views import get_prefix_and_suffix_index
 
 
@@ -77,6 +77,8 @@ PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
                                   ('goi', 'CCAT', 'GCTT'),
                                   ('TER', 'GCTT', 'CGCT')]
                      }
+UT_PREFIX = PARTS_TO_ASSEMBLE['basic'][0][1]
+UT_SUFFIX = PARTS_TO_ASSEMBLE['basic'][-1][2]
 
 
 def create_feature_validator(field_name):
@@ -92,12 +94,11 @@ def create_feature_validator(field_name):
     return validator
 
 
-def vector_by_direction_choice(vectors, vector_prefix, vector_suffix):
-
-    for_vectors = vectors.filter(prefix=vector_prefix, suffix=vector_suffix)
-    rev_vectors = vectors.filter(prefix=Seq(vector_suffix).reverse_complement(),
-                                     suffix=Seq(vector_prefix).reverse_complement())
-
+def vectors_to_choice(vectors):
+    "it returns the given vectors but prepared to use as choices in a select"
+    for_vectors = vectors.filter(prefix=UT_SUFFIX, suffix=UT_PREFIX)
+    rev_vectors = vectors.filter(prefix=Seq(UT_PREFIX).reverse_complement(),
+                                 suffix=Seq(UT_SUFFIX).reverse_complement())
     for_vector_choices = []
     for vector in for_vectors:
         for_vector_choices.append((vector.uniquename, vector.uniquename))
@@ -120,9 +121,7 @@ def _get_multipartite_form(multi_type):
 
     # first we need to add the vector to the form
     vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
-    vector_suffix = part_defs[0][1]
-    vector_prefix = part_defs[-1][2]
-    vector_choices = vector_by_direction_choice(vectors, vector_suffix, vector_prefix)
+    vector_choices = vectors_to_choice(vectors)
     form_fields[VECTOR_TYPE_NAME] = forms.CharField(max_length=100,
                                         widget=Select(choices=vector_choices))
 
@@ -149,6 +148,7 @@ def assemble_parts(parts, part_types):
     'We build the parts using the form data'
     part_types.append(VECTOR_TYPE_NAME)
     joined_seq = SeqRecord(Seq('', alphabet=generic_dna))
+    names = {'parts': []}
     for part_type in part_types:
         part_uniquename = parts[part_type]
         part = Feature.objects.using(DB).get(uniquename=part_uniquename)
@@ -158,8 +158,11 @@ def assemble_parts(parts, part_types):
         seq = Seq(part.residues)
         if part.type.name == VECTOR_TYPE_NAME:
             enzyme = part.enzyme_in[0]
+            names['vector'] = part.uniquename
         else:
+            names['parts'].append(part.uniquename)
             enzyme = part.enzyme_out[0]
+
         pref_idx, suf_idx = get_prefix_and_suffix_index(seq, enzyme)[:2]
         # VECTOR must be always the last part to add
         if part.type.name == VECTOR_TYPE_NAME and part.direction == REVERSE:
@@ -178,8 +181,9 @@ def assemble_parts(parts, part_types):
                 part_sub_seq += part_record[:suf_idx]
             joined_seq += part_sub_seq
 
-    joined_seq.id = 'assembled_parts'
+    joined_seq.id = 'assembled_seq'
     joined_seq.name = joined_seq.id
+    joined_seq.description = "({}){}".format(','.join(names['parts']), names['vector'])
 
     return joined_seq
 
@@ -238,11 +242,9 @@ def multipartite_view(request, multi_type=None):
             for part_type in [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]:
                 used_parts[part_type] = multi_form_data[part_type]
                 used_parts[VECTOR_TYPE_NAME] = multi_form_data[VECTOR_TYPE_NAME]
-            posted_data = multi_form_data
             return render_to_response('multipartite_result_template.html',
                                       {'used_parts': used_parts,
-                                       'multi_type': multi_type,
-                                       'posted_data': posted_data},
+                                       'multi_type': multi_type},
                                 context_instance=RequestContext(request))
     else:
         form = form_class()
@@ -254,15 +256,14 @@ def multipartite_view(request, multi_type=None):
     return render_to_response(template, context, mimetype=mimetype)
 
 
-def write_protocol(protocol_data):
+def write_protocol(protocol_data, assembly_type, part_order):
     "it writes the protocol in a variable"
     protocol = []
-    protocol.append("Multipartite Assembly Protocol")
+    protocol.append("{} Assembly Protocol".format(assembly_type.title()))
     protocol.append("")
 
-    part_types = [p[0] for p in PARTS_TO_ASSEMBLE[protocol_data['multi_type']]]
     fragments = []
-    for part_type in part_types:
+    for part_type in part_order:
         part_name = protocol_data[part_type]
         fragments.append(part_name)
     part_str = "({0}){1}".format(":".join(fragments), protocol_data[VECTOR_TYPE_NAME])
@@ -270,12 +271,12 @@ def write_protocol(protocol_data):
     protocol.append("Entities to assemble: {0}".format(part_str))
     protocol.append("Reaction should be performed as follows:")
 
-    part_types.append(VECTOR_TYPE_NAME)
-    for part_type in part_types:
+    part_order.append(VECTOR_TYPE_NAME)
+    for part_type in part_order:
         part_name = protocol_data[part_type]
         protocol.append("\t75 ng of {0}".format(part_name))
 
-    for enzyme in get_enzymes_for_protocol(protocol_data):
+    for enzyme in get_enzymes_for_protocol(protocol_data, part_order):
         protocol.append("\t3u of {0}".format(enzyme))
     protocol.append("")
     protocol.append(u"\t1 microlitre Ligase Buffer")
@@ -299,23 +300,21 @@ def write_protocol(protocol_data):
     return protocol
 
 
-def get_enzymes_for_protocol(protocol_data):
+def get_enzymes_for_protocol(protocol_data, part_order):
     'it gets the necessary enzymes'
-    enzymes = set()
+
     vector = Feature.objects.using(DB).get(uniquename=protocol_data[VECTOR_TYPE_NAME])
-    vec_enzyme_in = vector.enzyme_in[0]
+    vec_enzyme_in = vector.enzyme_in
     vec_enzyme_out = vector.enzyme_out
+    enzymes = set(vec_enzyme_in)
 
-    enzymes.add(vec_enzyme_in)
-
-    part_types = [p[0] for p in PARTS_TO_ASSEMBLE[protocol_data['multi_type']]]
-    for part_type in part_types:
+    for part_type in part_order:
         part_name = protocol_data[part_type]
         part = Feature.objects.using(DB).get(uniquename=part_name)
         enzyme_outs = part.enzyme_out
         if vec_enzyme_in not in enzyme_outs:
             for enzyme_out in enzyme_outs:
-                if enzyme_out != vec_enzyme_out:
+                if enzyme_out not in  vec_enzyme_out:
                     enzymes.add(enzyme_out)
                     break
     return list(enzymes)
@@ -326,7 +325,8 @@ def multipartite_protocol_view(request):
     if not request.POST:
         msg = "To show the protocol you need first to assemble parts"
         return HttpResponseBadRequest(msg)
-    protocol = write_protocol(request.POST)
+    part_order = [p[0] for p in PARTS_TO_ASSEMBLE[request.POST['multi_type']]]
+    protocol = write_protocol(request.POST, 'multipartite', part_order)
     return HttpResponse(protocol, mimetype='text/plain')
 
 

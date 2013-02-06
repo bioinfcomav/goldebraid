@@ -17,13 +17,12 @@
     {% for key, value in used_parts.items %}
     <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
-    <INPUT type="hidden" name="assembled_seq" value="{{ assembled_seq }}">
     <INPUT type="hidden" name="multi_type" value="{{ multi_type }}">
     <span>You can download a detailed protocol to fulfill the assembly in the lab from</span> <INPUT type="submit" value="here">
 </form>
 
 <form action='/do/multipartite/{{ multi_type }}/genbank/' method='POST'>{% csrf_token %}
-    {% for key, value in posted_data.items %}
+    {% for key, value in used_parts.items %}
     <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
 

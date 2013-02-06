@@ -6,7 +6,8 @@ from goldenbraid.views.multipartite_views import (multipartite_view,
                                                   multipartite_protocol_view,
                                                   multipartite_view_genbank)
 from goldenbraid.views.bipartite_views import (bipartite_view,
-                                               bipartite_view_genbank)
+                                               bipartite_view_genbank,
+                                               bipartite_view_protocol)
 
 urlpatterns = patterns('',
         url(r'^add/feature', add_feature_view, name='add_feature'),
@@ -15,7 +16,7 @@ urlpatterns = patterns('',
         url(r'^feature/(?P<uniquename>.+)/$', feature_view,
                 name='feature_view'),
         url(r'do/multipartite/protocol/$', multipartite_protocol_view,
-            name="multipartite_protocol_view"),
+            name="multipartite_view_protocol"),
         url(r'do/multipartite/(?P<multi_type>.+)?/genbank/$',
             multipartite_view_genbank,
             name="multipartite_view_genbank"),
@@ -23,7 +24,10 @@ urlpatterns = patterns('',
             name='multipartite_view'),
         url(r'do/bipartite/genbank/$', bipartite_view_genbank,
             name='bipartite_view_genbank'),
+        url(r'do/bipartite/protocol/$', bipartite_view_protocol,
+            name='bipartite_view_protocol'),
         url(r'do/bipartite/(?P<form_num>.+)?/?$', bipartite_view,
             name='bipartite_view'),
+
                        )
 

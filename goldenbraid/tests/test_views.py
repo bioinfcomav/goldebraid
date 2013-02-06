@@ -300,17 +300,9 @@ class MultipartiteTestViews(TestCase):
         client = Client()
         url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
         response = client.post(url)
-        # print response
         assert """<p><label for="id_TER">Ter:</label>""" in str(response)
         assert """<select name="TER" id="id_TER">""" in str(response)
-
-#        # 'It tests the basic typo of the form'
-#        for uniq in ('pPE8', 'pANT1', 'pTnos', 'pDGB1_alpha1', 'pDGB1_alpha1R'):
-#            feat = Feature.objects.using(DB).get(uniquename=uniq)
-#            feat.genbank_file = File(open(os.path.join(TEST_DATA,
-#                                                       '{0}.gb'.format(uniq))))
-#            feat.save()
-
+        assert """<option value="pDGB1_alpha1R">pDGB1_alpha""" in str(response)
         client = Client()
         url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
         response = client.post(url, {"PROM+UTR+ATG": 'pPE8',
@@ -378,7 +370,7 @@ class MultipartiteTestViews(TestCase):
     def test_protocol_view(self):
         'it test that the protocol file is generated'
         client = Client()
-        url = reverse('multipartite_protocol_view')
+        url = reverse('multipartite_view_protocol')
         response = client.get(url)
         assert response.status_code == 400
 
@@ -390,23 +382,45 @@ class MultipartiteTestViews(TestCase):
                                      'Vector':'pDGB1_alpha1'})
         assert "75 ng of pPE8" in str(response)
 
+    def test_genbank_view(self):
+        'it test that the protocol file is generated'
+        client = Client()
+        url = reverse('multipartite_view_genbank', kwargs={'multi_type':
+                                                           'basic'})
+        response = client.get(url)
+        assert response.status_code == 400
+
+        response = client.post(url, {'assembled_seq':'aaa',
+                                    'multi_type':'basic',
+                                    "PROM+UTR+ATG": 'pPE8',
+                                     "CDS": 'pANT1',
+                                     "TER": 'pTnos',
+                                     'Vector':'pDGB1_alpha1'})
+        assert  'LOCUS' in str(response)
 
 class BipartiteViewTest(TestCase):
+    fixtures = FIXTURES_TO_LOAD
+    multi_db = True
+
     def test_bipartite(self):
         client = Client()
         # do initial
         url = reverse('bipartite_view')
-        response = client.post(url, {'part_1': 'GB0125'})
+        response = client.get(url)
 
 
         # do page 1
         url = reverse('bipartite_view', kwargs={'form_num': '1'})
-        response = client.post(url, {'part_1': 'GB0125', 'part_2': 'GB0126'})
+        response = client.post(url, {'part_1': 'GB0125'})
 
 
         # do page 2
         url = reverse('bipartite_view', kwargs={'form_num': '2'})
-        response = client.post(url, {'part_1': 'GB0125', 'part_2': 'GB0126', 'Vector': 'pDGB1_omega1'})
+        response = client.post(url, {'part_1': 'GB0125', 'part_2': 'GB0126'})
+
+        # do page 3 twice one to check bipartiteview,
+        # another to check bipartite_view_genbank
+
 
 
 
