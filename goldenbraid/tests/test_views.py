@@ -422,5 +422,19 @@ class BipartiteViewTest(TestCase):
         # another to check bipartite_view_genbank
 
 
+class DomesticationViewTest(TestCase):
+    fixtures = FIXTURES_TO_LOAD
+    multi_db = True
+
+    def xtest_domestication(self):
+        client = Client()
+        # do initial
+        url = reverse('domestication_view')
+        # TODO send data to formulary to test validations
+        gb_path = os.path.join(TEST_DATA, 'pAn11_uniq.gb')
+
+        response = client.post(url, {'seq': open(gb_path),
+                                     'category': '14-15-16 (CDS)'})
+
 
 

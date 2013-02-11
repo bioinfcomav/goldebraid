@@ -4,3 +4,4 @@
 .- Search:
     Buscar por nombre-uniquename-description
     hacer link a las features del resultado de la busqueda
+.- hacer test del domesticador

@@ -19,7 +19,7 @@ from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               REFERENCE_TYPE_NAME)
 
 
-def _parse_rebase_file(fpath):
+def parse_rebase_file(fpath):
     'It parses the rebase enzyme file and return a list with all the enzymes'
     enzymes = {}
     enz_name = None
@@ -116,7 +116,7 @@ class FeatureForm(forms.Form):
             if enzymes[0] == u'':
                 err = 'A vector must have a enzyme {0}'.format(kind)
                 raise ValidationError(err)
-            existing_enzymes = _parse_rebase_file(REBASE_FILE)
+            existing_enzymes = parse_rebase_file(REBASE_FILE)
             errors = []
             for enzyme in enzymes:
                 if enzyme not in existing_enzymes.keys():
@@ -225,7 +225,7 @@ def _choose_rec_sites(forward_sites, rev_sites):
 
 def get_prefix_and_suffix_index(seq, enzyme):
     'it gets the prefix and the suffix indexes of the feature seq'
-    restriction_site = _parse_rebase_file(REBASE_FILE)[enzyme]
+    restriction_site = parse_rebase_file(REBASE_FILE)[enzyme]
     if '^' in restriction_site:
         raise NotImplementedError
     rec_site, cut_site = restriction_site.split('(')

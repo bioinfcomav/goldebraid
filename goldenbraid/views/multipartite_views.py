@@ -243,7 +243,7 @@ def multipartite_view(request, multi_type=None):
             for part_type in [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]:
                 used_parts[part_type] = multi_form_data[part_type]
                 used_parts[VECTOR_TYPE_NAME] = multi_form_data[VECTOR_TYPE_NAME]
-            return render_to_response('multipartite_result_template.html',
+            return render_to_response('multipartite_result.html',
                                       {'used_parts': used_parts,
                                        'multi_type': multi_type},
                                 context_instance=RequestContext(request))

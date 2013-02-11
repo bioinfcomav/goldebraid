@@ -1,3 +1,5 @@
+from django.http import HttpResponse
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -12,32 +14,7 @@ from django.core.exceptions import ValidationError
 from Bio import SeqIO
 from django.forms.widgets import Select
 
-
-CATEGORIES = OrderedDict()
-CATEGORIES['01-02-03-11-12 (PROM+UTR+ATG)'] = ('PROM+UTR+ATG', 'GGAG', 'AATG')
-CATEGORIES['01-02-03-11 (PROM+UTR)'] = ('PROM+UTR', 'GGAG', 'CCAT')
-CATEGORIES['01-02 (OP)'] = ('OP', 'GGAG', 'TCCC')
-CATEGORIES['03-11-12 (MinPROM)'] = ('MinPROM', 'TCCC', 'AATG')
-CATEGORIES['01 (PROM)'] = ('PROM', 'GGAG', 'TGAC')
-CATEGORIES['02 (OP)'] = ('OP', 'TGAC', 'TCCC')
-CATEGORIES['01-02-03-11-12B (INTERACTION ADAPTOR'] = \
-                                        ('InteractionADAPTOR', 'GGAG', 'AATG')
-CATEGORIES['01-02-03-11-C (PROM+UTR+mir173)'] = \
-                                        ('PROM+UTR+mir173', 'GGAG', 'CCAT')
-CATEGORIES['12 (NT)'] = ('NT', 'CCAT', 'AATG')
-CATEGORIES['13-14-15-15 (CDS)'] = ('CDS', 'AATG', 'GCTT')
-CATEGORIES['13 (SP)'] = ('SP', 'AATG', 'AGCC')
-CATEGORIES['14-15-16 (CDS)'] = ('CDS', 'AGCC', 'GCTT')
-CATEGORIES['13-14-15 (CDS)'] = ('CDS', 'AATG', 'GCAG')
-CATEGORIES['16 (CT)'] = ('CT', 'GCAG', 'GCTT')
-CATEGORIES["12-13B (5'FS)"] = ('5FS', 'CCAT', 'GTGA')
-CATEGORIES['14B-15B (Target)'] = ('Target', 'GTGA', 'TCTC')
-CATEGORIES["16B (3'FS)"] = ('3FS', 'TCTC', 'GCTT')
-CATEGORIES['12-13 (GOI)'] = ('goi', 'CCAT', 'GTGA')
-CATEGORIES['14-15(INT)'] = ('int', 'GTGA', 'TCTC')
-CATEGORIES['16 (IOG)'] = ('iog', 'TCTC', 'GCTT')
-CATEGORIES['12-13-14-15-16 (GOI)'] = ('goi', 'CCAT', 'GCTT')
-CATEGORIES['17-21 (TER)'] = ('TER', 'GCTT', 'CGCT')
+from goldenbraid.domestication import domesticate, CATEGORIES
 
 
 class DomesticationForm(forms.Form):
@@ -61,7 +38,7 @@ class DomesticationForm(forms.Form):
             return
         if category_name not in CATEGORIES.keys():
             raise ValidationError('You must choose a valid category')
-        return CATEGORIES[category_name]
+        return category_name
 
     def clean_seq(self):
         content = self.cleaned_data['seq'].chunks().next()
@@ -79,21 +56,19 @@ class DomesticationForm(forms.Form):
             raise ValidationError(msg)
         if self._data_in(self.cleaned_data, 'category'):
             category = self.cleaned_data['category']
-            if category in (('CDS', 'AATG', 'GCTT'), ('SP', 'AATG', 'AGCC'),
-                            ('NT', 'CCAT', 'AATG'), ('CDS', 'AATG', 'GCAG')):
+            if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',
+                             '13-14-15 (CDS)'):
                 if not _seq_has_codon_start(seq):
                     msg = 'The provided seq must start wit start codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-            if category in (('CDS', 'AATG', 'GCTT'), ('CDS', 'AGCC', 'GCTT'),
-                            ('CT', 'GCAG', 'GCTT')):
+            if category in ('13-14-15-16 (CDS)', '14-15-16 (CDS)', '16 (CT)'):
                 if not _seq_has_codon_end(seq):
                     msg = 'The provided seq must end with a end codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-            if category in (('CDS', 'AATG', 'GCTT'), ('SP', 'AATG', 'AGCC'),
-                            ('NT', 'CCAT', 'AATG'), ('CDS', 'AATG', 'GCAG'),
-                            ('CDS', 'AGCC', 'GCTT'), ('CT', 'GCAG', 'GCTT')):
+            if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',
+                            '13-14-15 (CDS)', '14-15-16 (CDS)', '16 (CT)'):
                 if not _seq_has_codon_end(seq):
                     msg = 'The provided seq must be multiple of three in '
                     msg += 'order to use as choosen category'
@@ -222,8 +197,52 @@ def domestication_view(request):
         if form.is_valid():
             # do domestication
             seq = form.cleaned_data['seq']
-            category = form.cleaned_data['category']
-            print category, seq.name
+            category = form.cleaned_data.get('category', None)
+            if category is None:
+                prefix = form.cleaned_data.get('prefix')
+                suffix = form.cleaned_data.get('suffix')
+            else:
+                prefix = CATEGORIES[category][1]
+                suffix = CATEGORIES[category][2]
+            pcr = domesticate(seq, category, prefix, suffix)[0]
+            return render_to_response('domestication_result.html',
+                                      {'category': category,
+                                       'prefix': prefix,
+                                       'suffix': suffix,
+                                       'pcrs': pcr},
+                                context_instance=RequestContext(request))
+    else:
+        form = DomesticationForm()
+    context['form'] = form
+
+    template = 'domestication_template.html'
+    mimetype = None
+    return render_to_response(template, context, mimetype=mimetype)
+
+
+def domestication_view_genbank(request):
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    elif request.method == 'GET':
+        request_data = request.GET
+    else:
+        request_data = None
+    if request_data:
+        form = DomesticationForm(request_data, request.FILES)
+        if form.is_valid():
+            # do domestication
+            seq = form.cleaned_data['seq']
+            category = form.cleaned_data.get('category', None)
+            if category is None:
+                prefix = form.cleaned_data.get('prefix')
+                suffix = form.cleaned_data.get('suffix')
+            else:
+                prefix = CATEGORIES[category][1]
+                suffix = CATEGORIES[category][2]
+            seq = domesticate(seq, category, prefix, suffix)[1]
+            return  HttpResponse(seq.format('genbank'), mimetype='text/plain')
 
     else:
         form = DomesticationForm()

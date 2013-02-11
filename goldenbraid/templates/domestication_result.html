@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load goldenbraid_extras %}
+{% block title %}Feature search {% endblock title %}
+{% block content %}
+<div id='main'>
+<p>Category:{{category}}</p>
+<p>prefix:{{prefix}}</p>
+<p>suffix:{{suffix}}</p>
+
+{% for pcr_oligo in pcr %}
+    <p> PCR stuff</p>
+    <p> pcr_product: {{ pcr_oligo.pcr_product }}</p>
+    <p> oligo_forward: {{ pcr_oligo.oligo_forward }}</p>
+    <p> oligo_reverse: {{ pcr_oligo.oligo_reverse }}</p>
+    <br></br>
+{% endfor %}
+
+
+</div>
+{% endblock content %}

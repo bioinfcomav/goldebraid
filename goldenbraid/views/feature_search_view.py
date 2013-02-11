@@ -89,7 +89,7 @@ def search_features_view(request):
     else:
         request_data = None
 
-    template = 'search_feature_template.html'
+    template = 'search_feature.html'
     mimetype = None  # default
     if request_data:
         form = SearchFeatureForm(request_data)
@@ -102,7 +102,7 @@ def search_features_view(request):
             download_search = search_criteria.get('download_search', False)
             if feature_queryset and download_search:
                 context['queryset'] = feature_queryset
-                template = 'search_feature_download_template.txt'
+                template = 'search_feature_download.txt'
                 mimetype = 'text/plain'
             elif feature_queryset and not download_search:
                 if feature_queryset.count() == 1:
