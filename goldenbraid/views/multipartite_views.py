@@ -115,16 +115,9 @@ def vectors_to_choice(vectors):
 
 def _get_multipartite_form(multi_type):
     'It returns a form for the given multipartite'
-    form_fields = {}
+    form_fields = OrderedDict()
 
     part_defs = PARTS_TO_ASSEMBLE[multi_type]
-
-    # first we need to add the vector to the form
-    vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
-    vector_choices = vectors_to_choice(vectors)
-    form_fields[VECTOR_TYPE_NAME] = forms.CharField(max_length=100,
-                                        widget=Select(choices=vector_choices))
-
     for parts in part_defs:
         choices = [('', '')]
         for feat in Feature.objects.using(DB).filter(type__name=parts[0],
@@ -135,6 +128,12 @@ def _get_multipartite_form(multi_type):
         name = parts[0]
         form_fields[name] = forms.CharField(max_length=100,
                                             widget=Select(choices=choices))
+
+    # last we need to add the vector to the form
+    vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
+    vector_choices = vectors_to_choice(vectors)
+    form_fields[VECTOR_TYPE_NAME] = forms.CharField(max_length=100,
+                                        widget=Select(choices=vector_choices))
 
     form = type('MultiPartiteForm', (forms.BaseForm,),
                 {'base_fields': form_fields})
