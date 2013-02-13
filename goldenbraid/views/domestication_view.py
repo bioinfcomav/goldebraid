@@ -16,6 +16,8 @@ from django.forms.widgets import Select
 
 from goldenbraid.domestication import domesticate, CATEGORIES
 
+DEFAULT_MELTING_TEMP = 50
+
 
 class DomesticationForm(forms.Form):
     seq = forms.FileField(max_length=100,
@@ -48,7 +50,7 @@ class DomesticationForm(forms.Form):
         else:
             msg = 'The given file must be a fasta or a genbank file'
             raise ValidationError(msg)
-        format_ = 'fasta' if content.startswith == '>' else 'genbank'
+        format_ = 'fasta' if content.startswith('>') else 'genbank'
         seq = SeqIO.read(self.cleaned_data['seq'], format_)
         if not _seq_is_dna(seq.seq):
             msg = 'The given file contains seqs with not allowed nucleotides'
@@ -204,7 +206,8 @@ def domestication_view(request):
             else:
                 prefix = CATEGORIES[category][1]
                 suffix = CATEGORIES[category][2]
-            pcr = domesticate(seq, category, prefix, suffix)[0]
+            pcr = domesticate(seq, category, prefix, suffix,
+                              min_melting_temp=DEFAULT_MELTING_TEMP)[0]
             return render_to_response('domestication_result.html',
                                       {'category': category,
                                        'prefix': prefix,
