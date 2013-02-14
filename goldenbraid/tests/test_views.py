@@ -398,6 +398,7 @@ class MultipartiteTestViews(TestCase):
                                      'Vector':'pDGB1_alpha1'})
         assert  'LOCUS' in str(response)
 
+
 class BipartiteViewTest(TestCase):
     fixtures = FIXTURES_TO_LOAD
     multi_db = True
@@ -409,8 +410,6 @@ class BipartiteViewTest(TestCase):
         response = client.get(url)
         assert """<option value="GB0125">GB0125</option>""" in str(response)
 
-
-
         # do page 1
         url = reverse('bipartite_view', kwargs={'form_num': '1'})
         response = client.post(url, {'part_1': 'GB0125'})
@@ -418,7 +417,6 @@ class BipartiteViewTest(TestCase):
         longline1 += """type="text" id="id_part_1" />"""
         assert longline1 in str(response)
         assert """<p><label for="id_part_2">Part 2:</label>""" in str(response)
-
 
         # do page 2
         url = reverse('bipartite_view', kwargs={'form_num': '2'})
@@ -463,6 +461,7 @@ class BipartiteViewTest(TestCase):
                                      'Vector':'pDGB1_omega1'})
         assert "75 ng of GB0125" in str(response)
 
+
 class DomesticationViewTest(TestCase):
     fixtures = FIXTURES_TO_LOAD
     multi_db = True
@@ -474,44 +473,41 @@ class DomesticationViewTest(TestCase):
         response = client.get(url)
         assert ("""<option value="12 (NT)">12 (NT)</option>""") in str(response)
 
-        #send data to formulary to test validations
+        # send data to formulary to test validations
         gb_path = os.path.join(TEST_DATA, 'domseq.gb')
 
         # add seq and category
-        url = reverse('domestication_view')
         response = client.post(url, {'seq': open(gb_path),
                                      'category': '12 (NT)'})
         assert """<ul class="errorlist"><li>This field is required.</li></ul>""" not in str(response)
 
-        #not add a sequence
-        url = reverse('domestication_view')
+        # not add a sequence
         response = client.post(url, {'seq': '',
                                      'category': '12 (NT)'})
         assert """<ul class="errorlist"><li>This field is required.</li></ul>""" in str(response)
 
-
         # add category, prefix and suffix
-        url = reverse('domestication_view')
         response = client.post(url, {'seq': open(gb_path),
                                      'prefix': 'ggac', 'suffix': 'cgtc', 'category': '12 (NT)'})
         assert """<ul class="errorlist"><li>Can not use category and prefix/suffix simoultaneously</li></ul>"""in str(response)
 
         # add category and suffix
-        url = reverse('domestication_view')
         response = client.post(url, {'seq': open(gb_path),
                                      'prefix': '', 'suffix': 'cgtc', 'category': '12 (NT)'})
         assert """<ul class="errorlist"><li>Can not use category and prefix/suffix simoultaneously</li></ul>"""in str(response)
 
         # add suffix
-        url = reverse('domestication_view')
         response = client.post(url, {'seq': open(gb_path),
                                      'prefix': '', 'suffix': 'cgtc', 'category': ''})
         assert """<ul class="errorlist"><li>You must provide prefix and suffix together</li></ul>""" in str(response)
 
         # not add category nor prefix and suffix
-        url = reverse('domestication_view')
         response = client.post(url, {'seq': open(gb_path),
                                      'prefix': '', 'suffix': '', 'category': ''})
         assert """<ul class="errorlist"><li>At least we need category or prefix/suffix pair</li></ul>""" in str(response)
 
+        # check that uses validators
+        response = client.post(url, {'seq': open(gb_path),
+                                     'category': '13-14-15-16 (CDS)'})
+        assert 'The provided seq must start with start' in str(response)
 

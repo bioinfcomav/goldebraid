@@ -20,14 +20,14 @@ DEFAULT_MELTING_TEMP = 50
 
 
 class DomesticationForm(forms.Form):
-    seq = forms.FileField(max_length=100,
-                           label='Add a genbank or a fast file')
     choices = [('', '')]
     for category_name in CATEGORIES.keys():
         choices.append((category_name, category_name))
     category = forms.CharField(max_length=100,
                               label='Choose a category to domesticate to',
                               widget=Select(choices=choices), required=False)
+    seq = forms.FileField(max_length=100,
+                           label='Add a genbank or a fast file')
     prefix = forms.CharField(max_length=4,
                              label='custom prefix', required=False)
     suffix = forms.CharField(max_length=4,
@@ -61,7 +61,7 @@ class DomesticationForm(forms.Form):
             if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',
                              '13-14-15 (CDS)'):
                 if not _seq_has_codon_start(seq):
-                    msg = 'The provided seq must start wit start codon in '
+                    msg = 'The provided seq must start with start codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
             if category in ('13-14-15-16 (CDS)', '14-15-16 (CDS)', '16 (CT)'):
@@ -172,12 +172,12 @@ def _seq_is_dna(string):
 
 
 def _seq_has_codon_start(seq):
-    start = seq[:3].upper()
+    start = str(seq[:3].upper())
     return True if start == 'ATG' else False
 
 
 def _seq_has_codon_end(seq):
-    end = seq[-3:].upper()
+    end = str(seq[-3:].upper())
     return True if end in ('TAG', 'TAA', 'TGA') else False
 
 
