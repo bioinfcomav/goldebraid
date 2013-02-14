@@ -71,7 +71,7 @@ class DomesticationForm(forms.Form):
                     raise ValidationError(msg)
             if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',
                             '13-14-15 (CDS)', '14-15-16 (CDS)', '16 (CT)'):
-                if not _seq_has_codon_end(seq):
+                if not __is_seq_3_multiple(seq):
                     msg = 'The provided seq must be multiple of three in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)

@@ -407,34 +407,111 @@ class BipartiteViewTest(TestCase):
         # do initial
         url = reverse('bipartite_view')
         response = client.get(url)
+        assert """<option value="GB0125">GB0125</option>""" in str(response)
+
 
 
         # do page 1
         url = reverse('bipartite_view', kwargs={'form_num': '1'})
         response = client.post(url, {'part_1': 'GB0125'})
+        longline1 = """<input name="part_1" value="GB0125" readonly="True" maxlength="100" """
+        longline1 += """type="text" id="id_part_1" />"""
+        assert longline1 in str(response)
+        assert """<p><label for="id_part_2">Part 2:</label>""" in str(response)
 
 
         # do page 2
         url = reverse('bipartite_view', kwargs={'form_num': '2'})
         response = client.post(url, {'part_1': 'GB0125', 'part_2': 'GB0126'})
+        longline2 = """<input name="part_2" value="GB0126" readonly="True" """
+        longline2 += """maxlength="100" type="text" id="id_part_2" />"""
+        assert longline2 in str(response)
+        assert """<option value="pDGB1_omega1">pDGB1_omega1</option>""" in str(response)
 
-        # do page 3 twice one to check bipartiteview,
-        # another to check bipartite_view_genbank
+        # do page 3
+        url = reverse('bipartite_view', kwargs={'form_num': '3'})
+        response = client.post(url, {'part_1': 'GB0125', 'part_2': 'GB0126',
+                                     'Vector': 'pDGB1_omega1'})
+        assert """<INPUT type="hidden" name="Vector" value="pDGB1_omega1">""" in str(response)
+        assert """<span>The resulted sequence of the assembly is</span>""" in str(response)
 
+        # check bipartite_view_genbank
+    def test_genbank_view(self):
+        'it test that the genbank file is generated'
+        client = Client()
+        url = reverse('bipartite_view_genbank')
+        response = client.get(url)
+        assert response.status_code == 400
+
+        response = client.post(url, {'assembled_seq':'aaa',
+                                     'part_1': 'GB0125',
+                                     'part_2': 'GB0126',
+                                     'Vector':'pDGB1_omega1'})
+        assert  'LOCUS' in str(response)
+
+    # check bipartite_view_protocol
+    def test_protocol_view(self):
+        'it test that the protocol file is generated'
+        client = Client()
+        url = reverse('bipartite_view_protocol')
+        response = client.get(url)
+        assert response.status_code == 400
+
+        response = client.post(url, {'assembled_seq':'aaa',
+                                     'part_1': 'GB0125',
+                                     'part_2': 'GB0126',
+                                     'Vector':'pDGB1_omega1'})
+        assert "75 ng of GB0125" in str(response)
 
 class DomesticationViewTest(TestCase):
     fixtures = FIXTURES_TO_LOAD
     multi_db = True
 
-    def xtest_domestication(self):
+    def test_domestication(self):
         client = Client()
         # do initial
         url = reverse('domestication_view')
-        # TODO send data to formulary to test validations
-        gb_path = os.path.join(TEST_DATA, 'pAn11_uniq.gb')
+        response = client.get(url)
+        assert ("""<option value="12 (NT)">12 (NT)</option>""") in str(response)
 
+        #send data to formulary to test validations
+        gb_path = os.path.join(TEST_DATA, 'domseq.gb')
+
+        # add seq and category
+        url = reverse('domestication_view')
         response = client.post(url, {'seq': open(gb_path),
-                                     'category': '14-15-16 (CDS)'})
+                                     'category': '12 (NT)'})
+        assert """<ul class="errorlist"><li>This field is required.</li></ul>""" not in str(response)
 
+        #not add a sequence
+        url = reverse('domestication_view')
+        response = client.post(url, {'seq': '',
+                                     'category': '12 (NT)'})
+        assert """<ul class="errorlist"><li>This field is required.</li></ul>""" in str(response)
+
+
+        # add category, prefix and suffix
+        url = reverse('domestication_view')
+        response = client.post(url, {'seq': open(gb_path),
+                                     'prefix': 'ggac', 'suffix': 'cgtc', 'category': '12 (NT)'})
+        assert """<ul class="errorlist"><li>Can not use category and prefix/suffix simoultaneously</li></ul>"""in str(response)
+
+        # add category and suffix
+        url = reverse('domestication_view')
+        response = client.post(url, {'seq': open(gb_path),
+                                     'prefix': '', 'suffix': 'cgtc', 'category': '12 (NT)'})
+        assert """<ul class="errorlist"><li>Can not use category and prefix/suffix simoultaneously</li></ul>"""in str(response)
+
+        # add suffix
+        url = reverse('domestication_view')
+        response = client.post(url, {'seq': open(gb_path),
+                                     'prefix': '', 'suffix': 'cgtc', 'category': ''})
+        assert """<ul class="errorlist"><li>You must provide prefix and suffix together</li></ul>""" in str(response)
+
+        # not add category nor prefix and suffix
+        url = reverse('domestication_view')
+        response = client.post(url, {'seq': open(gb_path),
+                                     'prefix': '', 'suffix': '', 'category': ''})
+        assert """<ul class="errorlist"><li>At least we need category or prefix/suffix pair</li></ul>""" in str(response)
 
 

@@ -1,0 +1,85 @@
+LOCUS       JA878128                3500 bp    DNA     linear   PAT 07-FEB-2013
+DEFINITION  Sequence 11 from Patent WO2010147462.
+ACCESSION   JA878128
+VERSION     JA878128.1  GI:448977125
+KEYWORDS    .
+SOURCE      Homo sapiens (human)
+  ORGANISM  Homo sapiens
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini;
+            Catarrhini; Hominidae; Homo.
+REFERENCE   1
+  AUTHORS   OTTE,A., VAN BLOKLAND,H.J.M. and VERHEES,J.A.
+  TITLE     NOVEL STRINGENT SELECTABLE MARKERS
+  JOURNAL   Patent: WO 2010147462-A2 11 23-DEC-2010;
+            CELLAGENICS B V [NL]; OTTE ARIE PIETER [NL]; VAN BLOKLAND HENRICUS
+            JOHANNES MARIA [NL]; VERHEES JOHN ANTONIUS [NL]
+FEATURES             Location/Qualifiers
+     source          1..3500
+                     /organism="Homo sapiens"
+                     /mol_type="unassigned DNA"
+                     /db_xref="taxon:9606"
+     misc_feature    1..3500
+                     /note="Human beta-actin promoter"
+ORIGIN      
+        1 gccccagtga cagctccgaa agctccctta cagggcaaag ttcccaagca cagaagagaa
+       61 cctgttcact tctcccctgc tcggcccgcc ccctggccag gcacctctac ttcctctttt
+      121 cctgctccgc tgcttgcttt ctctcttcag ctcctccctg cccctcaccc caggctgctc
+      181 ggccacctcc aacctgccac ctgaggacac ccaggcagtc actcattcaa cagcgaggag
+      241 ccctggggtg ggtgtagtgg gaaggagtgg gggtgacgga gaccctggga gggctcgcag
+      301 cctggtggct gaggcccagt tctaaatgcc agctgcaagc cttggtctga ggtagggagg
+      361 aaggcgtggc tgcagaggct aaaacgcttc cccaaagagg ggctttctgg gatgggactt
+      421 gaagggtgca taggagagca ctaggaagtg gccgctgcag acagagggaa ccacaagcca
+      481 ggaggacagg ccaggaatgc tgcagcccgg ggcggggtgg ggctggagct cctgtctctt
+      541 ggccagctga atggaggccc agtggcaaca caggtcctgc ctggggatca ggtctgctct
+      601 gcaccccacc ttgctgcctg gagccgccca cctgacaacc tctcatccct gctctgcaga
+      661 tccggtccca tccccactgc ccaccccacc cccccagcac tccacccagt tcaacgttcc
+      721 acgaaccccc agaaccagcc ctcatcaaca ggcagcaaga agggcccccc gcccatcgcc
+      781 ccacaacgcc agccgggtga acgttggcag gtcctgaggc agctggcaag acgcctgcag
+      841 ctgaaagata caaggccagg gacaggacag tcccatcccc aggaggcagg gagtatacag
+      901 gctggggaag tttgcccttg cgtggggtgg tgatggagga ggctcagcaa gtcttctgga
+      961 ctgtgaacct gtgtctgcca ctgtgtgctg ggtggtggtc atctttccca ccaggctgtg
+     1021 gcctctgcaa ccttcaaggg aggagcaggt cccattggct gagcacagcc ttgtaccgtg
+     1081 aactggaaca agcagcctcc ttcctggcca caggttccat gtccttatat ggactcatct
+     1141 ttgcctattg cgacacacac tcagtgaaca cctactacgc gctgcaaaga gccccgcagg
+     1201 cctgaggtgc ccccacctca ccactcttcc tatttttgtg taaaaatcca gcttcttgtc
+     1261 accacctcca aggaggggga ggaggaggaa ggcaggttcc tctaggctga gccgaatgcc
+     1321 cctctgtggt cccacgccac tgatcgctgc atgcccacca cctgggtaca cacagtctgt
+     1381 gattcccgga gcagaacgga ccctgcccac ccggtcttgt gtgctactca gtggacagac
+     1441 ccaaggcaag aaagggtgac aaggacaggg tcttcccagg ctggctttga gttcctagca
+     1501 ccgccccgcc cccaatcctc tgtggcacat ggagtcttgg tccccagagt cccccagcgg
+     1561 cctccagatg gtctgggagg gcagttcagc tgtggctgcg catagcagac atacaacgga
+     1621 cggtgggccc agacccaggc tgtgtagacc cagccccccc gccccgcagt gcctaggtca
+     1681 cccactaacg ccccaggcct tgtcttggct gggcgtgact gttaccctca aaagcaggca
+     1741 gctccagggt aaaaggtgcc ctgccctgta gagcccacct tccttcccag ggctgcggct
+     1801 gggtaggttt gtagccttca tcacgggcca cctccagcca ctggaccgct ggcccctgcc
+     1861 ctgtcctggg gagtgtggtc ctgcgacttc taagtggccg caagccacct gactccccca
+     1921 acaccacact ctacctctca agcccaggtc tctccctagt gacccaccca gcacatttag
+     1981 ctagctgagc cccacagcca gaggtcctca ggccctgctt tcagggcagt tgctctgaag
+     2041 tcggcaaggg ggagtgactg cctggccact ccatgccctc caagagctcc ttctgcagga
+     2101 gcgtacagaa cccagggccc tggcacccgt gcagaccctg gcccacccca cctgggcgct
+     2161 cagtgcccaa gagatgtcca cacctaggat gtcccgcggt gggtgggggg cccgagagac
+     2221 gggcaggccg ggggcaggcc tggccatgcg gggccgaacc gggcactgcc cagcgtgggg
+     2281 cgcgggggcc acggcgcgcg cccccagccc ccgggcccag caccccaagg cggccaacgc
+     2341 caaaactctc cctcctcctc ttcctcaatc tcgctctcgc tctttttttt tttcgcaaaa
+     2401 ggaggggaga gggggtaaaa aaatgctgca ctgtgcggcg aagccggtga gtgagcggcg
+     2461 cggggccaat cagcgtgcgc cgttccgaaa gttgcctttt atggctcgag cggccgcggc
+     2521 ggcgccctat aaaacccagc ggcgcgacgc gccaccaccg ccgagaccgc gtccgccccg
+     2581 cgagcacaga gcctcgcctt tgccgatccg ccgcccgtcc acacccgccg ccaggtaagc
+     2641 ccggccagcc gaccggggca ggcggctcac ggcccggccg caggcggccg cggccccttc
+     2701 gcccgtgcag agccgccgtc tgggccgcag cggggggcgc atgggggggg aaccggaccg
+     2761 ccgtgggggg cgcgggagaa gcccctgggc ctccggagat gggggacacc ccacgccagt
+     2821 tcggaggcgc gaggccgcgc tcgggaggcg cgctccgggg gtgccgctct cggggcgggg
+     2881 gcaaccggcg gggtctttgt ctgagccggg ctcttgccaa tggggatcgc agggtgggcg
+     2941 cggcggagcc cccgccaggc ccggtggggg ctggggcgcc attgcgcgtg cgcgctggtc
+     3001 ctttgggcgc taactgcgtg cgcgctggga attggcgcta attgcgcgtg cgcgctggga
+     3061 ctcaaggcgc taactgcgcg tgcgttctgg ggcccggggt gccgcggcct gggctggggc
+     3121 gaaggcgggc tcggccggaa ggggtggggt cgccgcggct cccgggcgct tgcgcgcact
+     3181 tcctgcccga gccgctggcc gcccgagggt gtggccgctg cgtgcgcgcg cgccgacccg
+     3241 gcgctgtttg aaccgggcgg aggcggggct ggcgcccggt tgggaggggg ttggggcctg
+     3301 gcttcctgcc gcgcgccgcg gggacgcctc cgaccagtgt ttgcctttta tggtaataac
+     3361 gcggccggcc cggcttcctt tgtccccaat ctgggcgcgc gccggcgccc cctggcggcc
+     3421 taaggactcg gcgcgccgga agtggccagg gcgggggcga cctcggctca cagcgcgccc
+     3481 ggctattctc gcagctcacc
+//
+
