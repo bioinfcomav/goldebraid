@@ -259,7 +259,7 @@ def _calculate_annealing_temp(seq):
 
 
 def _remove_rec_sites(seq):
-    '''It modifies all rec sites in the sceuence to be able to use with
+    '''It modifies all rec sites in the sequence to be able to use with
     goldenbraid pipeline'''
     rec_sites = get_ret_sites(ENZYMES_USED_IN_GOLDENBRAID)
     # regex with the sites to domesticate
