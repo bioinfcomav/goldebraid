@@ -21,7 +21,7 @@ class DomesticationTest(TestCase):
         seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
         seq = SeqRecord(Seq(seq))
         category = '13-14-15-16 (CDS)'
-        oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG', 50)[0]
+        oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCTCTCGAAGGCTGACTATGTCAGCTAGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGAGAGACGGCGC',
                              'oligo_reverse': 'GCGCCGTCTCTCTGTCTCCTAGCACCTGCT',
                         'oligo_forward': 'GCGCCGTCTCTCTCGAAGGCTGACTATGTCAGCTA'}
