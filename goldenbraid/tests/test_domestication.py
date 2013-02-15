@@ -22,14 +22,12 @@ class DomesticationTest(TestCase):
         seq = SeqRecord(Seq(seq))
         category = '13-14-15-16 (CDS)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG', 50)[0]
-        assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCTCGGTCTCCTAGCACCTGCTA'
-
-        seq = 'aggctgactatgtcagctagctgacgatcgatgctagctagctgactagctagcaggtgctag'
-        seq += 'GCGATGgatcgactagctgatcgatctgatcgatgctagctagctgtacgctgatcgatgtc'
-        seq = SeqRecord(Seq(seq))
-        category = '01-02-03-11 (PROM+UTR)'
-        oligo_pcrs = domesticate(seq, category, 'GGAG', 'CCAT', 50)[0]
-        assert oligo_pcrs[1]['oligo_forward'] in oligo_pcrs[1]['pcr_product']
+        assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCTCTCGAAGGCTGACTATGTCAGCTAGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGAGAGACGGCGC',
+                             'oligo_reverse': 'GCGCCGTCTCTCTGTCTCCTAGCACCTGCT',
+                        'oligo_forward': 'GCGCCGTCTCTCTCGAAGGCTGACTATGTCAGCTA'}
+        assert oligo_pcrs[1] == {'pcr_product': 'GCGCCGTCTCTACAGGGTCATGCTAGCTTCAGCTAGCTGATCGATCGACTAGCTGATCGATCTGATCGATGCTAGCTAGCTGTACGGAGACTGAGAGACGGCGC',
+                            'oligo_reverse': 'GCGCCGTCTCTCAGTCTCCGTACAGCTAGC',
+                            'oligo_forward': 'GCGCCGTCTCTACAGGGTCATGCTAGCTTC'}
 
     def test_join_short_segments(self):
         segments = [(0, 10), (11, 30), (31, 60)]

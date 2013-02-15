@@ -85,7 +85,7 @@ def domesticate(seq, category, prefix, suffix, min_melting_temp):
     new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq)
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
     pcr_products = [str(new_seq[s['start']:s['end'] + 1]) for s in segments]
-    oligos = _get_oligos(seq, segments, min_melting_temp)
+    oligos = _get_oligos(new_seq, segments, min_melting_temp)
     oligos = _add_tags_to_oligos(oligos, prefix, suffix, kind)
     pcr_products = _add_tags_to_pcrproducts(pcr_products, prefix, suffix, kind)
 
@@ -108,10 +108,8 @@ def _get_oligos(seq, segments, min_melting_temp):
         reverse_min = segment.get('reverse_min', None)
         if reverse_min:
             reverse_min = segment['end'] - reverse_min
-
-        rev_oligo = _get_oligo(seq[:segment['end']].reverse_complement(),
+        rev_oligo = _get_oligo(seq[:segment['end'] + 1].reverse_complement(),
                                min_melting_temp, reverse_min)
-
         oligos.append((forw_oligo, rev_oligo))
     return oligos
 
@@ -127,7 +125,7 @@ def _get_pcr_segments(seq, rec_sites, fragments):
                                                  acumulated_seq_len)
         segments['starts'].append(start)
         segments['ends'].append(end)
-        acumulated_seq_len += len(frag_5) + len(rec_site)
+        acumulated_seq_len += len(frag_5) + len(rec_site['modified'])
     segments['ends'].append(len(seq))
     segments = zip(segments['starts'], segments['ends'])
     return _join_short_segments(segments)
@@ -174,13 +172,11 @@ def  _get_segments_from_rec_site(frag_5, rec_site, prev_seq_len):
         if letter1 != letter2:
             break
         change_pos += 1
-    if change_pos == len(rec_site['original']) + 1:
-        rev_oligo_start_index = (prev_seq_len + len(frag_5) +
-                                len(rec_site['modified']))
-    else:
-        rev_oligo_start_index = prev_seq_len + len(frag_5) + change_pos + 1 + 1
+    change_index = prev_seq_len + len(frag_5) + change_pos
+    fow_end = change_index + 1
+    rev_start = fow_end - 3
 
-    return rev_oligo_start_index - 3, rev_oligo_start_index
+    return rev_start, fow_end
 
 
 def _get_stripped_vector_seq():
@@ -242,7 +238,7 @@ def _get_oligo(seq, min_melting_temp, min_length=None):
     'Giving a seq and a melting temperature it return the longest oligo'
     if not min_length:
         min_length = 20
-    for index in range(min_length, len(seq)):
+    for index in range(min_length - 1, len(seq)):
         oligo = seq[:index]
         if _calculate_annealing_temp(oligo) >= min_melting_temp:
             break
@@ -259,7 +255,7 @@ def _calculate_annealing_temp(seq):
 
 
 def _remove_rec_sites(seq):
-    '''It modifies all rec sites in the sequence to be able to use with
+    '''It modifies all rec sites in the sceuence to be able to use with
     goldenbraid pipeline'''
     rec_sites = get_ret_sites(ENZYMES_USED_IN_GOLDENBRAID)
     # regex with the sites to domesticate
