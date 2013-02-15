@@ -6,6 +6,7 @@ Created on 2013 ots 7
 from __future__ import  division
 import re
 from itertools import izip_longest
+from Bio.Alphabet import generic_dna
 
 try:
     from collections import OrderedDict
@@ -13,13 +14,14 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 
-from goldenbraid.views.feature_views import parse_rebase_file, \
-    get_prefix_and_suffix_index
-from goldenbraid.settings import REBASE_FILE
+from goldenbraid.views.feature_views import (parse_rebase_file,
+                                             get_prefix_and_suffix_index)
+from goldenbraid.settings import (REBASE_FILE,
+                                  DOMESTICATION_DEFAULT_MELTING_TEMP)
 from goldenbraid.settings import DB
 from goldenbraid.models import Feature
-from goldenbraid.tags import FORWARD, REVERSE
 
 
 OLIGO_UNIVERSAL = 'GCGCCGTCTCT'
@@ -79,9 +81,10 @@ def get_codontable():
     return codon_table
 
 
-def domesticate(seq, category, prefix, suffix, min_melting_temp):
+def domesticate(seqrec, category, prefix, suffix):
     kind = category
-    seq = seq.seq
+    seq = seqrec.seq
+    min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
     new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq)
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
     pcr_products = [str(new_seq[s['start']:s['end'] + 1]) for s in segments]
@@ -96,7 +99,8 @@ def domesticate(seq, category, prefix, suffix, min_melting_temp):
     for pcr, oligo in zip(pcr_products, oligos):
         oligo_pcrs.append({'pcr_product': pcr, 'oligo_forward': oligo[0],
                           'oligo_reverse': oligo[1]})
-    return oligo_pcrs, prepared_new_seq
+    return oligo_pcrs, SeqRecord(prepared_new_seq, name='domesticated_seq',
+                                 id='domesticated_seq')
 
 
 def _get_oligos(seq, segments, min_melting_temp):
@@ -269,7 +273,7 @@ def _remove_rec_sites(seq):
         else:
             fragments.append(splitted_part)
 
-    new_seq = Seq('')
+    new_seq = Seq('', alphabet=generic_dna)
     # we can not convert a rec site in another rec site
     unusable_rec_sites = rec_sites
     _cumulative_patch = ''  # it is only used to know the frame

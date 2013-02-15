@@ -14,3 +14,4 @@ REBASE_FILE = getattr(settings, 'GOLDENBRAID_REBASE_FILE', REBASE)
 SEARCH_MENU_TYPE_CHOICES = getattr(settings,
                                    'GOLDENBRAID_SEARCH_MENU_TYPE_CHOICES',
                                    None)
+DOMESTICATION_DEFAULT_MELTING_TEMP = 50

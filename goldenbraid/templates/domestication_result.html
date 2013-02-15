@@ -15,6 +15,22 @@
     <br></br>
 {% endfor %}
 
+<form action='/do/domestication/protocol/' method='POST'>{% csrf_token %}
+    <INPUT type="hidden" name="seq" value="{{ seq }}">
+    <INPUT type="hidden" name="prefix" value="{{ prefix }}">
+    <INPUT type="hidden" name="suffix" value="{{ suffix }}">
+    <INPUT type="hidden" name="category" value="{{ category }}">
+    <span>You can download a detailed protocol to fulfill the assembly in the lab from</span> <INPUT type="submit" value="here">
+</form>
+
+<form action='/do/domestication/genbank/' method='POST'>{% csrf_token %}
+    <INPUT type="hidden" name="seq" value="{{ seq }}">
+    <INPUT type="hidden" name="prefix" value="{{ prefix }}">
+    <INPUT type="hidden" name="suffix" value="{{ suffix }}">
+    <INPUT type="hidden" name="category" value="{{ category }}">
+    <span>You can download your new seq in gnebnk format</span> <INPUT type="submit" value="here">
+</form>
+
 
 </div>
 {% endblock content %}
