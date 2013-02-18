@@ -22,12 +22,40 @@ class DomesticationTest(TestCase):
         seq = SeqRecord(Seq(seq))
         category = '13-14-15-16 (CDS)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
-        assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCTCTCGAAGGCTGACTATGTCAGCTAGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGAGAGACGGCGC',
-                             'oligo_reverse': 'GCGCCGTCTCTCTGTCTCCTAGCACCTGCT',
-                        'oligo_forward': 'GCGCCGTCTCTCTCGAAGGCTGACTATGTCAGCTA'}
-        assert oligo_pcrs[1] == {'pcr_product': 'GCGCCGTCTCTACAGGGTCATGCTAGCTTCAGCTAGCTGATCGATCGACTAGCTGATCGATCTGATCGATGCTAGCTAGCTGTACGGAGACTGAGAGACGGCGC',
-                            'oligo_reverse': 'GCGCCGTCTCTCAGTCTCCGTACAGCTAGC',
-                            'oligo_forward': 'GCGCCGTCTCTACAGGGTCATGCTAGCTTC'}
+        assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC',
+                                'oligo_reverse': 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA',
+                                'oligo_forward': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAG'}
+        assert oligo_pcrs[1] == {'pcr_product': 'GCGCCGTCTCGACAGGGTCATGCTAGCTTCAGCTAGCTGATCGATCGACTAGCTGATCGATCTGATCGATGCTAGCTAGCTGTACGGAGACTGCGAGACGGCGC',
+                                 'oligo_reverse': 'GCGCCGTCTCGCAGTCTCCGTACAGCTAGCT',
+                                 'oligo_forward': 'GCGCCGTCTCGACAGGGTCATGCTAGCTTCA'}
+
+    def test_domestication_short_segments(self):
+        seq = 'aggctgactatgtcagctaGAGACCgctgacgatcgatgctagctagctgactagctagcaggtgctag'
+        seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
+        seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
+        seq = SeqRecord(Seq(seq))
+        category = '13-14-15-16 (CDS)'
+        oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
+        assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC',
+                                  'oligo_reverse': 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA',
+                                  'oligo_forward': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGAT'}
+
+        seq = 'aggctgactatCGTCTCgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacggctagcaggtgctag'
+        seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
+        seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
+        seq = SeqRecord(Seq(seq))
+        category = '13-14-15-16 (CDS)'
+        oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
+        #print oligo_pcrs
+
+        seq = 'aggctgactatgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacgCGTCTCgctagcaggtgctag'
+        seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
+        seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
+        seq = SeqRecord(Seq(seq))
+        category = '13-14-15-16 (CDS)'
+        oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
+        #print oligo_pcrs
+
 
     def test_join_short_segments(self):
         segments = [(0, 10), (11, 30), (31, 60)]

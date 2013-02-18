@@ -7,6 +7,7 @@ from __future__ import  division
 import re
 from itertools import izip_longest
 from Bio.Alphabet import generic_dna
+from math import log10
 
 try:
     from collections import OrderedDict
@@ -24,7 +25,7 @@ from goldenbraid.settings import DB
 from goldenbraid.models import Feature
 
 
-OLIGO_UNIVERSAL = 'GCGCCGTCTCT'
+OLIGO_UNIVERSAL = 'GCGCCGTCTCG'
 PUPD_PREFIX = 'CTCG'
 MINIMUN_PCR_LENGTH = 50
 
@@ -242,7 +243,7 @@ def _get_oligo(seq, min_melting_temp, min_length=None):
     'Giving a seq and a melting temperature it return the longest oligo'
     if not min_length:
         min_length = 20
-    for index in range(min_length - 1, len(seq)):
+    for index in range(min_length, len(seq)):
         oligo = seq[:index]
         if _calculate_annealing_temp(oligo) >= min_melting_temp:
             break
@@ -250,16 +251,15 @@ def _get_oligo(seq, min_melting_temp, min_length=None):
 
 
 def _calculate_annealing_temp(seq):
-    # from  http://jeltsch.org/annealing_temperature
-    # Tm (C) = 81.5 + 0.41(%GC) - (675/N)
+    # from  http://www.basic.northwestern.edu/biotools/oligocalc.html
+    # Tm (C)= 64.9 +41*(yG+zC-16.4)/(wA+xT+yG+zC)
     seq = seq.upper()
     len_seq = len(seq)
-    gc_percentaje = ((seq.count('G') + seq.count('C')) / len(seq)) * 100
-    return  81.5 + (0.41 * gc_percentaje) - (675 / len_seq)
+    return 64.9 + 41 * (seq.count('G') + seq.count('C')-16.4) / len_seq
 
 
 def _remove_rec_sites(seq):
-    '''It modifies all rec sites in the sceuence to be able to use with
+    '''It modifies all rec sites in the sequence to be able to use with
     goldenbraid pipeline'''
     rec_sites = get_ret_sites(ENZYMES_USED_IN_GOLDENBRAID)
     # regex with the sites to domesticate

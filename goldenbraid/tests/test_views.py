@@ -447,6 +447,7 @@ class BipartiteViewTest(TestCase):
                                      'Vector':'pDGB1_omega1'})
         assert  'LOCUS' in str(response)
 
+
     # check bipartite_view_protocol
     def test_protocol_view(self):
         'it test that the protocol file is generated'
@@ -511,3 +512,29 @@ class DomesticationViewTest(TestCase):
                                      'category': '13-14-15-16 (CDS)'})
         assert 'The provided seq must start with start' in str(response)
 
+
+
+    def test_genbank_view(self):
+        'it test that the genbank file is generated'
+        client = Client()
+        url = reverse('domestication_view_genbank')
+        response = client.get(url)
+        assert response.status_code == 400
+        response = client.post(url, {'seq': 'gagaggggggggagagagattcccctctccccccccccccccccccccccccccccccccccccctttgacctcgaaacgccccc',
+                                     'prefix': 'ggag',
+                                     'suffix': 'aatg',
+                                     'category': '01-02-03-11-12 (PROM+UTR+ATG)'})
+        assert  'LOCUS' in str(response)
+
+    # check bipartite_view_protocol
+    def test_protocol_view(self):
+        'it test that the protocol file is generated'
+        client = Client()
+        url = reverse('domestication_view_protocol')
+        response = client.get(url)
+        assert response.status_code == 400
+        response = client.post(url, {'seq': 'gagaggggggggagagagattcccctctccccccccccccccccctccccccccccccccccccccccccccctttgacctcgaaacgccccc',
+                                     'prefix': 'ggag',
+                                     'suffix': 'aatg',
+                                     'category': '01-02-03-11-12 (PROM+UTR+ATG)'})
+        assert "Oligo forward: GCGCCGTCTCGCTCGGGAGGAGAGGGGGGGGAGAGAGAT" in str(response)

@@ -239,11 +239,10 @@ Perform a PCR amplification for each patch with the given pair of oligos by usin
 
 
 Once you have all your patches the domestication reaction should be performed as follows:
-40 micrograms of each patch
+40 ng of each patch
 75 ng of pUPD
 3u BsmBI
 3u T4 Ligase
-
 1 microlitre Ligase Buffer
 
 Final volume: 10 microlitres
