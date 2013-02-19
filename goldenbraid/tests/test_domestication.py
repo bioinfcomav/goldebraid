@@ -6,7 +6,8 @@ Created on 2013 ots 7
 from django.test import TestCase
 from Bio.Seq import Seq
 
-from goldenbraid.domestication import domesticate, _join_short_segments
+from goldenbraid.domestication import domesticate, _join_short_segments, \
+    _get_pcr_segments
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from Bio.SeqRecord import SeqRecord
 
@@ -37,8 +38,8 @@ class DomesticationTest(TestCase):
         category = '13-14-15-16 (CDS)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC',
-                                  'oligo_reverse': 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA',
-                                  'oligo_forward': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGAT'}
+                                 'oligo_reverse': 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA',
+                                 'oligo_forward': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGAT'}
 
         seq = 'aggctgactatCGTCTCgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacggctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
@@ -46,28 +47,44 @@ class DomesticationTest(TestCase):
         seq = SeqRecord(Seq(seq))
         category = '13-14-15-16 (CDS)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
-        #print oligo_pcrs
-
+        # print oligo_pcrs
         seq = 'aggctgactatgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacgCGTCTCgctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
         seq = SeqRecord(Seq(seq))
         category = '13-14-15-16 (CDS)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
-        #print oligo_pcrs
+        print oligo_pcrs
 
+    def test_get_pcr_segments(self):
+        seq = 'aggctgactatCGTCTCgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacggctagcaggtgctag'
+        seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
+        seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
+        seq = SeqRecord(Seq(seq))
+
+        rec_sites = [{'original':'CGTCTC', 'modified':'CGTATC'},
+                     {'original':'GAGACC', 'modified':'GAGACA'},
+                     {'original':'GAGACC', 'modified':'GAGACT'}]
+        fragments = ['aggctgactat',
+                     'gtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacggctagcaggtgctag',
+                     'gggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg',
+                     'gggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta']
+        segments = _get_pcr_segments(seq, rec_sites, fragments)
+        assert segments == [{'start': 0, 'end': 103, 'forward_min': 16},
+                            {'start': 99, 'end': 181},
+                            {'start': 177, 'end': 242}]
 
     def test_join_short_segments(self):
-        segments = [(0, 10), (11, 30), (31, 60)]
+        segments = [(0, 10), (8, 33), (31, 60)]
         min_length = 11
         new_segments = _join_short_segments(segments, min_length)
-        assert new_segments == [{'start': 0, 'end': 30, 'forward_min': 10},
+        assert new_segments == [{'start': 0, 'end': 33, 'forward_min': 10},
                                 {'start': 31, 'end': 60}]
 
-        segments = [(0, 30), (31, 40), (41, 80)]
+        segments = [(0, 34), (31, 40), (38, 80)]
         min_length = 11
         new_segments = _join_short_segments(segments, min_length)
-        assert new_segments == [{'start': 0, 'end': 30},
+        assert new_segments == [{'start': 0, 'end': 34},
                                 {'start': 31, 'end': 80, 'forward_min': 40}]
         segments = [(0, 30), (31, 60), (61, 70)]
         min_length = 11

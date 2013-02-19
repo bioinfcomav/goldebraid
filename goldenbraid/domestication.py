@@ -7,7 +7,6 @@ from __future__ import  division
 import re
 from itertools import izip_longest
 from Bio.Alphabet import generic_dna
-from math import log10
 
 try:
     from collections import OrderedDict
@@ -20,7 +19,8 @@ from Bio.SeqRecord import SeqRecord
 from goldenbraid.views.feature_views import (parse_rebase_file,
                                              get_prefix_and_suffix_index)
 from goldenbraid.settings import (REBASE_FILE,
-                                  DOMESTICATION_DEFAULT_MELTING_TEMP)
+                                  DOMESTICATION_DEFAULT_MELTING_TEMP,
+                                  DOMESTICATION_MIN_OLIGO_LENGTH)
 from goldenbraid.settings import DB
 from goldenbraid.models import Feature
 
@@ -107,8 +107,11 @@ def domesticate(seqrec, category, prefix, suffix):
 def _get_oligos(seq, segments, min_melting_temp):
     oligos = []
     for segment in segments:
+        forward_min = segment.get('forward_min', None)
+        if forward_min:
+            forward_min = forward_min - segment['start']
         forw_oligo = _get_oligo(seq[segment['start']:], min_melting_temp,
-                                segment.get('forward_min', None))
+                                forward_min)
 
         reverse_min = segment.get('reverse_min', None)
         if reverse_min:
@@ -181,7 +184,7 @@ def  _get_segments_from_rec_site(frag_5, rec_site, prev_seq_len):
     fow_end = change_index + 1
     rev_start = fow_end - 3
 
-    return rev_start, fow_end
+    return rev_start, fow_end + 1
 
 
 def _get_stripped_vector_seq():
@@ -241,8 +244,8 @@ def _add_tags_to_oligos(oligos, prefix, suffix, kind):
 
 def _get_oligo(seq, min_melting_temp, min_length=None):
     'Giving a seq and a melting temperature it return the longest oligo'
-    if not min_length:
-        min_length = 20
+    if not min_length or min_length < DOMESTICATION_MIN_OLIGO_LENGTH:
+        min_length = DOMESTICATION_MIN_OLIGO_LENGTH
     for index in range(min_length, len(seq)):
         oligo = seq[:index]
         if _calculate_annealing_temp(oligo) >= min_melting_temp:
@@ -255,7 +258,7 @@ def _calculate_annealing_temp(seq):
     # Tm (C)= 64.9 +41*(yG+zC-16.4)/(wA+xT+yG+zC)
     seq = seq.upper()
     len_seq = len(seq)
-    return 64.9 + 41 * (seq.count('G') + seq.count('C')-16.4) / len_seq
+    return 64.9 + 41 * (seq.count('G') + seq.count('C') - 16.4) / len_seq
 
 
 def _remove_rec_sites(seq):
