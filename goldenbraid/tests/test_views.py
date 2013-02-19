@@ -285,6 +285,41 @@ class FeatureTestViews(TestCase):
         assert  "<td>Agrobacterium tumefaciens terminator" in str(response)
 
 
+class MultipartiteFreeTestViews(TestCase):
+    fixtures = FIXTURES_TO_LOAD
+    multi_db = True
+
+    def test_view(self):
+        client = Client()
+        url = reverse('multipartite_view_free')
+        response = client.get(url)
+        assert "pDGB2_alpha1R</option>" in str(response)
+
+        url = reverse('multipartite_view_free', kwargs={'form_num': '1'})
+
+        response = client.post(url, {'vector': 'pDGB2_alpha1R',
+                                     'part_1': 'pP2A11'})
+        assert "An11</option>" in str(response)
+
+        url = reverse('multipartite_view_free', kwargs={'form_num': '2'})
+        response = client.post(url, {'vector': 'pDGB2_alpha1R',
+                                     'part_1': 'pP2A11',
+                                     'part_2': 'pLuciferas'})
+        assert 'feature does not exist' in str(response)
+
+        response = client.post(url, {'vector': 'pDGB2_alpha1R',
+                                     'part_1': 'pP2A11',
+                                     'part_2': 'pLuciferase'})
+        assert "pT35S</option" in str(response)
+
+        response = client.post(url, {'vector': 'pDGB2_alpha1R',
+                                     'part_1': 'pP2A11',
+                                     'part_2': 'pLuciferase',
+                                     'part_3': 'pT35S'})
+
+        assert  "<p>You have assembled in the GoldenBraid" in str(response)
+
+
 class MultipartiteTestViews(TestCase):
     fixtures = FIXTURES_TO_LOAD
     multi_db = True
@@ -511,8 +546,6 @@ class DomesticationViewTest(TestCase):
         response = client.post(url, {'seq': open(gb_path),
                                      'category': '13-14-15-16 (CDS)'})
         assert 'The provided seq must start with start' in str(response)
-
-
 
     def test_genbank_view(self):
         'it test that the genbank file is generated'

@@ -11,7 +11,7 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from django.core.exceptions import ValidationError
-from django.forms.widgets import Select
+from django.forms.widgets import Select, HiddenInput
 from django.core.context_processors import csrf
 from django.template.context import RequestContext
 from django.shortcuts import render_to_response
@@ -26,7 +26,8 @@ from Bio import SeqIO
 
 from goldenbraid.models import Feature
 from goldenbraid.settings import DB
-from goldenbraid.tags import VECTOR_TYPE_NAME, REVERSE
+from goldenbraid.tags import (VECTOR_TYPE_NAME, REVERSE, TU_TYPE_NAME,
+                              PHRASE_TYPE_NAME, MODULE_TYPE_NAME)
 from goldenbraid.views.feature_views import get_prefix_and_suffix_index
 
 
@@ -328,3 +329,140 @@ def multipartite_protocol_view(request):
     part_order = [p[0] for p in PARTS_TO_ASSEMBLE[request.POST['multi_type']]]
     protocol = write_protocol(request.POST, 'multipartite', part_order)
     return HttpResponse(protocol, mimetype='text/plain')
+
+
+class MultipartiteFormFreeInitial(forms.Form):
+    vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
+    choices = vectors_to_choice(vectors)
+    vector = forms.CharField(max_length=100, widget=Select(choices=choices))
+
+    def clean_vector(self):
+        return create_feature_validator('vector')(self)
+
+
+def _get_multipartite_free_form(feat_uniquenames):
+    form_fields = OrderedDict()
+    count = 0
+    for feat_uniquename in feat_uniquenames:
+        if count == 0:
+            part_name = 'vector'
+        else:
+            part_name = 'part_{}'.format(count)
+        field = forms.CharField(required=True, initial=feat_uniquename)
+        form_fields[part_name] = field
+        count += 1
+
+    form = type('MultiPartiteFreeValForm', (forms.BaseForm,),
+                {'base_fields': form_fields})
+
+    for field_name in form_fields.keys():
+        setattr(form, 'clean_{0}'.format(field_name),
+                create_feature_validator(field_name))
+    return form
+
+
+def multipartite_view_free(request, form_num):
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    elif request.method == 'GET':
+        request_data = request.GET
+    else:
+        request_data = None
+    form = None
+    if form_num is None:
+        form = MultipartiteFormFreeInitial()
+        context['form_num'] = '1'
+    else:
+        if request_data:
+            feats = [request_data['vector']]
+            for k in sorted(request_data.keys()):
+                if 'part_' in k:
+                    feats.append(request_data[k])
+
+            form_class = _get_multipartite_free_form(feats)
+            form = form_class(request_data)
+            if form.is_valid():
+                last_feat = Feature.objects.using(DB).get(uniquename=feats[-1])
+                last_suffix = last_feat.suffix
+                if last_suffix == 'CGCT':
+                    used_parts = OrderedDict({VECTOR_TYPE_NAME: feats[0]})
+                    for feat in feats[1:]:
+                        feat = Feature.objects.using(DB).get(uniquename=feat)
+                        used_parts[feat.type.name] = feat.uniquename
+                    return render_to_response('multipartite_free_result.html',
+                                              {'used_parts': used_parts,
+                                               'multi_type': 'free'},
+                                              context_instance=RequestContext(request))
+                    return  HttpResponse('result', mimetype='text/plain')
+                else:
+                    # add new_field
+                    part_num = len(feats)
+                    choices = [('', '')]
+                    feats = Feature.objects.using(DB).filter(prefix=last_suffix)
+                    feats = feats.exclude(type__name__in=[VECTOR_TYPE_NAME,
+                                                          TU_TYPE_NAME,
+                                                          MODULE_TYPE_NAME,
+                                                          PHRASE_TYPE_NAME])
+                    for feat in feats:
+                        choices.append((feat.uniquename, feat.uniquename))
+                    form.fields['part_{}'.format(part_num)] = forms.CharField(max_length=100,
+                                                widget=Select(choices=choices),
+                                                required=True)
+                    context['form_num'] = str(part_num)
+
+    if form is None:
+        form_class = _get_multipartite_free_form()
+        form = form_class()
+        context['form_num'] = '1'
+
+    context['form'] = form
+    template = 'multipartite_free_template.html'
+    mimetype = None
+    return render_to_response(template, context, mimetype=mimetype)
+
+
+def multipartite_view_free_old(request, form_num):
+    print "hola"
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    elif request.method == 'GET':
+        request_data = request.GET
+    else:
+        request_data = None
+    form = None
+    if form_num is None:
+        form = _get_multipartite_free_form()
+        context['form_num'] = '1'
+    else:
+        if request_data:
+            feats = [v for k, v in request_data.items() if 'part_' in k]
+            print request_data
+            print feats
+
+            form_class_to_val = _get_multipartite_free_val_form(feats)
+            form = form_class_to_val(request_data)
+
+            if form.is_valid():
+                print "hhhhh"
+                if 'finished' in form.cleaned_data:
+                    return  HttpResponse('result', mimetype='text/plain')
+                else:
+                    form_class = _get_multipartite_free_form(feats)
+                    print 'to_create', request_data
+                    form = form_class(request_data)
+                    context['form_num'] = '1'
+                    print form
+
+    if form is None:
+        form_class = _get_multipartite_free_form()
+        form = form_class()
+        context['form_num'] = '1'
+
+    context['form'] = form
+    template = 'multipartite_free_template.html'
+    mimetype = None
+    return render_to_response(template, context, mimetype=mimetype)
