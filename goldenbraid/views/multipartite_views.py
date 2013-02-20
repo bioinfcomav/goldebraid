@@ -361,6 +361,27 @@ def _get_multipartite_free_form(feat_uniquenames):
     return form
 
 
+def multipartite_view_free_protocol(request):
+    if not request.POST:
+        msg = "To show the protocol you need first to assemble parts"
+        return HttpResponseBadRequest(msg)
+    post_data = request.POST
+    vector = post_data['vector']
+    parts = [post_data[k] for k in sorted(post_data.keys()) if 'part' in k]
+    protocol_data = {VECTOR_TYPE_NAME: vector}
+    part_order = []
+    for part in parts:
+        feat = Feature.objects.using(DB).get(uniquename=part)
+        protocol_data[feat.type.name] = part
+        part_order.append(feat.type.name)
+    protocol = write_protocol(protocol_data, 'multipartite', part_order)
+    return HttpResponse(protocol, mimetype='text/plain')
+
+
+def multipartite_view_free_genbank(request):
+    pass
+
+
 def multipartite_view_free(request, form_num):
     context = RequestContext(request)
     context.update(csrf(request))
@@ -393,8 +414,9 @@ def multipartite_view_free(request, form_num):
                         used_parts[feat.type.name] = feat.uniquename
                     return render_to_response('multipartite_free_result.html',
                                               {'used_parts': used_parts,
-                                               'multi_type': 'free'},
-                                              context_instance=RequestContext(request))
+                                               'multi_type': 'free',
+                                               'post_data': form.cleaned_data},
+                                      context_instance=RequestContext(request))
                     return  HttpResponse('result', mimetype='text/plain')
                 else:
                     # add new_field
@@ -411,51 +433,6 @@ def multipartite_view_free(request, form_num):
                                                 widget=Select(choices=choices),
                                                 required=True)
                     context['form_num'] = str(part_num)
-
-    if form is None:
-        form_class = _get_multipartite_free_form()
-        form = form_class()
-        context['form_num'] = '1'
-
-    context['form'] = form
-    template = 'multipartite_free_template.html'
-    mimetype = None
-    return render_to_response(template, context, mimetype=mimetype)
-
-
-def multipartite_view_free_old(request, form_num):
-    print "hola"
-    context = RequestContext(request)
-    context.update(csrf(request))
-    if request.method == 'POST':
-        request_data = request.POST
-    elif request.method == 'GET':
-        request_data = request.GET
-    else:
-        request_data = None
-    form = None
-    if form_num is None:
-        form = _get_multipartite_free_form()
-        context['form_num'] = '1'
-    else:
-        if request_data:
-            feats = [v for k, v in request_data.items() if 'part_' in k]
-            print request_data
-            print feats
-
-            form_class_to_val = _get_multipartite_free_val_form(feats)
-            form = form_class_to_val(request_data)
-
-            if form.is_valid():
-                print "hhhhh"
-                if 'finished' in form.cleaned_data:
-                    return  HttpResponse('result', mimetype='text/plain')
-                else:
-                    form_class = _get_multipartite_free_form(feats)
-                    print 'to_create', request_data
-                    form = form_class(request_data)
-                    context['form_num'] = '1'
-                    print form
 
     if form is None:
         form_class = _get_multipartite_free_form()

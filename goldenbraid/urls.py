@@ -5,7 +5,9 @@ from goldenbraid.views.feature_search_view import search_features_view
 from goldenbraid.views.multipartite_views import (multipartite_view,
                                                   multipartite_protocol_view,
                                                   multipartite_view_genbank,
-                                                  multipartite_view_free)
+                                                  multipartite_view_free,
+                                                multipartite_view_free_genbank,
+                                               multipartite_view_free_protocol)
 from goldenbraid.views.bipartite_views import (bipartite_view,
                                                bipartite_view_genbank,
                                                bipartite_view_protocol)
@@ -20,6 +22,12 @@ urlpatterns = patterns('',
             name='search_features'),
         url(r'^feature/(?P<uniquename>.+)/$', feature_view,
                 name='feature_view'),
+        url(r'do/multipartite/free/protocol/?$',
+            multipartite_view_free_protocol,
+            name="multipartite_view_free_protocol"),
+        url(r'do/multipartite/free/genbank/?$',
+            multipartite_view_free_genbank,
+            name="multipartite_view_free_genbank"),
         url(r'do/multipartite/free/(?P<form_num>.+)?/?$',
             multipartite_view_free, name="multipartite_view_free"),
         url(r'do/multipartite/protocol/$', multipartite_protocol_view,
