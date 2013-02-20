@@ -361,10 +361,7 @@ def _get_multipartite_free_form(feat_uniquenames):
     return form
 
 
-def multipartite_view_free_protocol(request):
-    if not request.POST:
-        msg = "To show the protocol you need first to assemble parts"
-        return HttpResponseBadRequest(msg)
+def _get_fragments_from_request(request):
     post_data = request.POST
     vector = post_data['vector']
     parts = [post_data[k] for k in sorted(post_data.keys()) if 'part' in k]
@@ -374,12 +371,44 @@ def multipartite_view_free_protocol(request):
         feat = Feature.objects.using(DB).get(uniquename=part)
         protocol_data[feat.type.name] = part
         part_order.append(feat.type.name)
+    return protocol_data, part_order
+
+
+def multipartite_view_free_protocol(request):
+    if not request.POST:
+        msg = "To show the protocol you need first to assemble parts"
+        return HttpResponseBadRequest(msg)
+    protocol_data, part_order = _get_fragments_from_request(request)
     protocol = write_protocol(protocol_data, 'multipartite', part_order)
     return HttpResponse(protocol, mimetype='text/plain')
 
 
 def multipartite_view_free_genbank(request):
-    pass
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    else:
+        msg = "To get the sequence you need first to assemble parts"
+        return HttpResponseBadRequest(msg)
+
+    feats = [request_data['vector']]
+    for k in sorted(request_data.keys()):
+        if 'part_' in k:
+            feats.append(request_data[k])
+
+    form_class = _get_multipartite_free_form(feats)
+    form = form_class(request_data)
+    if form.is_valid():
+        last_feat = Feature.objects.using(DB).get(uniquename=feats[-1])
+        last_suffix = last_feat.suffix
+        if last_suffix == 'CGCT':
+            protocol_data, part_order = _get_fragments_from_request(request)
+            assembled_seq = assemble_parts(protocol_data, part_order)
+            return  HttpResponse(assembled_seq.format('genbank'),
+                                 mimetype='text/plain')
+
+    return HttpResponseBadRequest('There was an error in the assembly')
 
 
 def multipartite_view_free(request, form_num):
@@ -408,7 +437,7 @@ def multipartite_view_free(request, form_num):
                 last_feat = Feature.objects.using(DB).get(uniquename=feats[-1])
                 last_suffix = last_feat.suffix
                 if last_suffix == 'CGCT':
-                    used_parts = OrderedDict({VECTOR_TYPE_NAME: feats[0]})
+                    used_parts = OrderedDict({'vector': feats[0]})
                     for feat in feats[1:]:
                         feat = Feature.objects.using(DB).get(uniquename=feat)
                         used_parts[feat.type.name] = feat.uniquename

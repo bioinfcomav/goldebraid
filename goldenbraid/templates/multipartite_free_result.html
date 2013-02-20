@@ -21,7 +21,7 @@
 </form>
 
 <form action='/do/multipartite/{{ multi_type }}/genbank/' method='POST'>{% csrf_token %}
-    {% for key, value in used_parts.items %}
+    {% for key, value in post_data.items %}
     <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
 
