@@ -88,6 +88,7 @@ def domesticate(seqrec, category, prefix, suffix):
     min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
     new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq)
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
+
     pcr_products = [str(new_seq[s['start']:s['end'] + 1]) for s in segments]
     oligos = _get_oligos(new_seq, segments, min_melting_temp)
     oligos = _add_tags_to_oligos(oligos, prefix, suffix, kind)
@@ -134,7 +135,7 @@ def _get_pcr_segments(seq, rec_sites, fragments):
         segments['starts'].append(start)
         segments['ends'].append(end)
         acumulated_seq_len += len(frag_5) + len(rec_site['modified'])
-    segments['ends'].append(len(seq))
+    segments['ends'].append(len(seq) - 1)
     segments = zip(segments['starts'], segments['ends'])
     return _join_short_segments(segments)
 
@@ -184,7 +185,7 @@ def  _get_segments_from_rec_site(frag_5, rec_site, prev_seq_len):
     fow_end = change_index + 1
     rev_start = fow_end - 3
 
-    return rev_start, fow_end + 1
+    return rev_start, fow_end
 
 
 def _get_stripped_vector_seq():

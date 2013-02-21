@@ -7,7 +7,7 @@ from django.test import TestCase
 from Bio.Seq import Seq
 
 from goldenbraid.domestication import domesticate, _join_short_segments, \
-    _get_pcr_segments
+    _get_pcr_segments, _get_segments_from_rec_site
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from Bio.SeqRecord import SeqRecord
 
@@ -56,7 +56,27 @@ class DomesticationTest(TestCase):
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         print oligo_pcrs
 
+
+
+
+
+
+    def test_get_segments_from_rec_site(self):
+        frag5 = 'TATCGATCGATCGATGCTAGCTGATCGATCGAATCTACTACTACTACTAC'
+        rec_site = {'original':'CGTCTC', 'modified':'CGTATC'}
+        prev_seq_len = 0
+        end, start = _get_segments_from_rec_site(frag5, rec_site, prev_seq_len)
+        assert (51, 54) == (end, start)
+
     def test_get_pcr_segments(self):
+
+        fragments = ['TATCGATCGATCGATGCTAGCTGATCGATCGAATCTACTACTACTACTAC',
+                     'TTGCATGCTAGCTTTTATTTCGGGGTACTGGGATCTACTACTACTACTACTACTA']
+        rec_sites = [{'original':'CGTCTC', 'modified':'CGTATC'}]
+        seq = fragments[0] + rec_sites[0]['modified'] + fragments[1]
+        segments = _get_pcr_segments(seq, rec_sites, fragments)
+        assert segments == [{'start': 0, 'end': 54}, {'start': 51, 'end': 110}]
+
         seq = 'aggctgactatCGTCTCgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacggctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
@@ -70,9 +90,9 @@ class DomesticationTest(TestCase):
                      'gggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg',
                      'gggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta']
         segments = _get_pcr_segments(seq, rec_sites, fragments)
-        assert segments == [{'start': 0, 'end': 103, 'forward_min': 16},
-                            {'start': 99, 'end': 181},
-                            {'start': 177, 'end': 242}]
+        assert segments == [{'start': 0, 'end': 102, 'forward_min': 15},
+                            {'start': 99, 'end': 180},
+                            {'start': 177, 'end': 241}]
 
     def test_join_short_segments(self):
         segments = [(0, 10), (8, 33), (31, 60)]
