@@ -88,7 +88,6 @@ def domesticate(seqrec, category, prefix, suffix):
     min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
     new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq)
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
-
     pcr_products = [str(new_seq[s['start']:s['end'] + 1]) for s in segments]
     oligos = _get_oligos(new_seq, segments, min_melting_temp)
     oligos = _add_tags_to_oligos(oligos, prefix, suffix, kind)
@@ -110,7 +109,7 @@ def _get_oligos(seq, segments, min_melting_temp):
     for segment in segments:
         forward_min = segment.get('forward_min', None)
         if forward_min:
-            forward_min = forward_min - segment['start']
+            forward_min = forward_min - segment['start'] + 1
         forw_oligo = _get_oligo(seq[segment['start']:], min_melting_temp,
                                 forward_min)
 

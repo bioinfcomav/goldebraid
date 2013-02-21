@@ -39,7 +39,7 @@ class DomesticationTest(TestCase):
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC',
                                  'oligo_reverse': 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA',
-                                 'oligo_forward': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGAT'}
+                                 'oligo_forward': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATC'}
 
         seq = 'aggctgactatgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacgCGTCTCgctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
@@ -51,11 +51,9 @@ class DomesticationTest(TestCase):
                                  'oligo_reverse': 'GCGCCGTCTCGCAGTCTCCGTACAGCTAGCT',
                                  'oligo_forward': 'GCGCCGTCTCGCTTGCTAGCAGGTGCTAGGAGACAG'}
 
-
-
     def test_get_segments_from_rec_site(self):
         frag5 = 'TATCGATCGATCGATGCTAGCTGATCGATCGAATCTACTACTACTACTAC'
-        rec_site = {'original':'CGTCTC', 'modified':'CGTATC'}
+        rec_site = {'original': 'CGTCTC', 'modified': 'CGTATC'}
         prev_seq_len = 0
         end, start = _get_segments_from_rec_site(frag5, rec_site, prev_seq_len)
         assert (51, 54) == (end, start)
