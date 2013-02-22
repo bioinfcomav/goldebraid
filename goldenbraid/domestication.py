@@ -109,7 +109,7 @@ def _get_oligos(seq, segments, min_melting_temp):
     for segment in segments:
         forward_min = segment.get('forward_min', None)
         if forward_min:
-            forward_min = forward_min - segment['start']
+            forward_min = forward_min - segment['start'] + 1
         forw_oligo = _get_oligo(seq[segment['start']:], min_melting_temp,
                                 forward_min)
 
@@ -134,7 +134,7 @@ def _get_pcr_segments(seq, rec_sites, fragments):
         segments['starts'].append(start)
         segments['ends'].append(end)
         acumulated_seq_len += len(frag_5) + len(rec_site['modified'])
-    segments['ends'].append(len(seq))
+    segments['ends'].append(len(seq) - 1)
     segments = zip(segments['starts'], segments['ends'])
     return _join_short_segments(segments)
 
@@ -184,7 +184,7 @@ def  _get_segments_from_rec_site(frag_5, rec_site, prev_seq_len):
     fow_end = change_index + 1
     rev_start = fow_end - 3
 
-    return rev_start, fow_end + 1
+    return rev_start, fow_end
 
 
 def _get_stripped_vector_seq():
