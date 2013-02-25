@@ -17,7 +17,7 @@ from goldenbraid.views.domestication_view import (domestication_view,
 
 
 urlpatterns = patterns('',
-        url(r'^add/feature', add_feature_view, name='add_feature'),
+        url(r'^add/feature/$', add_feature_view, name='add_feature'),
         url(r'^search/features/$', search_features_view,
             name='search_features'),
         url(r'^feature/(?P<uniquename>.+)/$', feature_view,
