@@ -115,8 +115,7 @@ class Feature(models.Model):
         urlprefix = self.dbxref.db.urlprefix
         feat_dir = 'feature'
         accession = self.dbxref.accession
-        print '{0}/{1}/{2}'.format(urlprefix, feat_dir, accession)
-        return '{0}/{1}/{2}'.format(urlprefix, feat_dir, accession)
+        return '{0}{1}/{2}'.format(urlprefix, feat_dir, accession)
 
     @property
     def seq_len(self):
