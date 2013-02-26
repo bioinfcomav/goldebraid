@@ -355,6 +355,7 @@ def _get_multipartite_free_form(feat_uniquenames):
         else:
             part_name = 'part_{0}'.format(count)
         field = forms.CharField(required=True, initial=feat_uniquename)
+        field.widget.attrs['readonly'] = True
         form_fields[part_name] = field
         count += 1
 
