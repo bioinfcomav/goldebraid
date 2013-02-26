@@ -11,7 +11,7 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from django.core.exceptions import ValidationError
-from django.forms.widgets import Select, HiddenInput
+from django.forms.widgets import Select
 from django.core.context_processors import csrf
 from django.template.context import RequestContext
 from django.shortcuts import render_to_response
@@ -183,7 +183,7 @@ def assemble_parts(parts, part_types):
 
     joined_seq.id = 'assembled_seq'
     joined_seq.name = joined_seq.id
-    joined_seq.description = "({}){}".format(','.join(names['parts']),
+    joined_seq.description = "({0}){1}".format(','.join(names['parts']),
                                              names['vector'])
 
     return joined_seq
@@ -260,7 +260,7 @@ def multipartite_view(request, multi_type=None):
 def write_protocol(protocol_data, assembly_type, part_order):
     "it writes the protocol in a variable"
     protocol = []
-    protocol.append("{} Assembly Protocol".format(assembly_type.title()))
+    protocol.append("{0} Assembly Protocol".format(assembly_type.title()))
     protocol.append("")
 
     fragments = []
@@ -347,7 +347,7 @@ def _get_multipartite_free_form(feat_uniquenames):
         if count == 0:
             part_name = 'vector'
         else:
-            part_name = 'part_{}'.format(count)
+            part_name = 'part_{0}'.format(count)
         field = forms.CharField(required=True, initial=feat_uniquename)
         form_fields[part_name] = field
         count += 1
@@ -458,7 +458,7 @@ def multipartite_view_free(request, form_num):
                                                           PHRASE_TYPE_NAME])
                     for feat in feats:
                         choices.append((feat.uniquename, feat.uniquename))
-                    form.fields['part_{}'.format(part_num)] = forms.CharField(max_length=100,
+                    form.fields['part_{0}'.format(part_num)] = forms.CharField(max_length=100,
                                                 widget=Select(choices=choices),
                                                 required=True)
                     context['form_num'] = str(part_num)

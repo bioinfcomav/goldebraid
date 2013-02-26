@@ -85,7 +85,7 @@ class DomesticationForm(forms.Form):
             del self.cleaned_data[kind]
             return tag
         if len(tag) != 4:
-            raise ValidationError('{} tag must be of length 4'.format(kind))
+            raise ValidationError('{0} tag must be of length 4'.format(kind))
         if not _seq_is_dna(tag):
             msg = 'The given tag seqs with not allowed nucleotides: ATGC'
             raise ValidationError(msg)
@@ -252,9 +252,9 @@ One microlitre of the reaction is enough to be transform E.coli electrocompetent
 '''
     pcr_str = ''
     for pcr in pcrs:
-        pcr_str += '\tPCR product: {}\n'.format(pcr['pcr_product'])
-        pcr_str += '\tOligo forward: {}\n'.format(pcr['oligo_forward'])
-        pcr_str += '\tOligo reverse: {}\n'.format(pcr['oligo_reverse'])
+        pcr_str += '\tPCR product: {0}\n'.format(pcr['pcr_product'])
+        pcr_str += '\tOligo forward: {0}\n'.format(pcr['oligo_forward'])
+        pcr_str += '\tOligo reverse: {0}\n'.format(pcr['oligo_reverse'])
         pcr_str += '\n'
 
     return protocol.format(pcr_str)
