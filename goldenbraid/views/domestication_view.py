@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpResponseBadRequest
+    from django.http import HttpResponse, HttpResponseBadRequest
 
 try:
     from collections import OrderedDict
