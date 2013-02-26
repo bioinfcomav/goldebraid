@@ -207,8 +207,10 @@ def bipartite_view_genbank(request):
         form = BipartiteForm3(request_data)
         if form.is_valid():
             seq = assemble_parts(form.cleaned_data, ['part_1', 'part_2'])
-            return  HttpResponse(seq.format('genbank'),
-                             mimetype='text/plain')
+            response = HttpResponse(seq.format('genbank'),
+                                    mimetype='text/plain')
+            response['Content-Disposition'] = 'attachment; '
+            response['Content-Disposition'] += 'filename="assembled_seq.gb"'
     return HttpResponseBadRequest()
 
 
@@ -218,4 +220,6 @@ def bipartite_view_protocol(request):
         msg = "To show the protocol you need first to assemble parts"
         return HttpResponseBadRequest(msg)
     protocol = write_protocol(request.POST, "bipartite", ['part_1', 'part_2'])
-    return HttpResponse(protocol, mimetype='text/plain')
+    response = HttpResponse(protocol, mimetype='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
+    return response

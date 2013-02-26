@@ -226,7 +226,11 @@ def domestication_view(request):
 
 def domestication_view_genbank(request):
     def function(pcrs, seq):
-        return  HttpResponse(seq.format('genbank'), mimetype='text/plain')
+        response = HttpResponse(seq.format('genbank'),
+                                mimetype='text/plain')
+        response['Content-Disposition'] = 'attachment; '
+        response['Content-Disposition'] += 'filename="assembled_seq.gb"'
+        return response
     return _domestication_view_no_template(request, function)
 
 
@@ -263,7 +267,10 @@ One microlitre of the reaction is enough to be transform E.coli electrocompetent
 def domestication_view_protocol(request):
     def function(pcrs, seq):
         protocol = write_domestication_protocol(pcrs)
-        return HttpResponse(protocol, mimetype='text/plain')
+        response = HttpResponse(protocol, mimetype='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
+        return response
+
     return _domestication_view_no_template(request, function)
 
 
@@ -281,6 +288,3 @@ def _domestication_view_no_template(request, function):
     seq = SeqRecord(Seq(seq))
     pcrs, seq = domesticate(seq, category, prefix, suffix)
     return function(pcrs, seq)
-
-    return HttpResponseBadRequest()
-

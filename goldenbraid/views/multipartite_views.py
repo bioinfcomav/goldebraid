@@ -220,8 +220,11 @@ def multipartite_view_genbank(request, multi_type=None):
             part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
             assembled_seq = assemble_parts(multi_form_data, part_types)
 
-            return  HttpResponse(assembled_seq.format('genbank'),
-                                 mimetype='text/plain')
+            response = HttpResponse(assembled_seq.format('genbank'),
+                                    mimetype='text/plain')
+            response['Content-Disposition'] = 'attachment; '
+            response['Content-Disposition'] += 'filename="assembled_seq.gb"'
+            return response
     return HttpResponseBadRequest()
 
 
@@ -334,7 +337,9 @@ def multipartite_protocol_view(request):
         return HttpResponseBadRequest(msg)
     part_order = [p[0] for p in PARTS_TO_ASSEMBLE[request.POST['multi_type']]]
     protocol = write_protocol(request.POST, 'multipartite', part_order)
-    return HttpResponse(protocol, mimetype='text/plain')
+    response = HttpResponse(protocol, mimetype='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
+    return response
 
 
 class MultipartiteFormFreeInitial(forms.Form):
@@ -387,7 +392,9 @@ def multipartite_view_free_protocol(request):
         return HttpResponseBadRequest(msg)
     protocol_data, part_order = _get_fragments_from_request(request)
     protocol = write_protocol(protocol_data, 'multipartite', part_order)
-    return HttpResponse(protocol, mimetype='text/plain')
+    response = HttpResponse(protocol, mimetype='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
+    return response
 
 
 def multipartite_view_free_genbank(request):
@@ -412,8 +419,11 @@ def multipartite_view_free_genbank(request):
         if last_suffix == 'CGCT':
             protocol_data, part_order = _get_fragments_from_request(request)
             assembled_seq = assemble_parts(protocol_data, part_order)
-            return  HttpResponse(assembled_seq.format('genbank'),
-                                 mimetype='text/plain')
+            response = HttpResponse(assembled_seq.format('genbank'),
+                                    mimetype='text/plain')
+            response['Content-Disposition'] = 'attachment; '
+            response['Content-Disposition'] += 'filename="assembled_seq.gb"'
+            return response
 
     return HttpResponseBadRequest('There was an error in the assembly')
 
