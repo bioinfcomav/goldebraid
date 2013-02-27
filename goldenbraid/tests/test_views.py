@@ -551,6 +551,13 @@ class DomesticationViewTest(TestCase):
                                      'category': '12-13 (GOI)'})
         assert 'The provided seq must have less' in str(response)
 
+        #sequence start with atg
+        fasta_path = os.path.join(TEST_DATA, 'domseqatg.fasta')
+
+        response = client.post(url, {'seq': open(fasta_path),
+                                     'category': '13 (SP)'})
+        assert 'The provided seq must start with start' not in str(response)
+
 
     def test_genbank_view(self):
         'it test that the genbank file is generated'
