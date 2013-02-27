@@ -74,7 +74,7 @@ def _build_feature_query(search_criteria):
                                           criteria['name_exact'])
     if 'kind' in criteria and criteria['kind']:
         query = query.filter(type__name=criteria['kind'])
-    return query
+    return query.distinct()
 
 
 def search_features_view(request):
