@@ -547,6 +547,11 @@ class DomesticationViewTest(TestCase):
                                      'category': '13-14-15-16 (CDS)'})
         assert 'The provided seq must start with start' in str(response)
 
+        response = client.post(url, {'seq': open(gb_path),
+                                     'category': '12-13 (GOI)'})
+        assert 'The provided seq must have less' in str(response)
+
+
     def test_genbank_view(self):
         'it test that the genbank file is generated'
         client = Client()

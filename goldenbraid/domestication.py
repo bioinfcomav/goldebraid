@@ -46,12 +46,12 @@ CATEGORIES['13 (SP)'] = ('SP', 'AATG', 'AGCC')
 CATEGORIES['14-15-16 (CDS)'] = ('CDS', 'AGCC', 'GCTT')
 CATEGORIES['13-14-15 (CDS)'] = ('CDS', 'AATG', 'GCAG')
 CATEGORIES['16 (CT)'] = ('CT', 'GCAG', 'GCTT')
-CATEGORIES["12-13B (5'FS)"] = ('5FS', 'CCAT', 'GTGA')
-CATEGORIES['14B-15B (Target)'] = ('Target', 'GTGA', 'TCTC')
+CATEGORIES["12-13B (5'FS)"] = ('5FS', 'CCAT', 'GTAG')
+CATEGORIES['14B-15B (Target)'] = ('Target', 'GTAG', 'TCTC')
 CATEGORIES["16B (3'FS)"] = ('3FS', 'TCTC', 'GCTT')
-CATEGORIES['12-13 (GOI)'] = ('goi', 'CCAT', 'GTGA')
-CATEGORIES['14-15(INT)'] = ('int', 'GTGA', 'TCTC')
-CATEGORIES['16 (IOG)'] = ('iog', 'TCTC', 'GCTT')
+CATEGORIES['12-13 (GOI)'] = ('goi', 'CCAT', 'AGCC')
+CATEGORIES['14-15(INT)'] = ('int', 'AGCC', 'GCAG')
+CATEGORIES['16 (IOG)'] = ('iog', 'GCAG', 'GCTT')
 CATEGORIES['12-13-14-15-16 (GOI)'] = ('goi', 'CCAT', 'GCTT')
 CATEGORIES['17-21 (TER)'] = ('TER', 'GCTT', 'CGCT')
 
@@ -202,11 +202,15 @@ def _get_stripped_vector_seq():
 
 def _add_tags_to_pcrproducts(pcr_products, prefix, suffix, kind):
     pcr_products_with_tags = []
-    if kind in ('13-14-15-16 (CDS)', '13 (SP)', '13-14-15 (CDS)'):
+    if kind in ('13-14-15-16 (CDS)', '13-14-15 (CDS)'):
         prefix = 'A'
+    elif kind in ('13 (SP)'):
+        prefix = 'A'
+        suffix = 'GCAGCC'
     elif kind == '12 (NT)':
         prefix = 'CC'
-
+    elif kind == '16 (CT)':
+        prefix = 'GCAGGG'
     len_pcr = len(pcr_products)
     for index, pcr_product in enumerate(pcr_products):
         pcr_tag = OLIGO_UNIVERSAL
@@ -227,6 +231,8 @@ def _add_tags_to_oligos(oligos, prefix, suffix, kind):
         prefix = 'A'
     elif kind == '12 (NT)':
         prefix = 'CC'
+    elif kind == '16 (CT)':
+        prefix = 'GCAGGG'
     suffix = str(Seq(suffix).reverse_complement())
     len_oligos = len(oligos)
     for index, oligo_pair in enumerate(oligos):

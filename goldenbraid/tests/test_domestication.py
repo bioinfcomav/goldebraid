@@ -51,6 +51,18 @@ class DomesticationTest(TestCase):
                                  'oligo_reverse': 'GCGCCGTCTCGCAGTCTCCGTACAGCTAGCT',
                                  'oligo_forward': 'GCGCCGTCTCGCTTGCTAGCAGGTGCTAGGAGACAG'}
 
+        seq = 'aggctgactatgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacggctagcaggtgctag'
+        seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
+        seq += 'GAGACCgggtcatgctagctgatctgatcgctgcgtcgggcgtctgatgctagctagctCGTCTCgtacgtcatcttttcagtcgatcta'
+        seq = SeqRecord(Seq(seq))
+        category = '13-14-15-16 (CDS)'
+        oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
+        assert oligo_pcrs[2] == {'pcr_product': 'GCGCCGTCTCGACTGGGTCATGCTAGCTGATCTGATCGCTGCGTCGGGCGTCTGATGCTAGCTAGCTCGTATCGTACGTCATCTTTTCAGTCGATCTAAATGCGAGCGAGACGGCGC',
+                                 'oligo_reverse': 'GCGCCGTCTCGCTCGCATTTAGATCGACTGAAAAGATGACGTACGATA',
+                                 'oligo_forward': 'GCGCCGTCTCGACTGGGTCATGCTAGCTGAT'}
+
+
+
     def test_get_segments_from_rec_site(self):
         frag5 = 'TATCGATCGATCGATGCTAGCTGATCGATCGAATCTACTACTACTACTAC'
         rec_site = {'original': 'CGTCTC', 'modified': 'CGTATC'}
