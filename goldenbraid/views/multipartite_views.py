@@ -11,7 +11,7 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from django.core.exceptions import ValidationError
-from django.forms.widgets import Select, HiddenInput
+from django.forms.widgets import Select
 from django.core.context_processors import csrf
 from django.template.context import RequestContext
 from django.shortcuts import render_to_response
@@ -100,18 +100,25 @@ def vectors_to_choice(vectors):
     for_vectors = vectors.filter(prefix=UT_SUFFIX, suffix=UT_PREFIX)
     rev_vectors = vectors.filter(prefix=Seq(UT_PREFIX).reverse_complement(),
                                  suffix=Seq(UT_SUFFIX).reverse_complement())
-    for_vector_choices = []
-    for vector in for_vectors:
-        for_vector_choices.append((vector.uniquename, vector.uniquename))
-    rev_vector_choices = []
-    for vector in rev_vectors:
-        rev_vector_choices.append((vector.uniquename, vector.uniquename))
-
+    for_vector_choices = features_to_choices(for_vectors, blank_line=False)
+    rev_vector_choices = features_to_choices(rev_vectors, blank_line=False)
     vector_choices = (('', ''),
                       ('Forward vectors', for_vector_choices),
                       ('Reverse vectors', rev_vector_choices))
 
     return vector_choices
+
+
+def features_to_choices(features, blank_line=True):
+    choices = [('', '')] if blank_line else []
+
+    for feat in features:
+        if feat.description:
+            show = '{0} - {1}'.format(feat.uniquename, feat.description)
+        else:
+            show = feat.uniquename
+        choices.append((feat.uniquename, show))
+    return choices
 
 
 def _get_multipartite_form(multi_type):
@@ -120,12 +127,11 @@ def _get_multipartite_form(multi_type):
 
     part_defs = PARTS_TO_ASSEMBLE[multi_type]
     for parts in part_defs:
-        choices = [('', '')]
-        for feat in Feature.objects.using(DB).filter(type__name=parts[0],
-                                                     prefix=parts[1],
-                                                     suffix=parts[2]):
-            choices.append((feat.uniquename, feat.uniquename))
+        features = Feature.objects.using(DB).filter(type__name=parts[0],
+                                                    prefix=parts[1],
+                                                    suffix=parts[2])
 
+        choices = features_to_choices(features)
         name = parts[0]
         form_fields[name] = forms.CharField(max_length=100,
                                             widget=Select(choices=choices))
@@ -183,7 +189,7 @@ def assemble_parts(parts, part_types):
 
     joined_seq.id = 'assembled_seq'
     joined_seq.name = joined_seq.id
-    joined_seq.description = "({}){}".format(','.join(names['parts']),
+    joined_seq.description = "({0}){1}".format(','.join(names['parts']),
                                              names['vector'])
 
     return joined_seq
@@ -214,8 +220,11 @@ def multipartite_view_genbank(request, multi_type=None):
             part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
             assembled_seq = assemble_parts(multi_form_data, part_types)
 
-            return  HttpResponse(assembled_seq.format('genbank'),
-                                 mimetype='text/plain')
+            response = HttpResponse(assembled_seq.format('genbank'),
+                                    mimetype='text/plain')
+            response['Content-Disposition'] = 'attachment; '
+            response['Content-Disposition'] += 'filename="assembled_seq.gb"'
+            return response
     return HttpResponseBadRequest()
 
 
@@ -260,7 +269,7 @@ def multipartite_view(request, multi_type=None):
 def write_protocol(protocol_data, assembly_type, part_order):
     "it writes the protocol in a variable"
     protocol = []
-    protocol.append("{} Assembly Protocol".format(assembly_type.title()))
+    protocol.append("{0} Assembly Protocol".format(assembly_type.title()))
     protocol.append("")
 
     fragments = []
@@ -328,7 +337,9 @@ def multipartite_protocol_view(request):
         return HttpResponseBadRequest(msg)
     part_order = [p[0] for p in PARTS_TO_ASSEMBLE[request.POST['multi_type']]]
     protocol = write_protocol(request.POST, 'multipartite', part_order)
-    return HttpResponse(protocol, mimetype='text/plain')
+    response = HttpResponse(protocol, mimetype='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
+    return response
 
 
 class MultipartiteFormFreeInitial(forms.Form):
@@ -347,8 +358,9 @@ def _get_multipartite_free_form(feat_uniquenames):
         if count == 0:
             part_name = 'vector'
         else:
-            part_name = 'part_{}'.format(count)
+            part_name = 'part_{0}'.format(count)
         field = forms.CharField(required=True, initial=feat_uniquename)
+        field.widget.attrs['readonly'] = True
         form_fields[part_name] = field
         count += 1
 
@@ -380,7 +392,9 @@ def multipartite_view_free_protocol(request):
         return HttpResponseBadRequest(msg)
     protocol_data, part_order = _get_fragments_from_request(request)
     protocol = write_protocol(protocol_data, 'multipartite', part_order)
-    return HttpResponse(protocol, mimetype='text/plain')
+    response = HttpResponse(protocol, mimetype='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
+    return response
 
 
 def multipartite_view_free_genbank(request):
@@ -405,8 +419,11 @@ def multipartite_view_free_genbank(request):
         if last_suffix == 'CGCT':
             protocol_data, part_order = _get_fragments_from_request(request)
             assembled_seq = assemble_parts(protocol_data, part_order)
-            return  HttpResponse(assembled_seq.format('genbank'),
-                                 mimetype='text/plain')
+            response = HttpResponse(assembled_seq.format('genbank'),
+                                    mimetype='text/plain')
+            response['Content-Disposition'] = 'attachment; '
+            response['Content-Disposition'] += 'filename="assembled_seq.gb"'
+            return response
 
     return HttpResponseBadRequest('There was an error in the assembly')
 
@@ -450,15 +467,13 @@ def multipartite_view_free(request, form_num):
                 else:
                     # add new_field
                     part_num = len(feats)
-                    choices = [('', '')]
                     feats = Feature.objects.using(DB).filter(prefix=last_suffix)
                     feats = feats.exclude(type__name__in=[VECTOR_TYPE_NAME,
                                                           TU_TYPE_NAME,
                                                           MODULE_TYPE_NAME,
                                                           PHRASE_TYPE_NAME])
-                    for feat in feats:
-                        choices.append((feat.uniquename, feat.uniquename))
-                    form.fields['part_{}'.format(part_num)] = forms.CharField(max_length=100,
+                    choices = features_to_choices(feats)
+                    form.fields['part_{0}'.format(part_num)] = forms.CharField(max_length=100,
                                                 widget=Select(choices=choices),
                                                 required=True)
                     context['form_num'] = str(part_num)

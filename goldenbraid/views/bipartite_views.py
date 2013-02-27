@@ -21,8 +21,8 @@ from goldenbraid.settings import DB
 from goldenbraid.views.multipartite_views import (create_feature_validator,
                                                   vectors_to_choice,
                                                   assemble_parts,
-                                                  PARTS_TO_ASSEMBLE,
-    write_protocol)
+                                                  write_protocol,
+                                                  features_to_choices)
 from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME
 from django.http import HttpResponse, HttpResponseBadRequest
 
@@ -38,17 +38,11 @@ def _parts_to_choice(parts):
     parts_forw = parts.filter(vector__prefix=SITE_B, vector__suffix=SITE_A)
     parts_rev = parts.filter(vector__prefix=Seq(SITE_A).reverse_complement(),
                              vector__suffix=Seq(SITE_B).reverse_complement())
-    part_forw_choices = []
-    for part_forw in parts_forw:
-        part_forw_choices.append((part_forw.uniquename,
-                                   part_forw.uniquename))
-    part_rev_choices = []
-    for part_rev in parts_rev:
-        part_rev_choices.append((part_rev.uniquename,
-                                  part_rev.uniquename))
+    part_forw_choices = features_to_choices(parts_forw, blank_line=False)
+    part_rev_choices = features_to_choices(parts_rev, blank_line=False)
     part_choices = (('', ''),
-                      ('Forward parts', part_forw_choices),
-                      ('Reverse parts', part_rev_choices))
+                    ('Forward parts', part_forw_choices),
+                    ('Reverse parts', part_rev_choices))
     return part_choices
 
 
@@ -105,15 +99,23 @@ def _get_part2_choices(part1_uniquename):
     parts_rev = parts.filter(vector__prefix=Seq(SITE_A).reverse_complement(),
                              vector__suffix=Seq(SITE_B).reverse_complement())
     part_forw_choices = []
-    for part_forw in parts_forw:
-        if part_forw.enzyme_out == part1_enzyme_out:
-            part_forw_choices.append((part_forw.uniquename,
-                                      part_forw.uniquename))
+    for part in parts_forw:
+        if part.enzyme_out == part1_enzyme_out:
+            if part.description:
+                show = '{0} - {1}'.format(part.uniquename, part.description)
+            else:
+                show = part.uniquename
+            part_forw_choices.append((part.uniquename, show))
+
     part_rev_choices = []
-    for part_rev in parts_rev:
-        if part_rev.enzyme_out == part1_enzyme_out:
-            part_rev_choices.append((part_rev.uniquename,
-                                     part_rev.uniquename))
+    for part in parts_rev:
+        if part.enzyme_out == part1_enzyme_out:
+            if part.description:
+                show = '{0} - {1}'.format(part.uniquename, part.description)
+            else:
+                show = part.uniquename
+            part_rev_choices.append((part.uniquename, show))
+
     part_choices = (('', ''),
                       ('Forward parts', part_forw_choices),
                       ('Reverse parts', part_rev_choices))
@@ -205,8 +207,11 @@ def bipartite_view_genbank(request):
         form = BipartiteForm3(request_data)
         if form.is_valid():
             seq = assemble_parts(form.cleaned_data, ['part_1', 'part_2'])
-            return  HttpResponse(seq.format('genbank'),
-                             mimetype='text/plain')
+            response = HttpResponse(seq.format('genbank'),
+                                    mimetype='text/plain')
+            response['Content-Disposition'] = 'attachment; '
+            response['Content-Disposition'] += 'filename="assembled_seq.gb"'
+            return response
     return HttpResponseBadRequest()
 
 
@@ -216,4 +221,6 @@ def bipartite_view_protocol(request):
         msg = "To show the protocol you need first to assemble parts"
         return HttpResponseBadRequest(msg)
     protocol = write_protocol(request.POST, "bipartite", ['part_1', 'part_2'])
-    return HttpResponse(protocol, mimetype='text/plain')
+    response = HttpResponse(protocol, mimetype='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
+    return response

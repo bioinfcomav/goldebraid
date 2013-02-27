@@ -90,7 +90,7 @@ class DomesticationForm(forms.Form):
             del self.cleaned_data[kind]
             return tag
         if len(tag) != 4:
-            raise ValidationError('{} tag must be of length 4'.format(kind))
+            raise ValidationError('{0} tag must be of length 4'.format(kind))
         if not _seq_is_dna(tag):
             msg = 'The given tag seqs with not allowed nucleotides: ATGC'
             raise ValidationError(msg)
@@ -231,7 +231,11 @@ def domestication_view(request):
 
 def domestication_view_genbank(request):
     def function(pcrs, seq):
-        return  HttpResponse(seq.format('genbank'), mimetype='text/plain')
+        response = HttpResponse(seq.format('genbank'),
+                                mimetype='text/plain')
+        response['Content-Disposition'] = 'attachment; '
+        response['Content-Disposition'] += 'filename="assembled_seq.gb"'
+        return response
     return _domestication_view_no_template(request, function)
 
 
@@ -257,9 +261,9 @@ One microlitre of the reaction is enough to be transform E.coli electrocompetent
 '''
     pcr_str = ''
     for pcr in pcrs:
-        pcr_str += '\tPCR product: {}\n'.format(pcr['pcr_product'])
-        pcr_str += '\tOligo forward: {}\n'.format(pcr['oligo_forward'])
-        pcr_str += '\tOligo reverse: {}\n'.format(pcr['oligo_reverse'])
+        pcr_str += '\tPCR product: {0}\n'.format(pcr['pcr_product'])
+        pcr_str += '\tOligo forward: {0}\n'.format(pcr['oligo_forward'])
+        pcr_str += '\tOligo reverse: {0}\n'.format(pcr['oligo_reverse'])
         pcr_str += '\n'
 
     return protocol.format(pcr_str)
@@ -268,7 +272,10 @@ One microlitre of the reaction is enough to be transform E.coli electrocompetent
 def domestication_view_protocol(request):
     def function(pcrs, seq):
         protocol = write_domestication_protocol(pcrs)
-        return HttpResponse(protocol, mimetype='text/plain')
+        response = HttpResponse(protocol, mimetype='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
+        return response
+
     return _domestication_view_no_template(request, function)
 
 
@@ -286,6 +293,3 @@ def _domestication_view_no_template(request, function):
     seq = SeqRecord(Seq(seq))
     pcrs, seq = domesticate(seq, category, prefix, suffix)
     return function(pcrs, seq)
-
-    return HttpResponseBadRequest()
-
