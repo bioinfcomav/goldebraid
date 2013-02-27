@@ -211,6 +211,7 @@ def bipartite_view_genbank(request):
                                     mimetype='text/plain')
             response['Content-Disposition'] = 'attachment; '
             response['Content-Disposition'] += 'filename="assembled_seq.gb"'
+            return response
     return HttpResponseBadRequest()
 
 
