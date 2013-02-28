@@ -53,7 +53,7 @@ class DomesticationForm(forms.Form):
             raise ValidationError(msg)
         format_ = 'fasta' if content.startswith('>') else 'genbank'
         seq = SeqIO.read(self.cleaned_data['seq'], format_)
-
+        seq = seq.upper()
         if not _seq_is_dna(seq.seq):
             msg = 'The given file contains seqs with not allowed nucleotides'
             msg += ' ATGC'
