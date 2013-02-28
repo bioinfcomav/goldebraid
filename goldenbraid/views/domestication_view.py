@@ -53,6 +53,7 @@ class DomesticationForm(forms.Form):
             raise ValidationError(msg)
         format_ = 'fasta' if content.startswith('>') else 'genbank'
         seq = SeqIO.read(self.cleaned_data['seq'], format_)
+        seq = seq.upper()
         if not _seq_is_dna(seq.seq):
             msg = 'The given file contains seqs with not allowed nucleotides'
             msg += ' ATGC'
@@ -61,23 +62,23 @@ class DomesticationForm(forms.Form):
             category = self.cleaned_data['category']
             if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',
                              '13-14-15 (CDS)'):
-                if not _seq_has_codon_start(seq):
+                if not _seq_has_codon_start(seq.seq):
                     msg = 'The provided seq must start with start codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
             if category in ('13-14-15-16 (CDS)', '14-15-16 (CDS)', '16 (CT)'):
-                if not _seq_has_codon_end(seq):
+                if not _seq_has_codon_end(seq.seq):
                     msg = 'The provided seq must end with a end codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
             if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',
                             '13-14-15 (CDS)', '14-15-16 (CDS)', '16 (CT)'):
-                if not __is_seq_3_multiple(seq):
+                if not _is_seq_3_multiple(seq.seq):
                     msg = 'The provided seq must be multiple of three in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
             if category in ('12-13 (GOI)'):
-                if len(seq)>500:
+                if len(seq) > 500:
                     msg = 'The provided seq must have less than 500 nucleotides in'
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
@@ -187,7 +188,7 @@ def _seq_has_codon_end(seq):
     return True if end in ('TAG', 'TAA', 'TGA') else False
 
 
-def __is_seq_3_multiple(seq):
+def _is_seq_3_multiple(seq):
     return True if divmod(len(seq), 3)[1] == 0 else False
 
 

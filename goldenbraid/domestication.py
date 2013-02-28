@@ -190,8 +190,10 @@ def  _get_segments_from_rec_site(frag_5, rec_site, prev_seq_len):
 def _get_stripped_vector_seq():
     pupd = Feature.objects.using(DB).get(uniquename='pUPD')
     vec_seq = pupd.residues
-    prefix_start, suffix_end = get_prefix_and_suffix_index(vec_seq,
-                                                        pupd.enzyme_in[0])[:2]
+    prefix_index, suffix_index, prefix_size = get_prefix_and_suffix_index(vec_seq,
+                                                        pupd.enzyme_in[0])
+    prefix_start = prefix_index
+    suffix_end = suffix_index + prefix_size
     if prefix_start > suffix_end:
         stripped_seq = vec_seq[prefix_start:]
         stripped_seq += vec_seq[:suffix_end + 1]
