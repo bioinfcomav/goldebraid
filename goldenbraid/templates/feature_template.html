@@ -10,6 +10,8 @@
 <h1>{{ feature.type.name|capfirst|replaceunderscore }} {{ feature.uniquename }}</h1>
 <p><span class='key'>Accession:</span> <span class='value'>{{ feature.uniquename }}</span></p>
 <p><span class='key'>Name:</span> <span class='value'>{{ feature.name }}</span></p>
+<p><span class='key'>Prefix:</span> <span class='value'>{{ feature.prefix }}</span></p>
+<p><span class='key'>Suffix:</span> <span class='value'>{{ feature.suffix }}</span></p>
 <p><span class='key'>Genbank_file:</span><a href="{{feature.genbank_file.url}}">{{ feature.name }}</a></p>
 {% if feature.description %}
 <p><span class='key'>Description:</span> <span class='value'>{{ feature.description }}</span></p>
