@@ -468,6 +468,23 @@ class BipartiteViewTest(TestCase):
         assert """<INPUT type="hidden" name="Vector" value="pDGB1_omega1">""" in str(response)
         assert """<span>The resulted sequence of the assembly is</span>""" in str(response)
 
+        # forward vector
+        url = reverse('bipartite_view_genbank')
+        response = client.post(url, {'part_1': 'GB0125',
+                                     'part_2': 'GB0126',
+                                     'Vector':'pDGB1_omega1'})
+
+        assert response.status_code == 200
+
+        seqrec1 = SeqIO.read(StringIO(str(response)), 'gb')
+        bipartite_seq1 = str(seqrec1.seq)
+        gb_path = os.path.join(TEST_DATA, 'pEGBRosDel.gb')
+        seqrec2 = SeqIO.read(gb_path, 'gb')
+        bipartite_seq2 = str(seqrec2.seq)
+        #print '1', bipartite_seq1
+        #print '2', bipartite_seq2
+        assert bipartite_seq1 == bipartite_seq2
+
         # check bipartite_view_genbank
     def test_genbank_view(self):
         'it test that the genbank file is generated'
@@ -556,6 +573,7 @@ class DomesticationViewTest(TestCase):
         response = client.post(url, {'seq': open(fasta_path),
                                      'category': '13 (SP)'})
         assert 'The provided seq must start with start' not in str(response)
+
 
     def test_genbank_view(self):
         'it test that the genbank file is generated'
