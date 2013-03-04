@@ -17,7 +17,7 @@
     {% for key, value in post_data.items %}
     <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
-    <span>You can download a detailed protocol to fulfill the assembly in the lab from</span> <INPUT type="submit" value="here">
+    <p>You can download a detailed protocol to fulfill the assembly in the lab from <INPUT type="submit" value="here"></p>
 </form>
 
 <form action='/do/multipartite/{{ multi_type }}/genbank/' method='POST'>{% csrf_token %}
@@ -25,7 +25,7 @@
     <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
 
-    <span>The resulted sequence of the assembly is</span>  <INPUT type="submit" value="genbank_file">
+    <p>The resulted sequence of the assembly is <INPUT type="submit" value="genbank_file"></p>
 </form>
 
 {{genbank_url}}

@@ -18,13 +18,13 @@
     <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
     <INPUT type="hidden" name="assembled_seq" value="{{ assembled_seq }}">
-    <span>You can download a detailed protocol to fulfill the assembly in the lab from</span> <INPUT type="submit" value="here">
+    <p>You can download a detailed protocol to fulfill the assembly in the lab from <INPUT type="submit" value="here"></p>
 </form>
 <form action='/do/bipartite/genbank/' method='POST'>{% csrf_token %}
     {% for key, value in used_parts.items %}
     <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
-    <span>The resulted sequence of the assembly is</span>  <INPUT type="submit" value="genbank_file">
+    <p>The resulted sequence of the assembly is <INPUT type="submit" value="genbank_file"></p>
 </form>
 </div>
 {% endblock content %}

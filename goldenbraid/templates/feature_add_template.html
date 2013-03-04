@@ -5,7 +5,7 @@
 
  <form action=""  enctype="multipart/form-data" method="post">{% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" value="Search" />
+    <input type="submit" value="Add" />
   </form>
   {{ form.kind.errors }}
 
