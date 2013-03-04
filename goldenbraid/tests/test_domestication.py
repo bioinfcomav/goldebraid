@@ -61,8 +61,6 @@ class DomesticationTest(TestCase):
                                  'oligo_reverse': 'GCGCCGTCTCGCTCGCATTTAGATCGACTGAAAAGATGACGTACGATA',
                                  'oligo_forward': 'GCGCCGTCTCGACTGGGTCATGCTAGCTGAT'}
 
-
-
     def test_get_segments_from_rec_site(self):
         frag5 = 'TATCGATCGATCGATGCTAGCTGATCGATCGAATCTACTACTACTACTAC'
         rec_site = {'original': 'CGTCTC', 'modified': 'CGTATC'}

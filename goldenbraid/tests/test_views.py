@@ -481,8 +481,8 @@ class BipartiteViewTest(TestCase):
         gb_path = os.path.join(TEST_DATA, 'pEGBRosDel.gb')
         seqrec2 = SeqIO.read(gb_path, 'gb')
         bipartite_seq2 = str(seqrec2.seq)
-        #print '1', bipartite_seq1
-        #print '2', bipartite_seq2
+        # print '1', bipartite_seq1
+        # print '2', bipartite_seq2
         assert bipartite_seq1 == bipartite_seq2
 
         # check bipartite_view_genbank
