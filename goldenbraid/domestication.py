@@ -36,8 +36,8 @@ CATEGORIES['01-02 (OP)'] = ('OP', 'GGAG', 'TCCC')
 CATEGORIES['03-11-12 (MinPROM)'] = ('MinPROM', 'TCCC', 'AATG')
 CATEGORIES['01 (PROM)'] = ('PROM', 'GGAG', 'TGAC')
 CATEGORIES['02 (OP)'] = ('OP', 'TGAC', 'TCCC')
-CATEGORIES['01-02-03-11-12B (INTERACTION ADAPTOR'] = \
-                                        ('InteractionADAPTOR', 'GGAG', 'AATG')
+CATEGORIES['01-02-03-11-12B (INTERACTION ADAPTOR)'] = \
+                                        ('INTERACTION ADAPTOR', 'GGAG', 'AATG')
 CATEGORIES['01-02-03-11-C (PROM+UTR+mir173)'] = \
                                         ('PROM+UTR+mir173', 'GGAG', 'CCAT')
 CATEGORIES['12 (NT)'] = ('NT', 'CCAT', 'AATG')
