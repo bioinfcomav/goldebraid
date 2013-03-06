@@ -13,8 +13,9 @@
         <tr>
             <td>{{ feature.uniquename|link_if_url:feature }}</td>
             <td>{{ feature.name }}</td>
-      <td>{{ feature.type.name }}</td>
+            <td>{{ feature.type.name }}</td>
             <td>{{ feature.description }}</td>
+            <td>{{ "Genbank_file"|link_if_url:feature.genbank_file }}</td>
         </tr>
         {% endfor %}
     </tbody>
