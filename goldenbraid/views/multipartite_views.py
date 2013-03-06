@@ -453,6 +453,8 @@ def multipartite_view_free(request, form_num):
             if form.is_valid():
                 last_feat = Feature.objects.using(DB).get(uniquename=feats[-1])
                 last_suffix = last_feat.suffix
+                if last_suffix == str(Seq(UT_SUFFIX).reverse_complement()):
+                    last_suffix = UT_PREFIX
                 if last_suffix == 'CGCT':
                     used_parts = OrderedDict({'vector': feats[0]})
                     for feat in feats[1:]:
@@ -463,7 +465,6 @@ def multipartite_view_free(request, form_num):
                                                'multi_type': 'free',
                                                'post_data': form.cleaned_data},
                                       context_instance=RequestContext(request))
-                    return  HttpResponse('result', mimetype='text/plain')
                 else:
                     # add new_field
                     part_num = len(feats)
