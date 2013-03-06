@@ -319,6 +319,59 @@ class MultipartiteFreeTestViews(TestCase):
 
         assert  "<p>You have assembled in the GoldenBraid" in str(response)
 
+          # reverse vector
+        url = reverse('multipartite_view_free_genbank')
+        response = client.post(url, {'part_1': 'pP2A11',
+                                     'part_2': 'pMYB12',
+                                     'part_3': 'pTerm2A11',
+                                     'vector': 'pDGB1_alpha1R'})
+
+        assert response.status_code == 200
+
+        seqrec1 = SeqIO.read(StringIO(str(response)), 'gb')
+        multipartite_free_seq1 = str(seqrec1.seq)
+        gb_path = os.path.join(TEST_DATA, 'pEGBMybrev_uniq.gb')
+        seqrec2 = SeqIO.read(gb_path, 'gb')
+        multipartite_free_seq2 = str(seqrec2.seq)[4:]
+        multipartite_free_seq2 += str(seqrec2.seq)[:4]
+
+        assert multipartite_free_seq1 == multipartite_free_seq2
+
+
+
+    def test_genbank_view(self):
+        'it test that the genbank file is generated'
+        client = Client()
+        url = reverse('multipartite_view_free_genbank')
+        response = client.get(url)
+        assert response.status_code == 400
+
+        response = client.post(url, {'assembled_seq':'aaa',
+                                     'vector':'pDGB1_omega1',
+                                     'part_1': 'pPE8',
+                                     'part_2': 'pANT1',
+                                     'part_3': 'pTnos'})
+
+        assert  'LOCUS' in str(response)
+
+
+    def test_protocol_view(self):
+        'it test that the protocol file is generated'
+        client = Client()
+        url = reverse('multipartite_view_free_protocol')
+        response = client.get(url)
+        assert response.status_code == 400
+
+        response = client.post(url, {'assembled_seq':'aaa',
+                                     'vector':'pDGB1_omega1',
+                                     'part_1': 'pPE8',
+                                     'part_2': 'pANT1',
+                                     'part_3': 'pTnos'})
+
+        assert "75 ng of pPE8" in str(response)
+
+
+
 
 class MultipartiteTestViews(TestCase):
     fixtures = FIXTURES_TO_LOAD
