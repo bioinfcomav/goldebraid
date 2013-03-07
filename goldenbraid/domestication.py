@@ -6,13 +6,8 @@ Created on 2013 ots 7
 from __future__ import  division
 import re
 from itertools import izip_longest
+
 from Bio.Alphabet import generic_dna
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
@@ -20,42 +15,12 @@ from goldenbraid.views.feature_views import (parse_rebase_file,
                                              get_prefix_and_suffix_index)
 from goldenbraid.settings import (REBASE_FILE,
                                   DOMESTICATION_DEFAULT_MELTING_TEMP,
-                                  DOMESTICATION_MIN_OLIGO_LENGTH)
-from goldenbraid.settings import DB
+                                  DOMESTICATION_MIN_OLIGO_LENGTH, DB,
+                                  ENZYMES_USED_IN_GOLDENBRAID, PUPD_PREFIX,
+                                  OLIGO_UNIVERSAL)
 from goldenbraid.models import Feature
 
-
-OLIGO_UNIVERSAL = 'GCGCCGTCTCG'
-PUPD_PREFIX = 'CTCG'
 MINIMUN_PCR_LENGTH = 50
-
-CATEGORIES = OrderedDict()
-CATEGORIES['01-02-03-11-12 (PROM+UTR+ATG)'] = ('PROM+UTR+ATG', 'GGAG', 'AATG')
-CATEGORIES['01-02-03-11 (PROM+UTR)'] = ('PROM+UTR', 'GGAG', 'CCAT')
-CATEGORIES['01-02 (OP)'] = ('OP', 'GGAG', 'TCCC')
-CATEGORIES['03-11-12 (MinPROM)'] = ('MinPROM', 'TCCC', 'AATG')
-CATEGORIES['01 (PROM)'] = ('PROM', 'GGAG', 'TGAC')
-CATEGORIES['02 (OP)'] = ('OP', 'TGAC', 'TCCC')
-CATEGORIES['01-02-03-11-12B (INTERACTION ADAPTOR)'] = \
-                                        ('INTERACTION ADAPTOR', 'GGAG', 'AATG')
-CATEGORIES['01-02-03-11-C (PROM+UTR+mir173)'] = \
-                                        ('PROM+UTR+mir173', 'GGAG', 'CCAT')
-CATEGORIES['12 (NT)'] = ('NT', 'CCAT', 'AATG')
-CATEGORIES['13-14-15-16 (CDS)'] = ('CDS', 'AATG', 'GCTT')
-CATEGORIES['13 (SP)'] = ('SP', 'AATG', 'AGCC')
-CATEGORIES['14-15-16 (CDS)'] = ('CDS', 'AGCC', 'GCTT')
-CATEGORIES['13-14-15 (CDS)'] = ('CDS', 'AATG', 'GCAG')
-CATEGORIES['16 (CT)'] = ('CT', 'GCAG', 'GCTT')
-CATEGORIES["12-13B (5'FS)"] = ('''5'FS''', 'CCAT', 'GTAG')
-CATEGORIES['14B-15B (Target)'] = ('Target', 'GTAG', 'TCTC')
-CATEGORIES["16B (3'FS)"] = ('''3'FS''', 'TCTC', 'GCTT')
-CATEGORIES['12-13 (GOI)'] = ('goi', 'CCAT', 'AGCC')
-CATEGORIES['14-15(INT)'] = ('int', 'AGCC', 'GCAG')
-CATEGORIES['16 (IOG)'] = ('iog', 'GCAG', 'GCTT')
-CATEGORIES['12-13-14-15-16 (GOI)'] = ('goi', 'CCAT', 'GCTT')
-CATEGORIES['17-21 (TER)'] = ('TER', 'GCTT', 'CGCT')
-
-ENZYMES_USED_IN_GOLDENBRAID = ('BsmBI', 'BsaI', 'BtgZI')
 
 
 def get_ret_sites(enzymes):

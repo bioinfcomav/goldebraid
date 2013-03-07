@@ -10,7 +10,6 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from django.core.exceptions import ValidationError
 from django.forms.widgets import Select
 from django.core.context_processors import csrf
 from django.template.context import RequestContext
@@ -25,129 +24,14 @@ from Bio.Alphabet import generic_dna
 from Bio import SeqIO
 
 from goldenbraid.models import Feature
-from goldenbraid.settings import DB
+from goldenbraid.settings import DB, PARTS_TO_ASSEMBLE, UT_SUFFIX, UT_PREFIX
 from goldenbraid.tags import (VECTOR_TYPE_NAME, REVERSE, TU_TYPE_NAME,
-                              PHRASE_TYPE_NAME, MODULE_TYPE_NAME)
+                              MODULE_TYPE_NAME)
 from goldenbraid.views.feature_views import get_prefix_and_suffix_index
-
-
-PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
-                               ('CDS', 'AATG', 'GCTT'),
-                               ('TER', 'GCTT', 'CGCT')],
-                     'secreted': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
-                                 ('SP', 'AATG', 'AGCC'),
-                                 ('CDS', 'AGCC', 'GCTT'),
-                                 ('TER', 'GCTT', 'CGCT')],
-                     'ct-fusion': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
-                                   ('CDS', 'AATG', 'GCAG'),
-                                   ('CT', 'GCAG', 'GCTT'),
-                                   ('TER', 'GCTT', 'CGCT')],
-                     'nt-fusion': [('PROM+UTR', 'GGAG', 'CCAT'),
-                                   ('NT', 'CCAT', 'AATG'),
-                                   ('CDS', 'AATG', 'GCTT'),
-                                   ('TER', 'GCTT', 'CGCT')],
-                     'nt-ct-fusion': [('PROM+UTR', 'GGAG', 'CCAT'),
-                                      ('NT', 'CCAT', 'AATG'),
-                                      ('CDS', 'AATG', 'GCAG'),
-                                      ('CT', 'GCAG', 'GCTT'),
-                                      ('TER', 'GCTT', 'CGCT')],
-                     'operated-promoter-a': [('OP', 'GGAG', 'TCCC'),
-                                           ('MinPROM', 'TCCC', 'AATG'),
-                                           ('CDS', 'AATG', 'GCTT'),
-                                           ('TER', 'GCTT', 'CGCT')],
-                     'operated-promoter-b': [('PROM', 'GGAG', 'TGAC'),
-                                           ('OP', 'TGAC', 'TCCC'),
-                                           ('MinPROM', 'TCCC', 'AATG'),
-                                           ('CDS', 'AATG', 'GCTT'),
-                                           ('TER', 'GCTT', 'CGCT')],
-                     'protein-interaction': [('INTERACTION ADAPTOR', 'GGAG',
-                                              'AATG'),
-                                             ('CDS', 'AATG', 'GCTT'),
-                                             ('TER', 'GCTT', 'CGCT')],
-                     'amiRNA':  [('PROM+UTR', 'GGAG', 'CCAT'),
-                                 ('''5'FS''', 'CCAT', 'GTAG'),
-                                 ('Target', 'GTAG', 'TCTC'),
-                                 ('''3'FS''', 'TCTC', 'GCTT'),
-                                 ('TER', 'GCTT', 'CGCT')],
-                     'hpRNA':  [('PROM+UTR', 'GGAG', 'CCAT'),
-                                ('goi', 'CCAT', 'AGCC'),
-                                ('int', 'AGCC', 'GCAG'),
-                                ('iog', 'GCAG', 'GCTT'),
-                                ('TER', 'GCTT', 'CGCT')],
-                     'tasiRNA':  [('PROM+UTR+mir173', 'GGAG', 'CCAT'),
-                                  ('goi', 'CCAT', 'GCTT'),
-                                  ('TER', 'GCTT', 'CGCT')]
-                     }
-UT_PREFIX = PARTS_TO_ASSEMBLE['basic'][0][1]
-UT_SUFFIX = PARTS_TO_ASSEMBLE['basic'][-1][2]
-
-
-def create_feature_validator(field_name):
-
-    def validator(self):
-        uniquename_str = self.cleaned_data[field_name]
-        try:
-            Feature.objects.using(DB).get(uniquename=uniquename_str)
-        except Feature.DoesNotExist:
-            raise ValidationError('This feature does not exist in the database')
-        return uniquename_str
-
-    return validator
-
-
-def vectors_to_choice(vectors):
-    "it returns the given vectors but prepared to use as choices in a select"
-    for_vectors = vectors.filter(prefix=UT_SUFFIX, suffix=UT_PREFIX)
-    rev_vectors = vectors.filter(prefix=Seq(UT_PREFIX).reverse_complement(),
-                                 suffix=Seq(UT_SUFFIX).reverse_complement())
-    for_vector_choices = features_to_choices(for_vectors, blank_line=False)
-    rev_vector_choices = features_to_choices(rev_vectors, blank_line=False)
-    vector_choices = (('', ''),
-                      ('Forward vectors', for_vector_choices),
-                      ('Reverse vectors', rev_vector_choices))
-
-    return vector_choices
-
-
-def features_to_choices(features, blank_line=True):
-    choices = [('', '')] if blank_line else []
-
-    for feat in features:
-        if feat.description:
-            show = '{0} - {1}'.format(feat.uniquename, feat.description)
-        else:
-            show = feat.uniquename
-        choices.append((feat.uniquename, show))
-    return choices
-
-
-def _get_multipartite_form(multi_type):
-    'It returns a form for the given multipartite'
-    form_fields = OrderedDict()
-
-    part_defs = PARTS_TO_ASSEMBLE[multi_type]
-    for parts in part_defs:
-        features = Feature.objects.using(DB).filter(type__name=parts[0],
-                                                    prefix=parts[1],
-                                                    suffix=parts[2])
-
-        choices = features_to_choices(features)
-        name = parts[0]
-        form_fields[name] = forms.CharField(max_length=100,
-                                            widget=Select(choices=choices))
-
-    # last we need to add the vector to the form
-    vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
-    vector_choices = vectors_to_choice(vectors)
-    form_fields[VECTOR_TYPE_NAME] = forms.CharField(max_length=100,
-                                        widget=Select(choices=vector_choices))
-
-    form = type('MultiPartiteForm', (forms.BaseForm,),
-                {'base_fields': form_fields})
-    for field_name in form_fields.keys():
-        setattr(form, 'clean_{0}'.format(field_name),
-                create_feature_validator(field_name))
-    return form
+from goldenbraid.forms import (get_multipartite_form,
+                               get_multipartite_free_form,
+                               MultipartiteFormFreeInitial,
+                               features_to_choices)
 
 
 def assemble_parts(parts, part_types):
@@ -211,7 +95,7 @@ def multipartite_view_genbank(request, multi_type=None):
         request_data = request.GET
     else:
         request_data = None
-    form_class = _get_multipartite_form(multi_type)
+    form_class = get_multipartite_form(multi_type)
     if request_data:
         form = form_class(request_data)
 
@@ -243,7 +127,7 @@ def multipartite_view(request, multi_type=None):
         request_data = request.GET
     else:
         request_data = None
-    form_class = _get_multipartite_form(multi_type)
+    form_class = get_multipartite_form(multi_type)
     if request_data:
         form = form_class(request_data)
         if form.is_valid():
@@ -342,37 +226,6 @@ def multipartite_protocol_view(request):
     return response
 
 
-class MultipartiteFormFreeInitial(forms.Form):
-    vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
-    choices = vectors_to_choice(vectors)
-    vector = forms.CharField(max_length=100, widget=Select(choices=choices))
-
-    def clean_vector(self):
-        return create_feature_validator('vector')(self)
-
-
-def _get_multipartite_free_form(feat_uniquenames):
-    form_fields = OrderedDict()
-    count = 0
-    for feat_uniquename in feat_uniquenames:
-        if count == 0:
-            part_name = 'vector'
-        else:
-            part_name = 'part_{0}'.format(count)
-        field = forms.CharField(required=True, initial=feat_uniquename)
-        field.widget.attrs['readonly'] = True
-        form_fields[part_name] = field
-        count += 1
-
-    form = type('MultiPartiteFreeValForm', (forms.BaseForm,),
-                {'base_fields': form_fields})
-
-    for field_name in form_fields.keys():
-        setattr(form, 'clean_{0}'.format(field_name),
-                create_feature_validator(field_name))
-    return form
-
-
 def _get_fragments_from_request(request):
     post_data = request.POST
     vector = post_data['vector']
@@ -411,7 +264,7 @@ def multipartite_view_free_genbank(request):
         if 'part_' in k:
             feats.append(request_data[k])
 
-    form_class = _get_multipartite_free_form(feats)
+    form_class = get_multipartite_free_form(feats)
     form = form_class(request_data)
     if form.is_valid():
         last_feat = Feature.objects.using(DB).get(uniquename=feats[-1])
@@ -448,7 +301,7 @@ def multipartite_view_free(request, form_num):
                 if 'part_' in k:
                     feats.append(request_data[k])
 
-            form_class = _get_multipartite_free_form(feats)
+            form_class = get_multipartite_free_form(feats)
             form = form_class(request_data)
             if form.is_valid():
                 last_feat = Feature.objects.using(DB).get(uniquename=feats[-1])
@@ -471,8 +324,7 @@ def multipartite_view_free(request, form_num):
                     feats = Feature.objects.using(DB).filter(prefix=last_suffix)
                     feats = feats.exclude(type__name__in=[VECTOR_TYPE_NAME,
                                                           TU_TYPE_NAME,
-                                                          MODULE_TYPE_NAME,
-                                                          PHRASE_TYPE_NAME])
+                                                          MODULE_TYPE_NAME])
                     choices = features_to_choices(feats)
                     form.fields['part_{0}'.format(part_num)] = forms.CharField(max_length=100,
                                                 widget=Select(choices=choices),
@@ -480,7 +332,7 @@ def multipartite_view_free(request, form_num):
                     context['form_num'] = str(part_num)
 
     if form is None:
-        form_class = _get_multipartite_free_form()
+        form_class = get_multipartite_free_form()
         form = form_class()
         context['form_num'] = '1'
 
