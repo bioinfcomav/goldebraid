@@ -220,16 +220,12 @@ def add_feature(database, name, type_name, vector, genbank, props):
 def add_feature_from_form(form_data):
     'With this function we add a feature to the database'
     props = {}
-    vector_type = Cvterm.objects.using(DB).get(name=VECTOR_TYPE_NAME)
     feature_type_name = form_data['type']
     if form_data['description']:
         props[DESCRIPTION_TYPE_NAME] = [form_data['description']]
     if form_data['reference']:
         props[REFERENCE_TYPE_NAME] = [form_data['reference']]
-    if feature_type_name == vector_type.name:
-        props[ENZYME_IN_TYPE_NAME] = form_data['enzyme_in']
-        props[ENZYME_OUT_TYPE_NAME] = form_data['enzyme_out']
-        props[RESISTANCE_TYPE_NAME] = [form_data['resistance']]
+
     feature = add_feature(database=DB,
                           name=form_data['name'], type_name=feature_type_name,
                           vector=form_data['vector'],

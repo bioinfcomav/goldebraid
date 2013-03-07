@@ -17,25 +17,49 @@ from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME
 from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX, DB,
                                   UT_PREFIX, SITE_B, SITE_A, SITE_C,
                                   BIPARTITE_ALLOWED_PARTS, CATEGORIES,
-                                  REBASE_FILE)
+                                  SEARCH_MENU_TYPE_CHOICES)
 
 
-def parse_rebase_file(fpath):
-    'It parses the rebase enzyme file and return a list with all the enzymes'
-    enzymes = {}
-    enz_name = None
-    for line in  open(fpath):
-        line = line.strip()
-        if not line:
-            continue
-        if line.startswith('<1>'):
-            enz_name = line[3:]
-        if line.startswith('<3>'):
-            if enz_name is None:
-                raise RuntimeError()
-            enzymes[enz_name] = line[3:]
-            enz_name = None
-    return enzymes
+def vectors_to_choice(vectors):
+    "it returns the given vectors but prepared to use as choices in a select"
+    for_vectors = vectors.filter(prefix=UT_SUFFIX, suffix=UT_PREFIX)
+    rev_vectors = vectors.filter(prefix=Seq(UT_PREFIX).reverse_complement(),
+                                 suffix=Seq(UT_SUFFIX).reverse_complement())
+    for_vector_choices = features_to_choices(for_vectors, blank_line=False)
+    rev_vector_choices = features_to_choices(rev_vectors, blank_line=False)
+    vector_choices = (('', ''),
+                      ('Forward vectors', for_vector_choices),
+                      ('Reverse vectors', rev_vector_choices))
+
+    return vector_choices
+
+
+def features_to_choices(features, blank_line=True):
+    choices = [('', '')] if blank_line else []
+
+    for feat in features:
+        if feat.description:
+            show = '{0} - {1}'.format(feat.uniquename, feat.description)
+        else:
+            show = feat.uniquename
+        choices.append((feat.uniquename, show))
+    return choices
+
+
+def _prepare_feature_kind():
+    'It prepares the feature kind select choices to put in the type widget'
+    if SEARCH_MENU_TYPE_CHOICES:
+        kinds = SEARCH_MENU_TYPE_CHOICES
+    else:
+        kinds = Feature.objects.using(DB).distinct('type').values('type__name')
+        kinds = [kind['type__name'] for kind in kinds]
+    if VECTOR_TYPE_NAME in kinds:
+        kinds.pop(kinds.index(VECTOR_TYPE_NAME))
+
+    feature_kinds = [(kind, kind.replace('_', ' ')) for kind in kinds]
+
+    feature_kinds.insert(0, ('', ''))  # no kind
+    return feature_kinds
 
 
 class FeatureForm(forms.Form):
@@ -43,13 +67,14 @@ class FeatureForm(forms.Form):
     name = forms.CharField(max_length=255, required=False)
     description = forms.CharField(max_length=255, required=False)
     reference = forms.CharField(max_length=255, required=False)
-    type = forms.CharField()
-    vector = forms.CharField(required=False)
-    enzyme_in = forms.CharField(required=False)
-    # TODO we have to change the widgte to allow multiple values
-    # Now we do spliting the text with a comma
-    enzyme_out = forms.CharField(required=False)
-    resistance = forms.CharField(required=False)
+
+    type_choices = _prepare_feature_kind()
+    type = forms.CharField(max_length=100, widget=Select(choices=type_choices))
+
+    vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
+    vector_choices = features_to_choices(vectors)
+    vector = forms.CharField(max_length=100, widget=Select(choices=vector_choices))
+
     gbfile_label = 'Select a GenBank-formatted local file on your computer'
     gbfile = forms.FileField(label=gbfile_label, required=True)
 
@@ -88,73 +113,6 @@ class FeatureForm(forms.Form):
 
         return vector
 
-    def _validate_enzyme(self, kind):
-        '''It validates the vector.
-
-        If the feature is a vector it does not validate anything
-        if feature is not a vector it validates that the vector
-        is in the database'''
-        # TODO. change how we deal with two enzymes for the same field
-        enzymes = self.cleaned_data['enzyme_{0}'.format(kind)].split(',')
-        error_in_type = self.errors.get('type', False)
-        error_in_vector = self.errors.get('vector', False)
-
-        if error_in_type or error_in_vector:
-            return enzymes
-
-        type_ = self.cleaned_data['type']
-        if type_ == VECTOR_TYPE_NAME:
-            if enzymes[0] == u'':
-                err = 'A vector must have a enzyme {0}'.format(kind)
-                raise ValidationError(err)
-            existing_enzymes = parse_rebase_file(REBASE_FILE)
-            errors = []
-            for enzyme in enzymes:
-                if enzyme not in existing_enzymes.keys():
-                    err = 'This enzyme: {0} is not a known enzyme'
-                    err = err.format(enzyme)
-                    errors.append(err)
-            if errors:
-                raise ValidationError('\n'.join(errors))
-
-        else:
-            if enzymes:
-                err = 'Only vectors have enzyme {0}'.format(kind)
-                raise ValidationError(err)
-
-        return enzymes
-
-    def clean_enzyme_in(self):
-        '''It validates the in enzyme'''
-        return self._validate_enzyme('in')
-
-    def clean_enzyme_out(self):
-        '''It validates the out enzyme'''
-        return self._validate_enzyme('out')
-
-    # Validate that a vector must have a resistance,
-    # only vectors have resistance and
-    # if the resistance exists or not
-
-    def clean_resistance(self):
-        '''It validates the in resistance'''
-        resistance = self.cleaned_data['resistance']
-        error_in_type = self.errors.get('type', False)
-        error_in_vector = self.errors.get('vector', False)
-
-        if error_in_type or error_in_vector:
-            return resistance
-
-        type_ = self.cleaned_data['type']
-        if type_ == VECTOR_TYPE_NAME:
-            if not resistance:
-                raise ValidationError('A vector must have a resistance')
-
-        else:
-            if resistance:
-                raise ValidationError('Only vectors have resistance')
-        return resistance
-
 
 def create_feature_validator(field_name):
 
@@ -167,32 +125,6 @@ def create_feature_validator(field_name):
         return uniquename_str
 
     return validator
-
-
-def vectors_to_choice(vectors):
-    "it returns the given vectors but prepared to use as choices in a select"
-    for_vectors = vectors.filter(prefix=UT_SUFFIX, suffix=UT_PREFIX)
-    rev_vectors = vectors.filter(prefix=Seq(UT_PREFIX).reverse_complement(),
-                                 suffix=Seq(UT_SUFFIX).reverse_complement())
-    for_vector_choices = features_to_choices(for_vectors, blank_line=False)
-    rev_vector_choices = features_to_choices(rev_vectors, blank_line=False)
-    vector_choices = (('', ''),
-                      ('Forward vectors', for_vector_choices),
-                      ('Reverse vectors', rev_vector_choices))
-
-    return vector_choices
-
-
-def features_to_choices(features, blank_line=True):
-    choices = [('', '')] if blank_line else []
-
-    for feat in features:
-        if feat.description:
-            show = '{0} - {1}'.format(feat.uniquename, feat.description)
-        else:
-            show = feat.uniquename
-        choices.append((feat.uniquename, show))
-    return choices
 
 
 def get_multipartite_form(multi_type):
