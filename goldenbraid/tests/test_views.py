@@ -441,7 +441,7 @@ class BipartiteViewTest(TestCase):
         # do initial
         url = reverse('bipartite_view')
         response = client.get(url)
-        assert """<option value="GB0125">GB0125</option>""" in str(response)
+        assert """<option value="GB0125">GB0125 - pEGB 35S:Rosea:Tnos</option>""" in str(response)
 
         # do page 1
         url = reverse('bipartite_view', kwargs={'form_num': '1'})
