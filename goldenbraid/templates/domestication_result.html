@@ -2,7 +2,7 @@
 {% load goldenbraid_extras %}
 {% block title %}Feature search {% endblock title %}
 {% block content %}
-<div id='main'>
+
 <p>Category:{{category}}</p>
 <p>Prefix:{{prefix}}</p>
 <p>Suffix:{{suffix}}</p>
@@ -28,9 +28,7 @@
     <INPUT type="hidden" name="prefix" value="{{ prefix }}">
     <INPUT type="hidden" name="suffix" value="{{ suffix }}">
     <INPUT type="hidden" name="category" value="{{ category }}">
-    <p>You can download your new seq in gnebnk format <INPUT type="submit" value="here"></p>
+    <p>You can download your new seq in genbank format <INPUT type="submit" value="here"></p>
 </form>
 
-
-</div>
 {% endblock content %}
