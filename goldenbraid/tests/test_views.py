@@ -160,6 +160,7 @@ class FeatureTestViews(TestCase):
                                                       rec_site,
                                                       forw_cut_delta,
                                                       rev_cut_delta)
+
         assert _get_pref_suff_from_index(seq, p_idx, s_idx, pref_size) == \
                                                                         result
 

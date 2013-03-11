@@ -115,7 +115,6 @@ def get_prefix_and_suffix_index(seq, enzyme):
                                                                 rec_site,
                                                                 forw_cut_delta,
                                                                 rev_cut_delta)
-
     return prefix_index, suffix_index, rev_cut_delta - forw_cut_delta
 
 

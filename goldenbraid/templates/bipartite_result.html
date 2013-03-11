@@ -3,7 +3,7 @@
 {% block content %}
 {% load goldenbraid_extras %}
 <div id='main'>
- <p>You have assembled in the GoldenBraid destiny Vector <a href='/feature/{{used_parts.Vector}}'>{{used_parts.Vector}}</a> the following parts:</p>
+ <p>You have assembled in the GoldenBraid destiny vector <a href='/feature/{{used_parts.Vector}}'>{{used_parts.Vector}}</a> the following parts:</p>
 {% for key, value in used_parts.items %}
     {% if key != 'Vector' %}
         <p>{{ key|capfirst|replaceunderscore }}:<a href='/feature/{{value}}'>{{ value}}</a></p>
