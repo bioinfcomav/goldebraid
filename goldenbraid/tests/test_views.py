@@ -112,6 +112,11 @@ class FeatureTestViews(TestCase):
         seq = seq.seq
         assert ('AATG', 'GCTT') == get_prefix_and_suffix(seq, 'BsaI')
 
+        fasta_path = os.path.join(TEST_DATA, 'seq.fasta')
+        seq = SeqIO.read(fasta_path, 'fasta')
+        seq = seq.seq
+        assert ('TGGA', 'AATG') == get_prefix_and_suffix(seq, 'BsaI')
+
     def test_choose_rec_sites(self):
         'it tests choose rec_sites func'
         forw_sites = [4083]
