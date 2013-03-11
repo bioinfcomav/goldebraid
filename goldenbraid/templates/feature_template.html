@@ -2,8 +2,6 @@
 {% block title %}Feature {{feature.name}} {% endblock title %}
 {% block content %}
 {% load goldenbraid_extras %}
-
-<div id='main'>
 {% if not feature %}
    <h1> This feature does not exist</h1>
 {% else %}
@@ -37,5 +35,4 @@
   {% endfor %}
   {% endif %}
 {% endif %}
-</div>
 {% endblock content %}

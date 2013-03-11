@@ -2,8 +2,14 @@
 {% load goldenbraid_extras %}
 {% block title %}Feature search {% endblock title %}
 {% block content %}
-
-
+{% if not search_criteria %}
+<div class='tools'>
+<h2>Search Database</h2>
+<p><span class='tools'>The 'Search DB' is a tool for searching GB2.0 elements in GoldenBraid database.</span></p>
+<p><span class='tools'>Use the first option for searching the database for GB2.0 elements with a GoldenBraid ID_number/name/description containing what you typed in.</span></p>
+<p><span class='tools'>You can use the second option for limiting your search results to a type of GB2.0 element. In the drop-down menu you will see a list of the common elements that make up the GB collection. </span></p> 
+</div>
+{% endif %}
 {% if search_criteria and not features_page.paginator.count %}
   <p>No features found</p>
 {% endif %}
