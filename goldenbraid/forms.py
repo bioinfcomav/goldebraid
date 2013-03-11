@@ -38,8 +38,8 @@ def features_to_choices(features, blank_line=True):
     choices = [('', '')] if blank_line else []
 
     for feat in features:
-        if feat.description:
-            show = '{0} - {1}'.format(feat.uniquename, feat.description)
+        if feat.name:
+            show = '{0} - {1}'.format(feat.uniquename, feat.name)
         else:
             show = feat.uniquename
         choices.append((feat.uniquename, show))
@@ -198,7 +198,6 @@ def _parts_to_choice(parts):
                     ('Forward parts', part_forw_choices),
                     ('Reverse parts', part_rev_choices))
     return part_choices
-
 
 class BipartiteForm1(forms.Form):
     _bi_parts = Feature.objects.using(DB).filter(
