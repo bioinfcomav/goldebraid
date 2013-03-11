@@ -135,6 +135,10 @@ def _get_pref_suff_from_index(seq, prefix_index, suffix_index, prefix_size):
     if len(suffix) < prefix_size:
         remaining = prefix_size - len(suffix)
         suffix += seq[0:remaining]
+    if len(prefix) < prefix_size:
+        remaining = prefix_size - len(prefix)
+        prefix += seq[0:remaining]
+
 
     return str(prefix), str(suffix)
 
@@ -166,7 +170,6 @@ def add_feature(database, name, type_name, vector, genbank, props):
                                                        accession=uniquename)
     except IntegrityError as error:
         raise IntegrityError('feature already in db' + str(error))
-
     vector_type = Cvterm.objects.using(database).get(name=VECTOR_TYPE_NAME)
     if vector and type_ == vector_type:
         # already checked in form validation
@@ -184,7 +187,6 @@ def add_feature(database, name, type_name, vector, genbank, props):
                                                   genbank_file=genbank_file)
     except IntegrityError as error:
         raise IntegrityError('feature already in db' + str(error))
-
     for type_name, values in props.items():
         try:
             prop_type = Cvterm.objects.using(DB).get(name=type_name)
@@ -251,9 +253,10 @@ def add_feature_view(request):
             try:
                 feature = add_feature_from_form(feat_form_data)
             except IntegrityError as error:
-                if 'feature already in db' in error:
+                print error
+                if 'feature already in db' in str(error):
                     # TODO choose a template
-                    return render_to_response('feature_template.html',
+                    return render_to_response('feature_exists.html',
                                               {},
                                     context_instance=RequestContext(request))
                 else:
