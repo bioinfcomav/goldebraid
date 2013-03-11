@@ -29,6 +29,9 @@ class DomesticationTest(TestCase):
         assert oligo_pcrs[1] == {'pcr_product': 'GCGCCGTCTCGACAGGGTCATGCTAGCTTCAGCTAGCTGATCGATCGACTAGCTGATCGATCTGATCGATGCTAGCTAGCTGTACGGAGACTGCGAGACGGCGC',
                                  'oligo_reverse': 'GCGCCGTCTCGCAGTCTCCGTACAGCTAGCT',
                                  'oligo_forward': 'GCGCCGTCTCGACAGGGTCATGCTAGCTTCA'}
+        domesticated_seq = domesticate(seq, category, 'CCAT', 'AATG')[1]
+        assert ('TCGCATGCTCCCGGCCGCCATGGCGGCCGCGGGAATTCGATGGGCGATGAGTGGTCTCG') in domesticated_seq.seq
+        assert ('TCGCATGCTCCCGGCCGCCATGGCGGCCGCGGGAATTCGATGGGCGATGAGTGGTCTCGT') not in domesticated_seq.seq
 
     def test_domestication_short_segments(self):
         seq = 'aggctgactatgtcagctaGAGACCgctgacgatcgatgctagctagctgactagctagcaggtgctag'
