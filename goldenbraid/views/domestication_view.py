@@ -55,7 +55,7 @@ def domestication_view_genbank(request):
         response = HttpResponse(seq.format('genbank'),
                                 mimetype='text/plain')
         response['Content-Disposition'] = 'attachment; '
-        response['Content-Disposition'] += 'filename="{}.gb"'.format(seq.id)
+        response['Content-Disposition'] += 'filename="{0}.gb"'.format(seq.id)
         return response
     return _domestication_view_no_template(request, function)
 
