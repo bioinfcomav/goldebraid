@@ -65,8 +65,10 @@ def domesticate(seqrec, category, prefix, suffix):
     for pcr, oligo in zip(pcr_products, oligos):
         oligo_pcrs.append({'pcr_product': pcr, 'oligo_forward': oligo[0],
                           'oligo_reverse': oligo[1]})
-    return oligo_pcrs, SeqRecord(prepared_new_seq, name='domesticated_seq',
-                                 id='domesticated_seq')
+
+    return oligo_pcrs, SeqRecord(prepared_new_seq,
+                                 name=seqrec.name + '_dom',
+                                 id=seqrec.id + '_dom')
 
 
 def _get_oligos(seq, segments, min_melting_temp):
