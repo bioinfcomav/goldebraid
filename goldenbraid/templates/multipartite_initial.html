@@ -1,13 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Feature {{feature.name}} {% endblock title %}
 {% block content %}
+<div id='tools'>
+<h2>GB TU Assembler</h2>
+<p><span class='tools'>Click on the type of transcriptional unit you wish to built</span></p>
+</div>
 {% load goldenbraid_extras %}
 
 <div id='multitype'>
 <table id='multi_link_table'>
 <thead>
 <tr>
-<td><img src='{{STATIC_URL}}style/images/multipartite_table_header.png' /></a></td>
+<td><img src='{{STATIC_URL}}style/images/multipartite_table_header.png' /></td>
 </tr>
 </thead>
 <tbody>
@@ -24,7 +28,7 @@
 <td><a href='/do/multipartite/nt-fusion'><img src='{{STATIC_URL}}style/images/multipartite_table_nt-fusion.png' /></a></td>
 </tr>
 <tr>
-<td><a href='/do/multipartite/nt_ct_fusion'><img src='{{STATIC_URL}}style/images/multipartite_table_nt-ct-fusion.png' /></a></td>
+<td><a href='/do/multipartite/nt-ct-fusion'><img src='{{STATIC_URL}}style/images/multipartite_table_nt-ct-fusion.png' /></a></td>
 </tr>
 <tr>
 <td><a href='/do/multipartite/operated-promoter-a'><img src='{{STATIC_URL}}style/images/multipartite_table_operated-promoter-a.png' /></a></td>

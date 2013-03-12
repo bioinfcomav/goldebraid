@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Bipartite formulary {% endblock title %}
 {% block content %}
+<div class='tools'>
+<h2>GB Binary Assembler</h2>
+<p><span class='tools'>This tool allows you to assemble two TUs/Modules.</span></p>
+</div>
 {% load goldenbraid_extras %}
 <form action="{{form_num}}" method="post">{% csrf_token %}
 {{ form.as_p}}

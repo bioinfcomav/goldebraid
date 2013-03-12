@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Multipartite formulary {% endblock title %}
 {% block content %}
+<div class='tools'>
+<h2>GB TU Assembler</h2>
+<p><span class='tools'>Note: If you are planning to use this TU for a further GB Binary Assembly, you should be careful with the choice of the vector. The compatible vector pairs are: alpha1-alpha2, omega1-omega2.</span></p>
+<p><span class='warning'>Warning: We advice you not to use pCamiba omega vectors in multipartite assemblies since they are not domesticated for BtgZI.</span></p>
+</div>
 {% load goldenbraid_extras %}
 <form action="#" method="post">{% csrf_token %}
 {{ form.as_p }}
 <input type="submit" value="Submit" />
 </form>
-
 {% endblock content %}

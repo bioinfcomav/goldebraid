@@ -6,6 +6,7 @@
       <th>Name</th>
             <th>Type</th>
             <th>Description</th>
+            <th>Genbank File</th>
         </tr>
     </thead>
     <tbody>
@@ -15,7 +16,7 @@
             <td>{{ feature.name }}</td>
             <td>{{ feature.type.name }}</td>
             <td>{{ feature.description }}</td>
-            <td>{{ "Genbank_file"|link_if_url:feature.genbank_file }}</td>
+            <td>{{ "Download"|link_if_url:feature.genbank_file }}</td>
         </tr>
         {% endfor %}
     </tbody>

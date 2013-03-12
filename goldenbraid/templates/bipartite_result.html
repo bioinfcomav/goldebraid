@@ -2,7 +2,6 @@
 {% block title %}Bipartite Result Page{% endblock title %}
 {% block content %}
 {% load goldenbraid_extras %}
-<div id='main'>
  <p>You have assembled in the GoldenBraid destiny Vector <a href='/feature/{{used_parts.Vector}}'>{{used_parts.Vector}}</a> the following parts:</p>
 {% for key, value in used_parts.items %}
     {% if key != 'Vector' %}
@@ -26,5 +25,9 @@
     {% endfor %}
     <p>The resulted sequence of the assembly is <INPUT type="submit" value="genbank_file"></p>
 </form>
+<div class='tools'>
+<p><span class='tools'>If you wish to use this construct in a new assembly you should incorporate it into the GBDB through the following link:<br/>
+<a href='/add/feature'>Add GB_Element</a> (you will need to log in)</span></p>
 </div>
+
 {% endblock content %}

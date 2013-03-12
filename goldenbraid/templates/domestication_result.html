@@ -2,7 +2,6 @@
 {% load goldenbraid_extras %}
 {% block title %}Feature search {% endblock title %}
 {% block content %}
-<div id='main'>
 <p>Category:{{category}}</p>
 <p>Prefix:{{prefix}}</p>
 <p>Suffix:{{suffix}}</p>
@@ -30,9 +29,12 @@
     <INPUT type="hidden" name="suffix" value="{{ suffix }}">
     <INPUT type="hidden" name="category" value="{{ category }}">
     <INPUT type="hidden" name="seq_name" value="{{ seq_name }}">
-    <p>You can download your new seq in gnebnk format <INPUT type="submit" value="here"></p>
+    <p>You can download your new seq in genbank format <INPUT type="submit" value="here"></p>
 </form>
 
-
+<div class='tools'>
+<p><span class='tools'>If you wish to use this construct in a new assembly you should incorporate it into the GBDB through the following link:<br/>
+<a href='/add/feature'>Add GB_Element</a> (you will need to log in)</span></p>
 </div>
+
 {% endblock content %}
