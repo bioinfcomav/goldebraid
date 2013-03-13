@@ -4,8 +4,6 @@
 
 <p>To add a construct to the database fill out the following form:</p><br/>
 
-
-
  <form action=""  enctype="multipart/form-data" method="post">{% csrf_token %}
        
     <ul>
@@ -34,6 +32,5 @@
 <input type="submit" value="Add" />
   </form>
   {{ form.kind.errors }}
-
 
 {% endblock content %}

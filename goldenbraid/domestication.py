@@ -163,9 +163,9 @@ def _get_stripped_vector_seq():
     suffix_end = suffix_index + prefix_size
     if prefix_start > suffix_end:
         stripped_seq = vec_seq[prefix_start:]
-        stripped_seq += vec_seq[:suffix_end + 1]
+        stripped_seq += vec_seq[:suffix_end]
     else:
-        stripped_seq = vec_seq[prefix_start:suffix_end + 1]
+        stripped_seq = vec_seq[prefix_start:suffix_end]
     return stripped_seq
 
 

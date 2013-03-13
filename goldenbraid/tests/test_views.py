@@ -117,6 +117,11 @@ class FeatureTestViews(TestCase):
         seq = seq.seq
         assert ('TGGA', 'AATG') == get_prefix_and_suffix(seq, 'BsaI')
 
+        fasta_path = os.path.join(TEST_DATA, 'seq2.fasta')
+        seq = SeqIO.read(fasta_path, 'fasta')
+        seq = seq.seq
+        get_prefix_and_suffix(seq, 'BsaI')
+
     def test_choose_rec_sites(self):
         'it tests choose rec_sites func'
         forw_sites = [4083]
@@ -160,6 +165,7 @@ class FeatureTestViews(TestCase):
                                                       rec_site,
                                                       forw_cut_delta,
                                                       rev_cut_delta)
+
         assert _get_pref_suff_from_index(seq, p_idx, s_idx, pref_size) == \
                                                                         result
 
@@ -269,7 +275,7 @@ class MultipartiteFreeTestViews(TestCase):
 
         assert  "<p>You have assembled in the GoldenBraid" in str(response)
 
-          # reverse vector
+        # reverse vector
         url = reverse('multipartite_view_free_genbank')
         response = client.post(url, {'part_1': 'pP2A11',
                                      'part_2': 'pMYB12',
@@ -279,6 +285,7 @@ class MultipartiteFreeTestViews(TestCase):
         assert response.status_code == 200
 
         seqrec1 = SeqIO.read(StringIO(str(response)), 'gb')
+        assert seqrec1.name == 'assembled_seq_1'
         multipartite_free_seq1 = str(seqrec1.seq)
         gb_path = os.path.join(TEST_DATA, 'pEGBMybrev_uniq.gb')
         seqrec2 = SeqIO.read(gb_path, 'gb')
@@ -287,8 +294,6 @@ class MultipartiteFreeTestViews(TestCase):
 
         assert multipartite_free_seq1 == multipartite_free_seq2
 
-
-
     def test_genbank_view(self):
         'it test that the genbank file is generated'
         client = Client()
@@ -296,14 +301,22 @@ class MultipartiteFreeTestViews(TestCase):
         response = client.get(url)
         assert response.status_code == 400
 
-        response = client.post(url, {'assembled_seq':'aaa',
-                                     'vector':'pDGB1_omega1',
+        response = client.post(url, {'assembled_seq': 'aaa',
+                                     'vector': 'pDGB1_omega1',
                                      'part_1': 'pPE8',
                                      'part_2': 'pANT1',
                                      'part_3': 'pTnos'})
 
+        assert  'assembled_seq_1' in str(response)
         assert  'LOCUS' in str(response)
 
+        response = client.post(url, {'assembled_seq': 'aaa',
+                                     'vector': 'pDGB1_omega1',
+                                     'part_1': 'pPE8',
+                                     'part_2': 'pANT1',
+                                     'part_3': 'pTnos'})
+        assert  'assembled_seq_2' in str(response)
+        assert  'LOCUS' in str(response)
 
     def test_protocol_view(self):
         'it test that the protocol file is generated'
@@ -585,7 +598,8 @@ class DomesticationViewTest(TestCase):
         response = client.post(url, {'seq': 'gagaggggggggagagagattcccctctccccccccccccccccccccccccccccccccccccctttgacctcgaaacgccccc',
                                      'prefix': 'ggag',
                                      'suffix': 'aatg',
-                                     'category': '01-02-03-11-12 (PROM+UTR+ATG)'})
+                                     'category': '01-02-03-11-12 (PROM+UTR+ATG)',
+                                     'seq_name':'test'})
         assert  'LOCUS' in str(response)
 
     # check bipartite_view_protocol
@@ -598,5 +612,6 @@ class DomesticationViewTest(TestCase):
         response = client.post(url, {'seq': 'gagaggggggggagagagattcccctctccccccccccccccccctccccccccccccccccccccccccccctttgacctcgaaacgccccc',
                                      'prefix': 'ggag',
                                      'suffix': 'aatg',
-                                     'category': '01-02-03-11-12 (PROM+UTR+ATG)'})
+                                     'category': '01-02-03-11-12 (PROM+UTR+ATG)',
+                                     'seq_name':'test'})
         assert "Oligo forward: GCGCCGTCTCGCTCGGGAGGAGAGGGGGGGGAGAGAGAT" in str(response)

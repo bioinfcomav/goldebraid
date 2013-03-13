@@ -23,7 +23,7 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import generic_dna
 from Bio import SeqIO
 
-from goldenbraid.models import Feature
+from goldenbraid.models import Feature, Count
 from goldenbraid.settings import DB, PARTS_TO_ASSEMBLE, UT_SUFFIX, UT_PREFIX
 from goldenbraid.tags import (VECTOR_TYPE_NAME, REVERSE, TU_TYPE_NAME,
                               MODULE_TYPE_NAME)
@@ -32,6 +32,8 @@ from goldenbraid.forms import (get_multipartite_form,
                                get_multipartite_free_form,
                                MultipartiteFormFreeInitial,
                                features_to_choices)
+
+ASSEMBLED_SEQ = 'assembled_seq'
 
 
 def assemble_parts(parts, part_types):
@@ -71,7 +73,13 @@ def assemble_parts(parts, part_types):
                 part_sub_seq += part_record[:suf_idx]
             joined_seq += part_sub_seq
 
-    joined_seq.id = 'assembled_seq'
+    try:
+        count = Count.objects.using(DB).get(name=ASSEMBLED_SEQ)
+    except Count.DoesNotExist:
+        count = Count.objects.using(DB).create(name=ASSEMBLED_SEQ, value=1)
+    next_value = count.next
+
+    joined_seq.id = ASSEMBLED_SEQ + '_' + next_value
     joined_seq.name = joined_seq.id
     joined_seq.description = "({0}){1}".format(','.join(names['parts']),
                                              names['vector'])
@@ -103,11 +111,11 @@ def multipartite_view_genbank(request, multi_type=None):
             multi_form_data = form.cleaned_data
             part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
             assembled_seq = assemble_parts(multi_form_data, part_types)
-
+            filename = assembled_seq.name + '.gb'
             response = HttpResponse(assembled_seq.format('genbank'),
                                     mimetype='text/plain')
             response['Content-Disposition'] = 'attachment; '
-            response['Content-Disposition'] += 'filename="assembled_seq.gb"'
+            response['Content-Disposition'] += 'filename="{0}"'.format(filename)
             return response
     return HttpResponseBadRequest()
 
@@ -274,8 +282,9 @@ def multipartite_view_free_genbank(request):
             assembled_seq = assemble_parts(protocol_data, part_order)
             response = HttpResponse(assembled_seq.format('genbank'),
                                     mimetype='text/plain')
+            filename = assembled_seq.name + '.gb'
             response['Content-Disposition'] = 'attachment; '
-            response['Content-Disposition'] += 'filename="assembled_seq.gb"'
+            response['Content-Disposition'] += 'filename="{0}"'.format(filename)
             return response
 
     return HttpResponseBadRequest('There was an error in the assembly')

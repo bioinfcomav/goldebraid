@@ -51,10 +51,27 @@ class Cvterm(models.Model):
         db_table = u'cvterm'
 
 
+class Count(models.Model):
+    count_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    value = models.IntegerField()
+
+    class Meta:
+        db_table = u'count'
+
+    @property
+    def next(self):
+        next_ = self.value
+        self.value += 1
+        self.save()
+        return hex(next_)[2:].upper()
+
+
 class Contact(models.Model):
     contact_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
-    email = models.EmailField (unique=True)
+    email = models.EmailField(unique=True)
+
     class Meta:
         db_table = u'contact'
 

@@ -97,8 +97,9 @@ def bipartite_view_genbank(request):
             seq = assemble_parts(form.cleaned_data, ['part_1', 'part_2'])
             response = HttpResponse(seq.format('genbank'),
                                     mimetype='text/plain')
+            filename = seq.name + '.gb'
             response['Content-Disposition'] = 'attachment; '
-            response['Content-Disposition'] += 'filename="assembled_seq.gb"'
+            response['Content-Disposition'] += 'filename="{0}"'.format(filename)
             return response
     return HttpResponseBadRequest()
 

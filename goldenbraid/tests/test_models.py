@@ -10,7 +10,7 @@ from django.conf import settings as proj_settings
 import goldenbraid
 from goldenbraid import settings
 from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
-                                Contact, Stock, Stockcollection)
+                                Contact, Stock, Stockcollection, Count)
 from goldenbraid.tags import (ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
@@ -162,7 +162,6 @@ class FeatureTestModels(TestCase):
         assert ibmcp_collection.contact.name == 'pepito'
         assert comav_collection.contact.name == 'pepito'
 
-
         # There are various stocks of the vector feature
         selected_vec_feat.stocks.add(ibmcp_vec_stock)
         selected_vec_feat.stocks.add(comav_vec_stock)
@@ -171,7 +170,16 @@ class FeatureTestModels(TestCase):
         assert 'vector1_stock_ibmcp' in stock_names
         assert 'vector1_stock_comav' in stock_names
 
-
         # There are various stocks in a stock collection
         assert ibmcp_vec_stock.stockcollection.name == 'ibmcp'
         assert ibmcp_part_stock.stockcollection.name == 'ibmcp'
+
+    def test_counter(self):
+        count = Count.objects.using(DB).create(name='assembled_seq', value=1)
+
+        assert count.next == '1'
+        assert count.next == '2'
+        assert count.next == '3'
+        assert count.value == 4
+
+
