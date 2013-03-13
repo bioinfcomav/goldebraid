@@ -1,10 +1,28 @@
 {% extends "base.html" %}
 {% block title %}Domestication formulary {% endblock title %}
 {% block content %}
+<div class='tools'>
+<h2>GB Domesticator</h2>
+<p><span class='tools'>In this page you can domesticate your DNA sequence to convert it into a GBpart/superpart.</span></p>
+<p><span class='tools'>You can either select one of the standard GBpart categories from the dropdown menu (e.g. 01-02-03-11-12 PROM+UTR+ATG; 16 CT) or you can introduce the prefix and suffix of your choice (4 nts barcodes).</span></p>
+</div>
 {% load goldenbraid_extras %}
 <form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
-{{ form.as_p}}
+
+<ul>
+	<li>
+        {{ form.category.errors }}<label for="name">Choose a category to domesticate to:</label>{{ form.category }}<a href='/gbclasses'  target="blank"><span class='gbdom'>What's this?</span></a>
+  	</li>
+	<li>
+        {{ form.seq.errors }}<label for="name">Add a genbank or a fasta file:</label>{{ form.seq }} 
+    	</li>
+	<li>
+        {{ form.prefix.errors }}<label for="name">Custom prefix:</label>{{ form.prefix }} 
+    	</li>
+	<li>
+        {{ form.suffix.errors }}<label for="name">Custom suffix:</label>{{ form.suffix }} 
+    	</li>
+</ul>
 <input type="submit" value="Submit" />
 </form>
-
 {% endblock content %}

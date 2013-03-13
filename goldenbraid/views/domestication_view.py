@@ -38,7 +38,8 @@ def domestication_view(request):
                                        'prefix': prefix,
                                        'suffix': suffix,
                                        'pcrs': pcr,
-                                       'seq': str(seq.seq)},
+                                       'seq': str(seq.seq),
+                                       'seq_name': seq.name},
                                 context_instance=RequestContext(request))
     else:
         form = DomesticationForm()
@@ -54,7 +55,7 @@ def domestication_view_genbank(request):
         response = HttpResponse(seq.format('genbank'),
                                 mimetype='text/plain')
         response['Content-Disposition'] = 'attachment; '
-        response['Content-Disposition'] += 'filename="assembled_seq.gb"'
+        response['Content-Disposition'] += 'filename="{0}.gb"'.format(seq.id)
         return response
     return _domestication_view_no_template(request, function)
 
@@ -110,6 +111,7 @@ def _domestication_view_no_template(request, function):
     category = request_data['category']
     prefix = request_data['prefix']
     suffix = request_data['suffix']
-    seq = SeqRecord(Seq(seq))
+    seq_name = request_data['seq_name']
+    seq = SeqRecord(Seq(seq), id=seq_name, name=seq_name)
     pcrs, seq = domesticate(seq, category, prefix, suffix)
     return function(pcrs, seq)
