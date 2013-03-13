@@ -117,6 +117,11 @@ class FeatureTestViews(TestCase):
         seq = seq.seq
         assert ('TGGA', 'AATG') == get_prefix_and_suffix(seq, 'BsaI')
 
+        fasta_path = os.path.join(TEST_DATA, 'seq2.fasta')
+        seq = SeqIO.read(fasta_path, 'fasta')
+        seq = seq.seq
+        get_prefix_and_suffix(seq, 'BsaI')
+
     def test_choose_rec_sites(self):
         'it tests choose rec_sites func'
         forw_sites = [4083]
@@ -586,7 +591,8 @@ class DomesticationViewTest(TestCase):
         response = client.post(url, {'seq': 'gagaggggggggagagagattcccctctccccccccccccccccccccccccccccccccccccctttgacctcgaaacgccccc',
                                      'prefix': 'ggag',
                                      'suffix': 'aatg',
-                                     'category': '01-02-03-11-12 (PROM+UTR+ATG)'})
+                                     'category': '01-02-03-11-12 (PROM+UTR+ATG)',
+                                     'seq_name':'test'})
         assert  'LOCUS' in str(response)
 
     # check bipartite_view_protocol
@@ -599,5 +605,6 @@ class DomesticationViewTest(TestCase):
         response = client.post(url, {'seq': 'gagaggggggggagagagattcccctctccccccccccccccccctccccccccccccccccccccccccccctttgacctcgaaacgccccc',
                                      'prefix': 'ggag',
                                      'suffix': 'aatg',
-                                     'category': '01-02-03-11-12 (PROM+UTR+ATG)'})
+                                     'category': '01-02-03-11-12 (PROM+UTR+ATG)',
+                                     'seq_name':'test'})
         assert "Oligo forward: GCGCCGTCTCGCTCGGGAGGAGAGGGGGGGGAGAGAGAT" in str(response)
