@@ -199,6 +199,7 @@ def _parts_to_choice(parts):
                     ('Reverse parts', part_rev_choices))
     return part_choices
 
+
 class BipartiteForm1(forms.Form):
     _bi_parts = Feature.objects.using(DB).filter(
                                         type__name__in=BIPARTITE_ALLOWED_PARTS)
