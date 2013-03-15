@@ -24,7 +24,8 @@ from Bio.Alphabet import generic_dna
 from Bio import SeqIO
 
 from goldenbraid.models import Feature, Count
-from goldenbraid.settings import DB, PARTS_TO_ASSEMBLE, UT_SUFFIX, UT_PREFIX
+from goldenbraid.settings import (DB, PARTS_TO_ASSEMBLE, UT_SUFFIX, UT_PREFIX,
+                                  ASSEMBLED_SEQ)
 from goldenbraid.tags import (VECTOR_TYPE_NAME, REVERSE, TU_TYPE_NAME,
                               MODULE_TYPE_NAME)
 from goldenbraid.views.feature_views import get_prefix_and_suffix_index
@@ -32,8 +33,6 @@ from goldenbraid.forms import (get_multipartite_form,
                                get_multipartite_free_form,
                                MultipartiteFormFreeInitial,
                                features_to_choices)
-
-ASSEMBLED_SEQ = 'assembled_seq'
 
 
 def assemble_parts(parts, part_types):

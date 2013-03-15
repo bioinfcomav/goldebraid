@@ -111,3 +111,5 @@ PUPD_PREFIX = 'CTCG'
 
 # added to create all oligos in domesticator
 OLIGO_UNIVERSAL = 'GCGCCGTCTCG'
+ASSEMBLED_SEQ = 'GB_ASSEMB'
+DOMESTICATED_SEQ = 'GB_DOMEST'

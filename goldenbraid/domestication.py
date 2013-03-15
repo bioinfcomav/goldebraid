@@ -17,8 +17,8 @@ from goldenbraid.settings import (REBASE_FILE,
                                   DOMESTICATION_DEFAULT_MELTING_TEMP,
                                   DOMESTICATION_MIN_OLIGO_LENGTH, DB,
                                   ENZYMES_USED_IN_GOLDENBRAID, PUPD_PREFIX,
-                                  OLIGO_UNIVERSAL)
-from goldenbraid.models import Feature
+                                  OLIGO_UNIVERSAL, DOMESTICATED_SEQ)
+from goldenbraid.models import Feature, Count
 
 MINIMUN_PCR_LENGTH = 50
 
@@ -66,9 +66,13 @@ def domesticate(seqrec, category, prefix, suffix):
         oligo_pcrs.append({'pcr_product': pcr, 'oligo_forward': oligo[0],
                           'oligo_reverse': oligo[1]})
 
-    return oligo_pcrs, SeqRecord(prepared_new_seq,
-                                 name=seqrec.name + '_dom',
-                                 id=seqrec.id + '_dom')
+    try:
+        count = Count.objects.using(DB).get(name=DOMESTICATED_SEQ)
+    except Count.DoesNotExist:
+        count = Count.objects.using(DB).create(name=DOMESTICATED_SEQ, value=1)
+    next_value = count.next
+    seq_name = DOMESTICATED_SEQ + '_' + next_value
+    return oligo_pcrs, SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
 
 
 def _get_oligos(seq, segments, min_melting_temp):
