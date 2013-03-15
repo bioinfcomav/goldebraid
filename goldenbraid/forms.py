@@ -255,8 +255,8 @@ def get_part2_choices(part1_uniquename):
     part_forw_choices = []
     for part in parts_forw:
         if part.enzyme_out == part1_enzyme_out:
-            if part.description:
-                show = '{0} - {1}'.format(part.uniquename, part.description)
+            if part.name:
+                show = '{0} - {1}'.format(part.uniquename, part.name)
             else:
                 show = part.uniquename
             part_forw_choices.append((part.uniquename, show))
@@ -264,8 +264,8 @@ def get_part2_choices(part1_uniquename):
     part_rev_choices = []
     for part in parts_rev:
         if part.enzyme_out == part1_enzyme_out:
-            if part.description:
-                show = '{0} - {1}'.format(part.uniquename, part.description)
+            if part.name:
+                show = '{0} - {1}'.format(part.uniquename, part.name)
             else:
                 show = part.uniquename
             part_rev_choices.append((part.uniquename, show))
