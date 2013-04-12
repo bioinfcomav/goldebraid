@@ -117,10 +117,11 @@ class FeatureTestViews(TestCase):
         seq = seq.seq
         assert ('TGGA', 'AATG') == get_prefix_and_suffix(seq, 'BsaI')
 
+        # no rec_sites
         fasta_path = os.path.join(TEST_DATA, 'seq2.fasta')
         seq = SeqIO.read(fasta_path, 'fasta')
         seq = seq.seq
-        get_prefix_and_suffix(seq, 'BsaI')
+        assert (None, None, 0) == get_prefix_and_suffix(seq, 'BsaI')
 
     def test_choose_rec_sites(self):
         'it tests choose rec_sites func'
@@ -349,7 +350,7 @@ class MultipartiteTestViews(TestCase):
         url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
         response = client.post(url)
         assert """<p><label for="id_TER">Ter:</label>""" in str(response)
-        assert """<select name="TER" id="id_TER">""" in str(response)
+        assert """<select id="id_TER" name="TER">""" in str(response)
         assert """<option value="pDGB1_alpha1R">pDGB1_alpha""" in str(response)
         client = Client()
         url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
@@ -461,9 +462,8 @@ class BipartiteViewTest(TestCase):
         # do page 1
         url = reverse('bipartite_view', kwargs={'form_num': '1'})
         response = client.post(url, {'part_1': 'GB0125'})
-        longline1 = """<input name="part_1" value="GB0125" readonly="True" maxlength="100" """
-        longline1 += """type="text" id="id_part_1" />"""
-        assert longline1 in str(response)
+        assert 'readonly="True"' in str(response)
+        assert 'value="GB0125"' in str(response)
         assert """<p><label for="id_part_2">Part 2:</label>""" in str(response)
 
         # do page 2
@@ -471,7 +471,7 @@ class BipartiteViewTest(TestCase):
         response = client.post(url, {'part_1': 'GB0125', 'part_2': 'GB0126'})
         longline2 = """<input name="part_2" value="GB0126" readonly="True" """
         longline2 += """maxlength="100" type="text" id="id_part_2" />"""
-        assert longline2 in str(response)
+        assert 'value="GB0126"' in str(response)
         assert "pDGB1_omega1" in str(response)
 
         # do page 3

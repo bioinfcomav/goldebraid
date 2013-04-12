@@ -54,6 +54,8 @@ def _search_rec_sites(seq, rec_site):
 
     if len(corrected_site_indexes) > 2:
         raise RuntimeError('rec site found more than twice')
+    if not corrected_site_indexes:
+        raise RuntimeError("No rec_site")
     corrected_site_indexes = list(corrected_site_indexes)
     corrected_site_indexes.sort()
     return corrected_site_indexes
@@ -103,7 +105,6 @@ def get_prefix_and_suffix_index(seq, enzyme):
     rec_site, cut_site = restriction_site.split('(')
     forw_cut_delta, rev_cut_delta = cut_site.rstrip(')').split('/')
     forw_cut_delta, rev_cut_delta = int(forw_cut_delta), int(rev_cut_delta)
-
     forw_sites = _search_rec_sites(seq, rec_site)
     rec_seq = Seq(rec_site)
     rec_seq.reverse_complement()
@@ -120,8 +121,14 @@ def get_prefix_and_suffix_index(seq, enzyme):
 
 def get_prefix_and_suffix(seq, enzyme):
     'it gets the prefix and the suffix of the feature seq'
-    prefix_index, suffix_index, prefix_size = get_prefix_and_suffix_index(seq,
-                                                                        enzyme)
+    try:
+        prefix_index, suffix_index, prefix_size = \
+                                      get_prefix_and_suffix_index(seq, enzyme)
+    except RuntimeError as error:
+        if str(error) == "No rec_site":
+            return None, None, 0
+        else:
+            raise
     return _get_pref_suff_from_index(seq, prefix_index, suffix_index,
                                      prefix_size)
 

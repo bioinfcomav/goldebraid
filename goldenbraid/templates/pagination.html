@@ -1,5 +1,5 @@
 <div class="pagination">
-    <form action="{% url search_features %}" method="post">{% csrf_token %}
+    <form action="{% url 'search_features' %}" method="post">{% csrf_token %}
       {% for key, value in search_criteria.items %}
         <input type="hidden" name="{{ key }}" value="{{ value }}">
       {% endfor %}

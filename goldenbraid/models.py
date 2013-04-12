@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from goldenbraid import settings
 from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
@@ -212,6 +213,16 @@ class Feature(models.Model):
         else:
             direction = None
         return direction
+
+
+class FeaturePerm(models.Model):
+    'Model to store the perms of the features'
+    feature = models.OneToOneField(Feature, primary_key=True)
+    owner = models.ForeignKey(User)
+    is_public = models.BooleanField()
+
+    class Meta:
+        db_table = u'featureperm'
 
 
 class Featureprop(models.Model):
