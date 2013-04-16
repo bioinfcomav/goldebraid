@@ -39,9 +39,8 @@ def replaceunderscore(value):
     """
     return mark_safe(re.sub('_', ' ', value))
 
-replaceunderscore.is_safe = True
 slugify = stringfilter(replaceunderscore)
-register.filter('replaceunderscore', replaceunderscore)
+register.filter('replaceunderscore', replaceunderscore, is_safe=True)
 
 
 def wrap(text, width):
@@ -64,9 +63,8 @@ def letterwrap(value, arg):
     Argument: number of characters to wrap the text at.
     """
     return wrap(value, int(arg))
-letterwrap.is_safe = True
 letterwrap = stringfilter(letterwrap)
-register.filter('letterwrap', letterwrap)
+register.filter('letterwrap', letterwrap, is_safe=True)
 
 
 def first_item(value, separator):
@@ -74,8 +72,7 @@ def first_item(value, separator):
     It returns the key part of a string.
     """
     return value.split(separator, 1)[0]
-first_item.is_safe = True
-register.filter('first_item', first_item)
+register.filter('first_item', first_item, is_safe=True)
 
 
 def not_first_item(value, separator):
@@ -83,5 +80,4 @@ def not_first_item(value, separator):
     It returns the key part of a string.
     """
     return ' '.join(value.split(separator, 1)[1:])
-not_first_item.is_safe = True
-register.filter('not_first_item', not_first_item)
+register.filter('not_first_item', not_first_item, is_safe=True)

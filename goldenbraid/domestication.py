@@ -15,7 +15,7 @@ from goldenbraid.views.feature_views import (parse_rebase_file,
                                              get_prefix_and_suffix_index)
 from goldenbraid.settings import (REBASE_FILE,
                                   DOMESTICATION_DEFAULT_MELTING_TEMP,
-                                  DOMESTICATION_MIN_OLIGO_LENGTH, DB,
+                                  DOMESTICATION_MIN_OLIGO_LENGTH,
                                   ENZYMES_USED_IN_GOLDENBRAID, PUPD_PREFIX,
                                   OLIGO_UNIVERSAL, DOMESTICATED_SEQ)
 from goldenbraid.models import Feature, Count
@@ -67,9 +67,9 @@ def domesticate(seqrec, category, prefix, suffix):
                           'oligo_reverse': oligo[1]})
 
     try:
-        count = Count.objects.using(DB).get(name=DOMESTICATED_SEQ)
+        count = Count.objects.get(name=DOMESTICATED_SEQ)
     except Count.DoesNotExist:
-        count = Count.objects.using(DB).create(name=DOMESTICATED_SEQ, value=1)
+        count = Count.objects.create(name=DOMESTICATED_SEQ, value=1)
     next_value = count.next
     seq_name = DOMESTICATED_SEQ + '_' + next_value
     return oligo_pcrs, SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
@@ -159,7 +159,7 @@ def  _get_segments_from_rec_site(frag_5, rec_site, prev_seq_len):
 
 
 def _get_stripped_vector_seq():
-    pupd = Feature.objects.using(DB).get(uniquename='pUPD')
+    pupd = Feature.objects.get(uniquename='pUPD')
     vec_seq = pupd.residues
     prefix_index, suffix_index, prefix_size = get_prefix_and_suffix_index(vec_seq,
                                                         pupd.enzyme_in[0])

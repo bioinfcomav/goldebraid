@@ -1,17 +1,10 @@
 import os
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
 from django.conf import settings
 
 import goldenbraid
 from goldenbraid.tags import MODULE_TYPE_NAME, TU_TYPE_NAME
-
-DB = getattr(settings, 'GOLDENBRAID_DB', None)
-if not DB:
-    raise ValueError('GOLDENBRAID_DB is not defined in the settings')
 
 
 GENBANK_DIR = getattr(settings, 'GOLDENBRAID_GENBANK_DIR', 'genbank_files')

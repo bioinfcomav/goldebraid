@@ -3,11 +3,7 @@ Created on 2013 ots 5
 
 @author: peio
 '''
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
 from django.template.context import RequestContext
 from django.core.context_processors import csrf

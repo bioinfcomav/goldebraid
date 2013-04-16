@@ -14,7 +14,7 @@ from Bio import SeqIO
 
 from goldenbraid.models import Cvterm, Feature
 from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME
-from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX, DB,
+from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
                                   UT_PREFIX, SITE_B, SITE_A, SITE_C,
                                   BIPARTITE_ALLOWED_PARTS, CATEGORIES,
                                   SEARCH_MENU_TYPE_CHOICES)
@@ -51,7 +51,7 @@ def _prepare_feature_kind():
     if SEARCH_MENU_TYPE_CHOICES:
         kinds = SEARCH_MENU_TYPE_CHOICES
     else:
-        kinds = Feature.objects.using(DB).distinct('type').values('type__name')
+        kinds = Feature.objects.distinct('type').values('type__name')
         kinds = [kind['type__name'] for kind in kinds]
     if VECTOR_TYPE_NAME in kinds:
         kinds.pop(kinds.index(VECTOR_TYPE_NAME))
@@ -71,7 +71,7 @@ class FeatureForm(forms.Form):
     type_choices = _prepare_feature_kind()
     type = forms.CharField(max_length=100, widget=Select(choices=type_choices))
 
-    vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
+    vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
     vector_choices = features_to_choices(vectors)
     vector = forms.CharField(max_length=100, widget=Select(choices=vector_choices))
 
@@ -82,7 +82,7 @@ class FeatureForm(forms.Form):
         'It validates the type field'
         type_str = self.cleaned_data['type']
         try:
-            Cvterm.objects.using(DB).get(name=type_str)
+            Cvterm.objects.get(name=type_str)
         except Cvterm.DoesNotExist:
             raise ValidationError('This type does not exist in the database')
         return type_str
@@ -101,8 +101,8 @@ class FeatureForm(forms.Form):
 
         if type_str != VECTOR_TYPE_NAME:
             try:
-                vector_type = Cvterm.objects.using(DB).get(name=VECTOR_TYPE_NAME)
-                Feature.objects.using(DB).get(uniquename=vector,
+                vector_type = Cvterm.objects.get(name=VECTOR_TYPE_NAME)
+                Feature.objects.get(uniquename=vector,
                                               type=vector_type)
             except Feature.DoesNotExist:
                 raise ValidationError('The given vector does not exist')
@@ -119,7 +119,7 @@ def create_feature_validator(field_name):
     def validator(self):
         uniquename_str = self.cleaned_data[field_name]
         try:
-            Feature.objects.using(DB).get(uniquename=uniquename_str)
+            Feature.objects.get(uniquename=uniquename_str)
         except Feature.DoesNotExist:
             raise ValidationError('This feature does not exist in the database')
         return uniquename_str
@@ -133,7 +133,7 @@ def get_multipartite_form(multi_type):
 
     part_defs = PARTS_TO_ASSEMBLE[multi_type]
     for parts in part_defs:
-        features = Feature.objects.using(DB).filter(type__name=parts[0],
+        features = Feature.objects.filter(type__name=parts[0],
                                                     prefix=parts[1],
                                                     suffix=parts[2])
 
@@ -143,7 +143,7 @@ def get_multipartite_form(multi_type):
                                             widget=Select(choices=choices))
 
     # last we need to add the vector to the form
-    vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
+    vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
     vector_choices = vectors_to_choice(vectors)
     form_fields[VECTOR_TYPE_NAME] = forms.CharField(max_length=100,
                                         widget=Select(choices=vector_choices))
@@ -157,7 +157,7 @@ def get_multipartite_form(multi_type):
 
 
 class MultipartiteFormFreeInitial(forms.Form):
-    vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
+    vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
     choices = vectors_to_choice(vectors)
     vector = forms.CharField(max_length=100, widget=Select(choices=choices))
 
@@ -201,8 +201,7 @@ def _parts_to_choice(parts):
 
 
 class BipartiteForm1(forms.Form):
-    _bi_parts = Feature.objects.using(DB).filter(
-                                        type__name__in=BIPARTITE_ALLOWED_PARTS)
+    _bi_parts = Feature.objects.filter(type__name__in=BIPARTITE_ALLOWED_PARTS)
     _parts = _bi_parts.filter(prefix=SITE_A, suffix=SITE_C)
     _part_choices = _parts_to_choice(_parts)
 
@@ -243,10 +242,9 @@ class BipartiteForm3(forms.Form):
 
 
 def get_part2_choices(part1_uniquename):
-    part1 = Feature.objects.using(DB).get(uniquename=part1_uniquename)
+    part1 = Feature.objects.get(uniquename=part1_uniquename)
     part1_enzyme_out = part1.enzyme_out
-    bi_parts = Feature.objects.using(DB).filter(
-                                        type__name__in=BIPARTITE_ALLOWED_PARTS)
+    bi_parts = Feature.objects.filter(type__name__in=BIPARTITE_ALLOWED_PARTS)
     parts = bi_parts.filter(prefix=SITE_C, suffix=SITE_B)
 
     parts_forw = parts.filter(vector__prefix=SITE_B, vector__suffix=SITE_A)
@@ -277,10 +275,10 @@ def get_part2_choices(part1_uniquename):
 
 
 def get_bipart_vector_choices(part_uniquename):
-    part = Feature.objects.using(DB).get(uniquename=part_uniquename)
+    part = Feature.objects.get(uniquename=part_uniquename)
     part_enzyme_out = part.enzyme_out[0]
 
-    vectors = Feature.objects.using(DB).filter(type__name=VECTOR_TYPE_NAME)
+    vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
     vectors = vectors.filter(featureprop__type__name=ENZYME_IN_TYPE_NAME,
                              featureprop__value=part_enzyme_out)
 

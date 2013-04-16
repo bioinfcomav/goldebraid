@@ -4,9 +4,7 @@ from goldenbraid import settings
 from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
-    FORWARD, REVERSE)
-
-DB = settings.DB
+                              FORWARD, REVERSE)
 
 
 class Db(models.Model):
@@ -83,6 +81,7 @@ class Stockcollection(models.Model):
     contact = models.ForeignKey(Contact)
     name = models.CharField(max_length=255)
     uniquename = models.TextField()
+
     class Meta:
         db_table = u'stockcollection'
 
@@ -93,8 +92,8 @@ class Stock(models.Model):
     uniquename = models.TextField()
     description = models.TextField()
     stockcollection = models.ForeignKey(Stockcollection)
-    feature = models.ForeignKey("Feature", related_name='stocks',
-                                null=True)
+    feature = models.ForeignKey("Feature", related_name='stocks', null=True)
+
     class Meta:
         db_table = u'stock'
 
@@ -143,7 +142,7 @@ class Feature(models.Model):
     def props(self):
         'It returns a list of cvterms'
         new_prop_dict = {}
-        props = Featureprop.objects.using(DB).filter(feature=self)
+        props = Featureprop.objects.filter(feature=self)
         for prop in props:
             type_ = prop.type.name
             value = prop.value

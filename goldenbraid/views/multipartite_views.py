@@ -24,7 +24,7 @@ from Bio.Alphabet import generic_dna
 from Bio import SeqIO
 
 from goldenbraid.models import Feature, Count
-from goldenbraid.settings import (DB, PARTS_TO_ASSEMBLE, UT_SUFFIX, UT_PREFIX,
+from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX, UT_PREFIX,
                                   ASSEMBLED_SEQ)
 from goldenbraid.tags import (VECTOR_TYPE_NAME, REVERSE, TU_TYPE_NAME,
                               MODULE_TYPE_NAME)
@@ -42,7 +42,7 @@ def assemble_parts(parts, part_types):
     names = {'parts': []}
     for part_type in part_types:
         part_uniquename = parts[part_type]
-        part = Feature.objects.using(DB).get(uniquename=part_uniquename)
+        part = Feature.objects.get(uniquename=part_uniquename)
         gb_path = os.path.join(proj_settings.MEDIA_ROOT,
                                part.genbank_file.name)
         part_record = SeqIO.read(gb_path, 'gb')
@@ -73,9 +73,9 @@ def assemble_parts(parts, part_types):
             joined_seq += part_sub_seq
 
     try:
-        count = Count.objects.using(DB).get(name=ASSEMBLED_SEQ)
+        count = Count.objects.get(name=ASSEMBLED_SEQ)
     except Count.DoesNotExist:
-        count = Count.objects.using(DB).create(name=ASSEMBLED_SEQ, value=1)
+        count = Count.objects.create(name=ASSEMBLED_SEQ, value=1)
     next_value = count.next
 
     joined_seq.id = ASSEMBLED_SEQ + '_' + next_value
@@ -193,7 +193,7 @@ def write_protocol(protocol_data, assembly_type, part_order):
     lline2 += " (50 microgram ml-1), IPTG (0.5mM) and Xgal (40 microgram ml-1) plates"
     lline2 += " You will distinguish between colonies carrying intact vectors "
     lline2 += "(blue) and those transformed with your construction (white)."
-    vector = Feature.objects.using(DB).get(uniquename=protocol_data[VECTOR_TYPE_NAME])
+    vector = Feature.objects.get(uniquename=protocol_data[VECTOR_TYPE_NAME])
     protocol.append(lline2.format(vector.resistance[0]))
 
     protocol = "\n".join(protocol)
@@ -204,14 +204,14 @@ def write_protocol(protocol_data, assembly_type, part_order):
 def get_enzymes_for_protocol(protocol_data, part_order):
     'it gets the necessary enzymes'
 
-    vector = Feature.objects.using(DB).get(uniquename=protocol_data[VECTOR_TYPE_NAME])
+    vector = Feature.objects.get(uniquename=protocol_data[VECTOR_TYPE_NAME])
     vec_enzyme_in = vector.enzyme_in
     vec_enzyme_out = vector.enzyme_out
     enzymes = set(vec_enzyme_in)
 
     for part_type in part_order:
         part_name = protocol_data[part_type]
-        part = Feature.objects.using(DB).get(uniquename=part_name)
+        part = Feature.objects.get(uniquename=part_name)
         enzyme_outs = part.enzyme_out
         if vec_enzyme_in not in enzyme_outs:
             for enzyme_out in enzyme_outs:
@@ -240,7 +240,7 @@ def _get_fragments_from_request(request):
     protocol_data = {VECTOR_TYPE_NAME: vector}
     part_order = []
     for part in parts:
-        feat = Feature.objects.using(DB).get(uniquename=part)
+        feat = Feature.objects.get(uniquename=part)
         protocol_data[feat.type.name] = part
         part_order.append(feat.type.name)
     return protocol_data, part_order
@@ -274,7 +274,7 @@ def multipartite_view_free_genbank(request):
     form_class = get_multipartite_free_form(feats)
     form = form_class(request_data)
     if form.is_valid():
-        last_feat = Feature.objects.using(DB).get(uniquename=feats[-1])
+        last_feat = Feature.objects.get(uniquename=feats[-1])
         last_suffix = last_feat.suffix
         if last_suffix == 'CGCT':
             protocol_data, part_order = _get_fragments_from_request(request)
@@ -312,14 +312,14 @@ def multipartite_view_free(request, form_num):
             form_class = get_multipartite_free_form(feats)
             form = form_class(request_data)
             if form.is_valid():
-                last_feat = Feature.objects.using(DB).get(uniquename=feats[-1])
+                last_feat = Feature.objects.get(uniquename=feats[-1])
                 last_suffix = last_feat.suffix
                 if last_suffix == str(Seq(UT_SUFFIX).reverse_complement()):
                     last_suffix = UT_PREFIX
                 if last_suffix == 'CGCT':
                     used_parts = OrderedDict({'vector': feats[0]})
                     for feat in feats[1:]:
-                        feat = Feature.objects.using(DB).get(uniquename=feat)
+                        feat = Feature.objects.get(uniquename=feat)
                         used_parts[feat.type.name] = feat.uniquename
                     return render_to_response('multipartite_free_result.html',
                                               {'used_parts': used_parts,
@@ -329,7 +329,7 @@ def multipartite_view_free(request, form_num):
                 else:
                     # add new_field
                     part_num = len(feats)
-                    feats = Feature.objects.using(DB).filter(prefix=last_suffix)
+                    feats = Feature.objects.filter(prefix=last_suffix)
                     feats = feats.exclude(type__name__in=[VECTOR_TYPE_NAME,
                                                           TU_TYPE_NAME,
                                                           MODULE_TYPE_NAME])

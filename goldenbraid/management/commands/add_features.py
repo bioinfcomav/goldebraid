@@ -7,11 +7,11 @@ import os
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings as proj_settings
 from goldenbraid.management.commands.add_cvterms import run_command
-from goldenbraid.settings import DB
 from goldenbraid import settings
 from goldenbraid.views.feature_views import add_feature
 
-MANDATORY_FIELDS = ('name', 'type', 'vector', 'genbank_file', 'properties')
+MANDATORY_FIELDS = ('name', 'type', 'vector', 'genbank_file', 'properties',
+                    'owner', 'is_public')
 FAIL_IF_EXISTS = False
 
 
@@ -26,12 +26,12 @@ class Command(BaseCommand):
         else:
             features_fpath = args[0]
         try:
-            run_command(open(features_fpath), DB, load_features, MANDATORY_FIELDS)
+            run_command(open(features_fpath), load_features, MANDATORY_FIELDS)
         except Exception as error:
             raise CommandError(str(error))
 
 
-def load_features(database, reader):
+def load_features(reader):
     '''it loads the features in the database. The input file is a csv with
     these columns:
         name, type, vector, genbank_file, properties
@@ -47,6 +47,9 @@ def load_features(database, reader):
             vector = line['vector']
             genbank_fpath = line['genbank_file']
             props = line['properties']
+            owner = line['owner']
+            is_public = bool(line['is_public'])
+
         except KeyError:
             msg = 'Malformed line: ' + str(line)
             raise RuntimeError(msg)
@@ -63,9 +66,8 @@ def load_features(database, reader):
         if os.path.exists(path_in_media):
             os.remove(path_in_media)
 
-
-        add_feature(database, name, type_name, vector, open(genbank_fpath),
-                    props=props)
+        add_feature(name, type_name, vector, open(genbank_fpath),
+                    props=props, owner=owner, is_public=is_public)
 
 
 

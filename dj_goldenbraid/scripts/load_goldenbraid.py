@@ -23,7 +23,7 @@ def _syncdb_django():
     'it runs the syncsdb of the goldenbraid database'
     old_cwd = os.getcwd()
     os.chdir(DJANGO_DIR)
-    cmd = ['python', 'manage.py', 'syncdb', '--database=goldenbraid']
+    cmd = ['python', 'manage.py', 'syncdb']
     check_call(cmd)
     os.chdir(old_cwd)
 

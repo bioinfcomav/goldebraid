@@ -11,8 +11,6 @@ from django.core.management.base import BaseCommand, CommandError
 from goldenbraid.management.commands.db_utils import (get_or_load_cv,
                                                       get_or_load_cvterm)
 
-from goldenbraid.settings import DB
-
 MANDATORY_FIELDS = ('cv', 'name', 'definition')
 FAIL_IF_EXISTS = False
 
@@ -51,12 +49,12 @@ class Command(BaseCommand):
         else:
             cvterms_fpath = args[0]
         try:
-            run_command(open(cvterms_fpath), DB, load_cvterms, MANDATORY_FIELDS)
+            run_command(open(cvterms_fpath), load_cvterms, MANDATORY_FIELDS)
         except Exception as error:
             raise CommandError(str(error))
 
 
-def run_command(fhand, database, loader_func, mandatory_fields):
+def run_command(fhand, loader_func, mandatory_fields):
     'it runs a command loading a csv file into the database'
     fhand.seek(0)
     file_sample = fhand.read(1024)
@@ -65,7 +63,7 @@ def run_command(fhand, database, loader_func, mandatory_fields):
         dialect = sniffer.sniff(file_sample)
     except Exception:
         dialect = fallback_dialect
-
+    dialect = fallback_dialect
     fhand.seek(0)
     header = fhand.readline().strip()
     col_names = [col_n.lower() for col_n in split_csv_items(header, dialect)]
@@ -76,10 +74,10 @@ def run_command(fhand, database, loader_func, mandatory_fields):
 
     with transaction.commit_on_success():
         reader = csv.DictReader(fhand, fieldnames=col_names, dialect=dialect)
-        loader_func(database, reader)
+        loader_func(reader)
 
 
-def load_cvterms(database, reader):
+def load_cvterms(reader):
     '''It adds the cvterms to the pseudo chado database
 
     It asumes that the cv is already loaded in the database.
@@ -96,5 +94,5 @@ def load_cvterms(database, reader):
         except KeyError:
             msg = 'Malformed line: ' + str(line)
             raise RuntimeError(msg)
-        cv = get_or_load_cv(database, name=cv_name)
-        get_or_load_cvterm(database, cv, name, definition)
+        cv = get_or_load_cv(name=cv_name)
+        get_or_load_cvterm(cv, name, definition)

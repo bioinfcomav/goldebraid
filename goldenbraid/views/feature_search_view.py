@@ -8,18 +8,17 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.db.models import Q
 
 from goldenbraid.models import Cvterm, Feature
-from goldenbraid.settings import DB
 from goldenbraid.views.feature_views import feature_view
 from goldenbraid import settings
 from goldenbraid.tags import DESCRIPTION_TYPE_NAME
 
 
-def _prepare_feature_kind(database):
+def _prepare_feature_kind():
     'It prepares the feature kind select choices to put in the type widget'
     if settings.SEARCH_MENU_TYPE_CHOICES:
         feature_kinds = [(kind, kind) for kind in settings.SEARCH_MENU_TYPE_CHOICES]
     else:
-        kinds = Feature.objects.using(database).distinct('type').values('type__name')
+        kinds = Feature.objects.distinct('type').values('type__name')
         kinds = [kind['type__name'] for kind in kinds]
         feature_kinds = [(kind, kind.replace('_', ' ')) for kind in kinds]
 
@@ -32,7 +31,7 @@ class SearchFeatureForm(forms.Form):
     help_name = 'Accession or name or description'
     name_or_description = forms.CharField(max_length=100, required=False,
                                           label=help_name)
-    choices = _prepare_feature_kind(DB)
+    choices = _prepare_feature_kind()
     help_kind = 'Type of feature'
     kind = forms.CharField(max_length=200, label=help_kind, required=False,
                            widget=Select(choices=choices))
@@ -42,7 +41,7 @@ class SearchFeatureForm(forms.Form):
         if not type_str:
             return type_str
         try:
-            Cvterm.objects.using(DB).get(name=type_str)
+            Cvterm.objects.get(name=type_str)
         except Cvterm.DoesNotExist:
             raise ValidationError('This type does not exist in the database')
         return type_str
@@ -65,7 +64,7 @@ def _build_name_or_prop_query(query, text, exact):
 def _build_feature_query(search_criteria):
     'Given a search criteria dict it returns a feature queryset'
     criteria = search_criteria
-    query = Feature.objects.using(DB)
+    query = Feature.objects
     if 'name_or_description' in criteria and criteria['name_or_description']:
         if 'name_exact' not in criteria:
             criteria['name_exact'] = 'False'

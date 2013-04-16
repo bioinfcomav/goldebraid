@@ -7,14 +7,17 @@ from django.core.exceptions import  MultipleObjectsReturned
 from django.db.utils import IntegrityError
 from django.http import HttpResponseServerError
 from django.core.files import File
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+
 from Bio import SeqIO
 from Bio.Seq import Seq
 
-from goldenbraid.models import Cvterm, Feature, Db, Dbxref, Featureprop
-from goldenbraid.settings import DB, REBASE_FILE
+from goldenbraid.models import (Cvterm, Feature, Db, Dbxref, Featureprop,
+                                FeaturePerm)
+from goldenbraid.settings import REBASE_FILE
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
-                              ENZYME_OUT_TYPE_NAME, RESISTANCE_TYPE_NAME,
                               REFERENCE_TYPE_NAME)
 from goldenbraid.forms import FeatureForm
 
@@ -145,7 +148,6 @@ def _get_pref_suff_from_index(seq, prefix_index, suffix_index, prefix_size):
         remaining = prefix_size - len(prefix)
         prefix += seq[0:remaining]
 
-
     return str(prefix), str(suffix)
 
 
@@ -162,46 +164,57 @@ def _pref_suf_index_from_rec_sites(seq, forw_site, rev_site, rec_site,
     return prefix_index, suffix_index
 
 
-def add_feature(database, name, type_name, vector, genbank, props):
+def add_feature(name, type_name, vector, genbank, props, owner,
+                is_public=False):
     'it adds a feature to the database'
     seq = SeqIO.read(genbank, 'gb')
     residues = str(seq.seq)
     name = name
     uniquename = seq.id
-    type_ = Cvterm.objects.using(database).get(name=type_name)
-    db = Db.objects.using(database).get(name=GOLDEN_DB)
+    type_ = Cvterm.objects.get(name=type_name)
+    db = Db.objects.get(name=GOLDEN_DB)
     genbank_file = File(genbank)
     try:
-        dbxref = Dbxref.objects.using(database).create(db=db,
+        dbxref = Dbxref.objects.create(db=db,
                                                        accession=uniquename)
     except IntegrityError as error:
         raise IntegrityError('feature already in db' + str(error))
-    vector_type = Cvterm.objects.using(database).get(name=VECTOR_TYPE_NAME)
+    vector_type = Cvterm.objects.get(name=VECTOR_TYPE_NAME)
     if vector and type_ == vector_type:
         # already checked in form validation
         raise RuntimeError("a vector feature can't  have a vector")
     if vector:
-        vector = Feature.objects.using(database).get(uniquename=vector,
+        vector = Feature.objects.get(uniquename=vector,
                                                type=vector_type)
     else:
         vector = None
+
     try:
-        feature = Feature.objects.using(database).create(uniquename=uniquename,
+        user = User.objects.get(username=owner)
+    except User.DoesNotExist:
+        raise RuntimeError('the given user does not exist')
+    try:
+        feature = Feature.objects.create(uniquename=uniquename,
                                                    name=name, type=type_,
                                                    residues=residues,
                                                   dbxref=dbxref, vector=vector,
                                                   genbank_file=genbank_file)
+
     except IntegrityError as error:
         raise IntegrityError('feature already in db' + str(error))
+
+    FeaturePerm.objects.create(feature=feature, owner=user,
+                                                is_public=is_public)
+
     for type_name, values in props.items():
         try:
-            prop_type = Cvterm.objects.using(DB).get(name=type_name)
+            prop_type = Cvterm.objects.get(name=type_name)
         except Cvterm.DoesNotExist:
             msg = 'Trying to add a property which cvterm does not exist: {0}'
             msg = msg.format(type_name)
             raise RuntimeError(msg)
         except MultipleObjectsReturned:
-            for p in Cvterm.objects.using(DB).filter(name=type_name):
+            for p in Cvterm.objects.filter(name=type_name):
                 print p.name
                 print p.cvterm_id
                 print p.definition
@@ -210,9 +223,8 @@ def add_feature(database, name, type_name, vector, genbank, props):
             raise
         rank = 0
         for value in values:
-            Featureprop.objects.using(DB).create(feature=feature,
-                                                 type=prop_type,
-                                                 value=value, rank=rank)
+            Featureprop.objects.create(feature=feature, type=prop_type,
+                                       value=value, rank=rank)
             rank += 1
     if type_ == vector_type:
         enzyme = props[ENZYME_IN_TYPE_NAME][0]
@@ -221,11 +233,11 @@ def add_feature(database, name, type_name, vector, genbank, props):
     prefix, suffix = get_prefix_and_suffix(residues, enzyme)
     feature.prefix = prefix
     feature.suffix = suffix
-    feature.save(using=database)
+    feature.save()
     return feature
 
 
-def add_feature_from_form(form_data):
+def add_feature_from_form(form_data, username):
     'With this function we add a feature to the database'
     props = {}
     feature_type_name = form_data['type']
@@ -234,30 +246,30 @@ def add_feature_from_form(form_data):
     if form_data['reference']:
         props[REFERENCE_TYPE_NAME] = [form_data['reference']]
 
-    feature = add_feature(database=DB,
-                          name=form_data['name'], type_name=feature_type_name,
+    feature = add_feature(name=form_data['name'], type_name=feature_type_name,
                           vector=form_data['vector'],
                           genbank=form_data['gbfile'],
-                          props=props)
+                          props=props, owner=username)
 
     return feature
 
 
+@login_required
 def add_feature_view(request):
     'The add feature view'
     context = RequestContext(request)
     context.update(csrf(request))
+
     if request.method == 'POST':
         request_data = request.POST
     else:
         request_data = None
-
     if request_data:
         form = FeatureForm(request_data, request.FILES)
         if form.is_valid():
             feat_form_data = form.cleaned_data
             try:
-                feature = add_feature_from_form(feat_form_data)
+                feature = add_feature_from_form(feat_form_data, request.user)
             except IntegrityError as error:
                 print error
                 if 'feature already in db' in str(error):
@@ -284,7 +296,7 @@ def add_feature_view(request):
 def feature_view(request, uniquename):
     'The feature view'
     try:
-        feature = Feature.objects.using(DB).get(uniquename=uniquename)
+        feature = Feature.objects.get(uniquename=uniquename)
     except Feature.DoesNotExist:
         feature = None
     return render_to_response('feature_template.html', {'feature': feature},
