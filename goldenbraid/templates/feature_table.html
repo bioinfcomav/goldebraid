@@ -17,7 +17,7 @@
             <td>{{ feature.name }}</td>
             <td>{{ feature.type.name }}</td>
             <td>{{ feature.description }}</td>
-            <td>{{ feature.owner }}</td>
+            <td>{{ feature.owner.username }}</td>
             <td>{{ "Download"|link_if_url:feature.genbank_file }}</td>
         </tr>
         {% endfor %}

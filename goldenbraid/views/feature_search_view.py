@@ -1,5 +1,5 @@
 from django import forms
-from django.forms.widgets import Select
+from django.forms.widgets import Select, CheckboxInput
 from django.core.exceptions import ValidationError
 from django.core.context_processors import csrf
 from django.template.context import RequestContext
@@ -61,7 +61,7 @@ def _build_name_or_prop_query(query, text, exact):
     return query
 
 
-def _build_feature_query(search_criteria):
+def _build_feature_query(search_criteria, user):
     'Given a search criteria dict it returns a feature queryset'
     criteria = search_criteria
     query = Feature.objects
@@ -73,7 +73,14 @@ def _build_feature_query(search_criteria):
                                           criteria['name_exact'])
     if 'kind' in criteria and criteria['kind']:
         query = query.filter(type__name=criteria['kind'])
-    return query.distinct()
+    if 'only_user' in criteria and criteria['only_user']:
+        query = query.filter(featureperm__owner__username=user)
+    else:
+        query = query.filter(Q(featureperm__is_public=True) |
+                     Q(featureperm__owner__username=user))
+
+    query = query.distinct()
+    return query
 
 
 def search_features_view(request):
@@ -92,12 +99,16 @@ def search_features_view(request):
     mimetype = None  # default
     if request_data:
         form = SearchFeatureForm(request_data)
+
+        if request.user.is_authenticated():
+            form.fields['only_user'] = forms.BooleanField(label="Search only in my parts?", initial=False,
+                                                         required=False)
         # _update_form_init_values(form, database)
         if form.is_valid():
             search_criteria = form.cleaned_data
             search_criteria = dict([(key, value) for key, value in search_criteria.items() if value])
             context['search_criteria'] = search_criteria
-            feature_queryset = _build_feature_query(search_criteria)
+            feature_queryset = _build_feature_query(search_criteria, user=request.user)
             download_search = search_criteria.get('download_search', False)
             if feature_queryset and download_search:
                 context['queryset'] = feature_queryset
@@ -127,6 +138,10 @@ def search_features_view(request):
                 context['features_page'] = None
     else:
         form = SearchFeatureForm()
+        if request.user.is_authenticated():
+            form.fields['only_user'] = forms.BooleanField(initial=False,
+                                                         required=False,
+                                              label="Search only in my parts?")
 
     context['form'] = form
 

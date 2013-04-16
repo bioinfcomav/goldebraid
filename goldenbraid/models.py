@@ -213,6 +213,16 @@ class Feature(models.Model):
             direction = None
         return direction
 
+    @property
+    def owner(self):
+        'owner of the feat'
+        return self.featureperm.owner
+
+    @property
+    def is_public(self):
+        'owner of the feat'
+        return self.featureperm.is_public
+
 
 class FeaturePerm(models.Model):
     'Model to store the perms of the features'

@@ -126,6 +126,11 @@ class FeatureTestViews(TestCase):
         assert response.status_code == 200
         assert  "<td>Agrobacterium tumefaciens terminator" in str(response)
 
+        client.login(username='test', password='testpass')
+        response = client.post(url, {'only_user': True})
+        assert response.status_code == 200
+        assert 'pEGB 2A11:Myb12:Tnos' in str(response)
+
 
 class MultipartiteFreeTestViews(TestCase):
     fixtures = FIXTURES_TO_LOAD
