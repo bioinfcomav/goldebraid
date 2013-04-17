@@ -8,7 +8,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.widgets import Select
 from django.forms.util import ErrorDict
-
+from django.db.models import Q
 from Bio.Seq import Seq
 from Bio import SeqIO
 
@@ -20,7 +20,19 @@ from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
                                   SEARCH_MENU_TYPE_CHOICES)
 
 
-def vectors_to_choice(vectors):
+def get_vector_choices(user):
+    vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
+    if user.is_authenticated():
+        vectors = vectors.filter(Q(featureperm__owner__username=user) |
+                             Q(featureperm__is_public=True))
+    else:
+        vectors = vectors.filter(featureperm__is_public=True)
+
+    vector_choices = _vectors_to_choice(vectors)
+    return vector_choices
+
+
+def _vectors_to_choice(vectors):
     "it returns the given vectors but prepared to use as choices in a select"
     for_vectors = vectors.filter(prefix=UT_SUFFIX, suffix=UT_PREFIX)
     rev_vectors = vectors.filter(prefix=Seq(UT_PREFIX).reverse_complement(),
@@ -71,9 +83,7 @@ class FeatureForm(forms.Form):
     type_choices = _prepare_feature_kind()
     type = forms.CharField(max_length=100, widget=Select(choices=type_choices))
 
-    vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
-    vector_choices = features_to_choices(vectors)
-    vector = forms.CharField(max_length=100, widget=Select(choices=vector_choices))
+    vector = forms.CharField(max_length=100, widget=Select(choices=[]))
 
     gbfile_label = 'Select a GenBank-formatted local file on your computer'
     gbfile = forms.FileField(label=gbfile_label, required=True)
@@ -127,7 +137,7 @@ def create_feature_validator(field_name):
     return validator
 
 
-def get_multipartite_form(multi_type):
+def get_multipartite_form(multi_type, user):
     'It returns a form for the given multipartite'
     form_fields = OrderedDict()
 
@@ -136,6 +146,12 @@ def get_multipartite_form(multi_type):
         features = Feature.objects.filter(type__name=parts[0],
                                                     prefix=parts[1],
                                                     suffix=parts[2])
+        if user.is_authenticated():
+            features = features.filter(Q(featureperm__owner__username=user) |
+                               Q(featureperm__is_public=True))
+
+        else:
+            features = features.filter(featureperm__is_public=True)
 
         choices = features_to_choices(features)
         name = parts[0]
@@ -143,8 +159,7 @@ def get_multipartite_form(multi_type):
                                             widget=Select(choices=choices))
 
     # last we need to add the vector to the form
-    vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
-    vector_choices = vectors_to_choice(vectors)
+    vector_choices = get_vector_choices(user)
     form_fields[VECTOR_TYPE_NAME] = forms.CharField(max_length=100,
                                         widget=Select(choices=vector_choices))
 
@@ -157,9 +172,7 @@ def get_multipartite_form(multi_type):
 
 
 class MultipartiteFormFreeInitial(forms.Form):
-    vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
-    choices = vectors_to_choice(vectors)
-    vector = forms.CharField(max_length=100, widget=Select(choices=choices))
+    vector = forms.CharField(max_length=100, widget=Select(choices=[]))
 
     def clean_vector(self):
         return create_feature_validator('vector')(self)
@@ -188,9 +201,17 @@ def get_multipartite_free_form(feat_uniquenames):
 
 
 ### Bipartite ######
-def _parts_to_choice(parts):
-    parts_forw = parts.filter(vector__prefix=SITE_B, vector__suffix=SITE_A)
-    parts_rev = parts.filter(vector__prefix=Seq(SITE_A).reverse_complement(),
+def get_part1_choice(user):
+    _bi_parts = Feature.objects.filter(type__name__in=BIPARTITE_ALLOWED_PARTS)
+    _parts = _bi_parts.filter(prefix=SITE_A, suffix=SITE_C)
+    if user.is_authenticated():
+        _parts = _parts.filter(Q(featureperm__owner__username=user) |
+                               Q(featureperm__is_public=True))
+
+    else:
+        _parts = _parts.filter(featureperm__is_public=True)
+    parts_forw = _parts.filter(vector__prefix=SITE_B, vector__suffix=SITE_A)
+    parts_rev = _parts.filter(vector__prefix=Seq(SITE_A).reverse_complement(),
                              vector__suffix=Seq(SITE_B).reverse_complement())
     part_forw_choices = features_to_choices(parts_forw, blank_line=False)
     part_rev_choices = features_to_choices(parts_rev, blank_line=False)
@@ -201,12 +222,7 @@ def _parts_to_choice(parts):
 
 
 class BipartiteForm1(forms.Form):
-    _bi_parts = Feature.objects.filter(type__name__in=BIPARTITE_ALLOWED_PARTS)
-    _parts = _bi_parts.filter(prefix=SITE_A, suffix=SITE_C)
-    _part_choices = _parts_to_choice(_parts)
-
-    part_1 = forms.CharField(max_length=100,
-                                         widget=Select(choices=_part_choices))
+    part_1 = forms.CharField(max_length=100, widget=Select(choices=[]))
 
     def clean_part_1(self):
         return create_feature_validator('part_1')(self)
@@ -241,11 +257,16 @@ class BipartiteForm3(forms.Form):
         return create_feature_validator('Vector')(self)
 
 
-def get_part2_choices(part1_uniquename):
+def get_part2_choices(part1_uniquename, user):
     part1 = Feature.objects.get(uniquename=part1_uniquename)
     part1_enzyme_out = part1.enzyme_out
     bi_parts = Feature.objects.filter(type__name__in=BIPARTITE_ALLOWED_PARTS)
     parts = bi_parts.filter(prefix=SITE_C, suffix=SITE_B)
+    if user.is_authenticated():
+        parts = parts.filter(Q(featureperm__owner__username=user) |
+                             Q(featureperm__is_public=True))
+    else:
+        parts = parts.filter(featureperm__is_public=True)
 
     parts_forw = parts.filter(vector__prefix=SITE_B, vector__suffix=SITE_A)
     parts_rev = parts.filter(vector__prefix=Seq(SITE_A).reverse_complement(),
@@ -274,15 +295,20 @@ def get_part2_choices(part1_uniquename):
     return part_choices
 
 
-def get_bipart_vector_choices(part_uniquename):
+def get_bipart_vector_choices(part_uniquename, user):
     part = Feature.objects.get(uniquename=part_uniquename)
     part_enzyme_out = part.enzyme_out[0]
 
     vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
     vectors = vectors.filter(featureprop__type__name=ENZYME_IN_TYPE_NAME,
                              featureprop__value=part_enzyme_out)
+    if user.is_authenticated():
+        vectors = vectors.filter(Q(featureperm__owner__username=user) |
+                             Q(featureperm__is_public=True))
+    else:
+        vectors = vectors.filter(featureperm__is_public=True)
 
-    return vectors_to_choice(vectors)
+    return _vectors_to_choice(vectors)
 
 
 # # Domesticator #

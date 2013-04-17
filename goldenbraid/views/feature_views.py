@@ -9,6 +9,7 @@ from django.http import HttpResponseServerError
 from django.core.files import File
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -19,7 +20,8 @@ from goldenbraid.settings import REBASE_FILE
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME)
-from goldenbraid.forms import FeatureForm
+from goldenbraid.forms import FeatureForm, features_to_choices, \
+    get_vector_choices
 
 
 def parse_rebase_file(fpath):
@@ -288,6 +290,8 @@ def add_feature_view(request):
 
     else:
         form = FeatureForm()
+        form.fields['vector'].widget.choices = get_vector_choices(request.user)
+
     context['form'] = form
     template = 'feature_add_template.html'
     return render_to_response(template, context)

@@ -79,9 +79,9 @@ class FeatureTestViews(TestCase):
         # test of the form
         gb_path = os.path.join(TEST_DATA, 'pAn11_uniq.gb')
         client = Client()
-        # first_need login
-
         url = reverse('add_feature')
+
+        # no login, no access
         response = client.post(url, {'name': 'vector1',
                                      'type': MODULE_TYPE_NAME,
                                      'description': 'vector1 desc',
@@ -91,7 +91,11 @@ class FeatureTestViews(TestCase):
         assert response.status_code == 302
 
         client.login(username='admin', password='password')
+        # show form
+        response = client.get(url)
+        assert "pDGB1_alpha1"  in str(response)
 
+        # add a feature
         url = reverse('add_feature')
         response = client.post(url, {'name': 'vector1',
                                      'type': MODULE_TYPE_NAME,

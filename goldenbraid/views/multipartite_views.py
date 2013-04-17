@@ -32,7 +32,7 @@ from goldenbraid.views.feature_views import get_prefix_and_suffix_index
 from goldenbraid.forms import (get_multipartite_form,
                                get_multipartite_free_form,
                                MultipartiteFormFreeInitial,
-                               features_to_choices)
+                               features_to_choices, get_vector_choices)
 
 
 def assemble_parts(parts, part_types):
@@ -102,7 +102,7 @@ def multipartite_view_genbank(request, multi_type=None):
         request_data = request.GET
     else:
         request_data = None
-    form_class = get_multipartite_form(multi_type)
+    form_class = get_multipartite_form(multi_type, request.user)
     if request_data:
         form = form_class(request_data)
 
@@ -134,7 +134,7 @@ def multipartite_view(request, multi_type=None):
         request_data = request.GET
     else:
         request_data = None
-    form_class = get_multipartite_form(multi_type)
+    form_class = get_multipartite_form(multi_type, request.user)
     if request_data:
         form = form_class(request_data)
         if form.is_valid():
@@ -301,6 +301,7 @@ def multipartite_view_free(request, form_num):
     form = None
     if form_num is None:
         form = MultipartiteFormFreeInitial()
+        form.fields['vector'].widget.choices = get_vector_choices(request.user)
         context['form_num'] = '1'
     else:
         if request_data:

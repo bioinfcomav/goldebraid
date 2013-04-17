@@ -13,12 +13,13 @@ from django.template.context import RequestContext
 from django.core.context_processors import csrf
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseBadRequest
+from django.db.models import Q
 
 from goldenbraid.views.multipartite_views import assemble_parts, write_protocol
 from goldenbraid.tags import VECTOR_TYPE_NAME
 from goldenbraid.forms import (BipartiteForm1, BipartiteForm2,
                                get_part2_choices, BipartiteForm3,
-                               get_bipart_vector_choices)
+                               get_bipart_vector_choices, get_part1_choice)
 
 
 def bipartite_view(request, form_num):
@@ -34,15 +35,17 @@ def bipartite_view(request, form_num):
     if form_num is None:
         form = BipartiteForm1()
         context['form_num'] = '1'
+        form.fields['part_1'].widget.choices = get_part1_choice(request.user)
     elif form_num == '1':
         if request_data:
             form = BipartiteForm1(request_data)
+
             if form.is_valid():
                 form1_data = form.cleaned_data
                 form = BipartiteForm2()
-                # form.fields['Vector'].initial = form1_data['Vector']
                 form.fields['part_1'].initial = form1_data['part_1']
-                choices_part2 = get_part2_choices(form1_data['part_1'])
+                choices_part2 = get_part2_choices(form1_data['part_1'],
+                                                  request.user)
                 form.fields['part_2'].widget.choices = choices_part2
                 context['form_num'] = '2'
             else:
@@ -55,7 +58,8 @@ def bipartite_view(request, form_num):
                 form = BipartiteForm3()
                 form.fields['part_1'].initial = form2_data['part_1']
                 form.fields['part_2'].initial = form2_data['part_2']
-                choices_vector = get_bipart_vector_choices(form2_data['part_1'])
+                choices_vector = get_bipart_vector_choices(form2_data['part_1'],
+                                                           request.user)
                 form.fields['Vector'].widget.choices = choices_vector
                 context['form_num'] = '3'
     elif form_num == '3':
