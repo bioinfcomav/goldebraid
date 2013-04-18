@@ -216,12 +216,13 @@ class Feature(models.Model):
     @property
     def owner(self):
         'owner of the feat'
-        return self.featureperm.owner
+        return FeaturePerm.objects.get(feature=self).owner
+        # return self.featureperm.owner
 
     @property
     def is_public(self):
         'owner of the feat'
-        return self.featureperm.is_public
+        return FeaturePerm.objects.get(feature=self).is_public
 
 
 class FeaturePerm(models.Model):

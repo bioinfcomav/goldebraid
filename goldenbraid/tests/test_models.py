@@ -11,7 +11,7 @@ import goldenbraid
 from goldenbraid import settings
 from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
                                 Contact, Stock, Stockcollection, Count,
-    FeaturePerm)
+                                FeaturePerm)
 from goldenbraid.tags import (ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
@@ -171,3 +171,14 @@ class FeatureTestModels(TestCase):
         assert count.next == '2'
         assert count.next == '3'
         assert count.value == 4
+
+    def test_featureperm(self):
+
+        feature = Feature.objects.get(uniquename='pAn11')
+        assert feature.is_public == True
+        featureperm = FeaturePerm.objects.get(feature=feature)
+        featureperm.is_public = False
+        featureperm.save()
+        assert feature.is_public == False
+
+

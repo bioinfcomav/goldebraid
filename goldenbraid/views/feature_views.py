@@ -261,13 +261,11 @@ def add_feature_view(request):
     'The add feature view'
     context = RequestContext(request)
     context.update(csrf(request))
+    request_data_post = request.POST if request.method == 'POST' else None
+#    request_data_get = request.GET if request.method == 'GET' else None
 
-    if request.method == 'POST':
-        request_data = request.POST
-    else:
-        request_data = None
-    if request_data:
-        form = FeatureForm(request_data, request.FILES)
+    if request_data_post:
+        form = FeatureForm(request_data_post, request.FILES)
         if form.is_valid():
             feat_form_data = form.cleaned_data
             try:
@@ -288,6 +286,14 @@ def add_feature_view(request):
             return render_to_response('feature_template.html',
                                           {'feature': feature},
                                           context_instance=RequestContext(request))
+#    elif request_data_get:
+#        vector = request_data_get['vector']
+#        type_ = request_data_get['type']
+#        genbank_file = request_data_get['genbank_file']
+#        form = FeatureForm()
+#        form.fields['vector'].widget.choices = [(vector, vector), ]
+#        form.fields['type'].widget.choices = [(type, type_), ]
+#        form.fields['type'].widget.choices
 
     else:
         form = FeatureForm()
@@ -341,9 +347,10 @@ def feature_view(request, uniquename):
                         featperm.save()
                     else:
                         raise RuntimeError('bad conbinations of input request')
-                    context['info'] = 'Feature modified'
+
                     return render_to_response('feature_template.html',
-                                              {'feature': feature},
+                                              {'feature': feature,
+                                               'info': 'Feature modified'},
                               context_instance=RequestContext(request))
                 else:
                     return HttpResponseForbidden()
