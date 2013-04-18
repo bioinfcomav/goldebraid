@@ -482,3 +482,23 @@ def _seq_has_codon_end(seq):
 
 def _is_seq_3_multiple(seq):
     return True if divmod(len(seq), 3)[1] == 0 else False
+
+
+# feature_management
+class FeatureManagementForm(forms.Form):
+    feature = forms.CharField(max_length=30, widget=forms.HiddenInput())
+    action = forms.CharField(max_length=30, widget=forms.HiddenInput())
+
+    def clean_action(self):
+        action = self.cleaned_data['action']
+        if action in ('delete', 'make_public', 'make_private'):
+            return action
+        raise ValidationError('action must be delete or make_public')
+
+    def clean_feature(self):
+
+        uniquename = self.cleaned_data['feature']
+        return create_feature_validator('feature')(self)
+
+
+

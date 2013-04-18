@@ -113,6 +113,19 @@ class FeatureTestViews(TestCase):
         assert  feat.props == {u'Description': [u'vector1 desc'],
                                u'Reference': [u'vector1 ref']}
 
+        # add a feature
+        url = reverse('add_feature')
+        gb_path = gb_path = os.path.join(TEST_DATA, 'GB_ASSEMB_1.gb')
+        response = client.post(url, {'name': 'vector1',
+                                     'type': 'TU',
+                                     'description': 'vector1 desc',
+                                     'reference': 'vector1 ref',
+                                     'vector': 'pDGB1_alpha2',
+                                     'gbfile': open(gb_path)})
+
+        print response
+        assert response.status_code == 200
+
         os.remove(os.path.join(proj_settings.MEDIA_ROOT,
                                feat.genbank_file.name))
 

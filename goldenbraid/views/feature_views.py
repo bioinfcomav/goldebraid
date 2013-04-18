@@ -5,7 +5,7 @@ from django.core.context_processors import csrf
 from django.shortcuts import render_to_response
 from django.core.exceptions import  MultipleObjectsReturned
 from django.db.utils import IntegrityError
-from django.http import HttpResponseServerError
+from django.http import HttpResponseServerError, HttpResponseForbidden
 from django.core.files import File
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -20,8 +20,9 @@ from goldenbraid.settings import REBASE_FILE
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME)
-from goldenbraid.forms import FeatureForm, features_to_choices, \
-    get_vector_choices
+from goldenbraid.forms import (FeatureForm, get_vector_choices,
+                               FeatureManagementForm)
+from django.http.response import HttpResponseBadRequest
 
 
 def parse_rebase_file(fpath):
@@ -48,7 +49,6 @@ def _search_rec_sites(seq, rec_site):
     elong_size = 10
     seq_elonged = seq + seq[:elong_size]
     residues = str(seq_elonged)
-
     finded_site_indexes = [m.start() for m in re.finditer(rec_site.upper(),
                                                           residues.upper())]
     corrected_site_indexes = set()
@@ -131,7 +131,7 @@ def get_prefix_and_suffix(seq, enzyme):
                                       get_prefix_and_suffix_index(seq, enzyme)
     except RuntimeError as error:
         if str(error) == "No rec_site":
-            return None, None, 0
+            return None, None
         else:
             raise
     return _get_pref_suff_from_index(seq, prefix_index, suffix_index,
@@ -190,7 +190,6 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                                                type=vector_type)
     else:
         vector = None
-
     try:
         user = User.objects.get(username=owner)
     except User.DoesNotExist:
@@ -233,13 +232,14 @@ def add_feature(name, type_name, vector, genbank, props, owner,
     else:
         enzyme = vector.enzyme_out[0]
     prefix, suffix = get_prefix_and_suffix(residues, enzyme)
+    print prefix, suffix
     feature.prefix = prefix
     feature.suffix = suffix
     feature.save()
     return feature
 
 
-def add_feature_from_form(form_data, username):
+def add_feature_from_form(form_data, user):
     'With this function we add a feature to the database'
     props = {}
     feature_type_name = form_data['type']
@@ -251,7 +251,7 @@ def add_feature_from_form(form_data, username):
     feature = add_feature(name=form_data['name'], type_name=feature_type_name,
                           vector=form_data['vector'],
                           genbank=form_data['gbfile'],
-                          props=props, owner=username)
+                          props=props, owner=user)
 
     return feature
 
@@ -282,6 +282,7 @@ def add_feature_view(request):
                 else:
                     return HttpResponseServerError()
             except Exception as error:
+                print error
                 return HttpResponseServerError()
             # if everithing os fine we show the just added feature
             return render_to_response('feature_template.html',
@@ -303,6 +304,50 @@ def feature_view(request, uniquename):
         feature = Feature.objects.get(uniquename=uniquename)
     except Feature.DoesNotExist:
         feature = None
-    return render_to_response('feature_template.html', {'feature': feature},
+
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    elif request.method == 'GET':
+        request_data = request.GET
+    else:
+        request_data = None
+    if not request_data:
+        # context['public_form'] = FeaturePublicForm()
+        return render_to_response('feature_template.html', {'feature': feature},
                               context_instance=RequestContext(request))
+    else:
+        form = FeatureManagementForm(request_data)
+        if form.is_valid():
+            form_data = form.cleaned_data
+            action = form_data['action']
+            feature = Feature.objects.get(uniquename=form_data['feature'])
+            if action == 'delete':
+                if request.user.is_staff or request.user == feature.owner:
+                    feature.delete()
+                    return render_to_response('feature_deleted.html', {})
+                else:
+                    return HttpResponseForbidden('You are not allowed to delete this featuer')
+            elif action in 'make_public' or 'make_private':
+                if request.user.is_staff:
+                    if action == 'make_public' and feature.is_public == False:
+                        featperm = FeaturePerm.objects.get(feature=feature)
+                        featperm.is_public = True
+                        featperm.save()
+                    elif action == 'make_private' and feature.is_public == True:
+                        featperm = FeaturePerm.objects.get(feature=feature)
+                        featperm.is_public = False
+                        featperm.save()
+                    else:
+                        raise RuntimeError('bad conbinations of input request')
+                    context['info'] = 'Feature modified'
+                    return render_to_response('feature_template.html',
+                                              {'feature': feature},
+                              context_instance=RequestContext(request))
+                else:
+                    return HttpResponseForbidden()
+
+            else:
+                return HttpResponseBadRequest()
 

@@ -43,6 +43,12 @@ class FeatureTest(TestCase):
         seq = seq.seq
         assert (None, None, 0) == get_prefix_and_suffix(seq, 'BsaI')
 
+        gb_path = os.path.join(TEST_DATA, 'GB_ASSEMB_1.gb')
+        seq = SeqIO.read(gb_path, 'gb')
+        seq = seq.seq
+        assert (None, None, 0) == get_prefix_and_suffix(seq, 'BsmBI')
+
+
     def test_choose_rec_sites(self):
         'it tests choose rec_sites func'
         forw_sites = [4083]

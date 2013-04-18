@@ -2,39 +2,63 @@
 {% block title %}Feature {{feature.name}} {% endblock title %}
 {% block content %}
 {% load goldenbraid_extras %}
-
+<p>{{ info }}</p>
 {% if not feature %}
    <h1> This feature does not exist</h1>
 {% else %}
-<h1>{{ feature.type.name|capfirst|replaceunderscore }} {{ feature.uniquename }}</h1>
-<p><span class='key'>Accession:</span> <span class='value'>{{ feature.uniquename }}</span></p>
-<p><span class='key'>Name:</span> <span class='value'>{{ feature.name }}</span></p>
-<p><span class='key'>Prefix:</span> <span class='value'>{{ feature.prefix }}</span></p>
-<p><span class='key'>Suffix:</span> <span class='value'>{{ feature.suffix }}</span></p>
-<p><span class='key'>Genbank_file:</span><a href="{{feature.genbank_file.url}}">{{ feature.name }}</a></p>
-<p>You can use your favorite sequence viewer to open the genbank file. We suggest you to use the Snapgene viewer that you can download <a href=http://www.snapgene.com/products/snapgene_viewer target='blank'>here</a>.</p>
-{% if feature.description %}
-<p><span class='key'>Description:</span> <span class='value'>{{ feature.description }}</span></p>
-{% endif %}
- {% if feature.residues %}
-  {% include "feature_sequence.html" %}
- {% endif %}
-   {% if feature.props %}
-   {% for key, values in feature.props.items %}
-    {% if key != 'Description'%}
-       {% if values|length > 1 %}
-           <p><span class='key'>{{ key|capfirst|replaceunderscore}}{{values|pluralize }}:</span></p>
-           <ul class='property'>
-           {% for value in values %}
-            <li><p><span class='value'>{{ value|capfirst|replaceunderscore}}</span></p></li>
-           {% endfor %}
-           </ul>
-       {% else %}
-           <p><span class='key'>{{ key|capfirst|replaceunderscore }}:</span> <span class='value'>{{ values|first}}</span></p>
-
-       {% endif %}
-    {% endif %}
-  {% endfor %}
+  <h1>{{ feature.type.name|capfirst|replaceunderscore }} {{ feature.uniquename }}</h1>
+  <p><span class='key'>Accession:</span> <span class='value'>{{ feature.uniquename }}</span></p>
+  <p><span class='key'>Name:</span> <span class='value'>{{ feature.name }}</span></p>
+  <p><span class='key'>Owner:</span> <span class='value'>{{ feature.owner }}</span></p>
+  <p><span class='key'>Public:</span> <span class='value'>{{ feature.is_public }}</span></p>
+  <p><span class='key'>Prefix:</span> <span class='value'>{{ feature.prefix }}</span></p>
+  <p><span class='key'>Suffix:</span> <span class='value'>{{ feature.suffix }}</span></p>
+  <p><span class='key'>Genbank_file:</span><a href="{{feature.genbank_file.url}}">{{ feature.name }}</a></p>
+  <p>You can use your favorite sequence viewer to open the genbank file. We suggest you to use the Snapgene viewer that you can download <a href=http://www.snapgene.com/products/snapgene_viewer target='blank'>here</a>.</p>
+  {% if feature.description %}
+      <p><span class='key'>Description:</span> <span class='value'>{{ feature.description }}</span></p>
   {% endif %}
+  {% if feature.residues %}
+      {% include "feature_sequence.html" %}
+  {% endif %}
+  {% if feature.props %}
+      {% for key, values in feature.props.items %}
+          {% if key != 'Description'%}
+              {% if values|length > 1 %}
+                  <p><span class='key'>{{ key|capfirst|replaceunderscore}}{{values|pluralize }}:</span></p>
+                  <ul class='property'>
+                  {% for value in values %}
+                      <li><p><span class='value'>{{ value|capfirst|replaceunderscore}}</span></p></li>
+                  {% endfor %}
+                  </ul>
+              {% else %}
+                  <p><span class='key'>{{ key|capfirst|replaceunderscore }}:</span> <span class='value'>{{ values|first}}</span></p>
+              {% endif %}
+          {% endif %}
+      {% endfor %}
+   {% endif %}
+   {% if feature.owner == user%}
+        <form action='' method='POST'>{% csrf_token %}
+            <INPUT type="hidden" name="feature" value="{{ feature.uniquename }}">
+            <INPUT type="hidden" name="action" value="delete">
+            <p>You can delete this part from the database, this step can not be undone.
+            <INPUT type="submit" value="Delete"></p>
+        </form>
+   {% endif %}
+   {% if user.is_staff%}
+        <form action='' method='POST'>{% csrf_token %}
+            <INPUT type="hidden" name="feature" value="{{ feature.uniquename }}">
+            {% if feature.is_public %}
+                <INPUT type="hidden" name="action" value="make_private">
+                <p>Make the part private only for the owner
+              <INPUT type="submit" value="Make_private"></p>
+            {% else %}
+                <INPUT type="hidden" name="action" value="make_public">
+              <p>Make the part public for everyone
+              <INPUT type="submit" value="Make_public"></p>
+           {% endif %}
+        </form>
+   {% endif %}
+
 {% endif %}
 {% endblock content %}
