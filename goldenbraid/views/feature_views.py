@@ -177,8 +177,7 @@ def add_feature(name, type_name, vector, genbank, props, owner,
     db = Db.objects.get(name=GOLDEN_DB)
     genbank_file = File(genbank)
     try:
-        dbxref = Dbxref.objects.create(db=db,
-                                                       accession=uniquename)
+        dbxref = Dbxref.objects.create(db=db, accession=uniquename)
     except IntegrityError as error:
         raise IntegrityError('feature already in db' + str(error))
     vector_type = Cvterm.objects.get(name=VECTOR_TYPE_NAME)

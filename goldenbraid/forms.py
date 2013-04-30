@@ -464,6 +464,7 @@ class DomesticationForm(forms.Form):
                 del self.cleaned_data[name]
 
 
+
 def _seq_is_dna(string):
     len_sum = sum([string.count(l.upper()) + string.count(l.lower()) for l
                                                                   in ('ATCG')])
@@ -482,6 +483,12 @@ def _seq_has_codon_end(seq):
 
 def _is_seq_3_multiple(seq):
     return True if divmod(len(seq), 3)[1] == 0 else False
+
+
+class DomesticationAddForm(DomesticationForm):
+    name = forms.CharField(max_length=255, required=False)
+    description = forms.CharField(max_length=255, required=False)
+    reference = forms.CharField(max_length=255, required=False)
 
 
 # feature_management

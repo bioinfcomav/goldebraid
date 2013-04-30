@@ -5,10 +5,15 @@ from django.core.context_processors import csrf
 from django.template.context import RequestContext
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseBadRequest
+from django.contrib.auth.decorators import login_required
 
 from goldenbraid.domestication import domesticate
 from goldenbraid.forms import DomesticationForm
 from goldenbraid.settings import CATEGORIES
+from goldenbraid.views.feature_views import add_feature
+from tempfile import NamedTemporaryFile
+from django.http.response import HttpResponseServerError
+from django.db.utils import IntegrityError
 
 
 def domestication_view(request):
@@ -88,6 +93,51 @@ One microlitre of the reaction is enough to be transform E.coli electrocompetent
         pcr_str += '\n'
 
     return protocol.format(pcr_str)
+
+
+@login_required
+def domestication_view_add(request):
+    context = RequestContext(request)
+    context.update(csrf(request))
+    request_data = request.POST
+    # request_data
+    seq = request_data['seq']
+    category = request_data['category']
+    prefix = request_data['prefix']
+    suffix = request_data['suffix']
+    seq_name = request_data['seq_name']
+    name = request_data['name']
+
+    category_name = CATEGORIES[category][0]
+    seq = SeqRecord(Seq(seq), id=seq_name, name=seq_name)
+    seq = domesticate(seq, category, prefix, suffix)[1]
+    temp_fhand = NamedTemporaryFile(prefix=seq_name)
+    temp_fhand.write(seq.format('gb'))
+    temp_fhand.flush()
+    temp_fhand.seek(0)
+    props = {'Description': request_data['description'],
+             'Reference': request_data['reference']}
+    try:
+        feature = add_feature(name=name, type_name=category_name,
+                              vector='pUPD', genbank=temp_fhand, props=props,
+                              owner=request.user, is_public=False)
+
+    except IntegrityError as error:
+        print error
+        if 'feature already in db' in str(error):
+            # TODO choose a template
+            return render_to_response('feature_exists.html',
+                                      {},
+                            context_instance=RequestContext(request))
+        else:
+            return HttpResponseServerError()
+    except Exception as error:
+        print error
+        return HttpResponseServerError()
+    # if everithing os fine we show the just added feature
+    return render_to_response('feature_template.html',
+                                  {'feature': feature},
+                                  context_instance=RequestContext(request))
 
 
 def domestication_view_protocol(request):
