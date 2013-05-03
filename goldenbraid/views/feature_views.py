@@ -20,8 +20,8 @@ from goldenbraid.settings import REBASE_FILE
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME)
-from goldenbraid.forms import (FeatureForm, get_vector_choices,
-                               FeatureManagementForm)
+from goldenbraid.forms import (FeatureForm, FeatureManagementForm,
+                               get_all_vectors_as_choices)
 from django.http.response import HttpResponseBadRequest
 
 
@@ -270,17 +270,15 @@ def add_feature_view(request):
             try:
                 feature = add_feature_from_form(feat_form_data, request.user)
             except IntegrityError as error:
-                print error
                 if 'feature already in db' in str(error):
                     # TODO choose a template
                     return render_to_response('feature_exists.html',
                                               {},
                                     context_instance=RequestContext(request))
                 else:
-                    return HttpResponseServerError()
+                    return HttpResponseServerError(str(error))
             except Exception as error:
-                print error
-                return HttpResponseServerError()
+                return HttpResponseServerError(str(error))
             # if everithing os fine we show the just added feature
             return render_to_response('feature_template.html',
                                           {'feature': feature},
@@ -296,7 +294,7 @@ def add_feature_view(request):
 
     else:
         form = FeatureForm()
-        form.fields['vector'].widget.choices = get_vector_choices(request.user)
+        form.fields['vector'].widget.choices = get_all_vectors_as_choices(request.user)
 
     context['form'] = form
     template = 'feature_add_template.html'

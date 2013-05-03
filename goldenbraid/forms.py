@@ -74,6 +74,16 @@ def _prepare_feature_kind():
     return feature_kinds
 
 
+def get_all_vectors_as_choices(user):
+    vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
+    if user.is_authenticated():
+        vectors = vectors.filter(Q(featureperm__owner__username=user) |
+                             Q(featureperm__is_public=True))
+    else:
+        vectors = vectors.filter(featureperm__is_public=True)
+    return features_to_choices(vectors, blank_line=True)
+
+
 class FeatureForm(forms.Form):
     'Form to add features to db'
     name = forms.CharField(max_length=255, required=False)
