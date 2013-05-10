@@ -1,9 +1,10 @@
-.- Free multimartito no permite partes del mismo tipo. Habria que poner añadir al typo un .1 .2
-para que se pudieran poner varias
-
-
 .- captar todos los posibles errores.
 
 .- Si la secuencia que quieres domesticar es muy corta.
 Hay que domesticar pero sin devolver los oligos
 .- hacer test del domesticador
+
+
+.- testear el add feat desde el domesticador y añadirlo a todos los views que crean features
+
+

@@ -1,19 +1,20 @@
+from tempfile import NamedTemporaryFile
+
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
 from django.core.context_processors import csrf
 from django.template.context import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
+from django.http.response import HttpResponseServerError
+from django.db.utils import IntegrityError
 
 from goldenbraid.domestication import domesticate
 from goldenbraid.forms import DomesticationForm
 from goldenbraid.settings import CATEGORIES
 from goldenbraid.views.feature_views import add_feature
-from tempfile import NamedTemporaryFile
-from django.http.response import HttpResponseServerError
-from django.db.utils import IntegrityError
 
 
 def domestication_view(request):
@@ -135,9 +136,7 @@ def domestication_view_add(request):
         print error
         return HttpResponseServerError()
     # if everithing os fine we show the just added feature
-    return render_to_response('feature_template.html',
-                                  {'feature': feature},
-                                  context_instance=RequestContext(request))
+    return redirect(feature.url)
 
 
 def domestication_view_protocol(request):
