@@ -239,10 +239,18 @@ def _get_fragments_from_request(request):
     parts = [post_data[k] for k in sorted(post_data.keys()) if 'part' in k]
     protocol_data = {VECTOR_TYPE_NAME: vector}
     part_order = []
+    counter = {}
     for part in parts:
         feat = Feature.objects.get(uniquename=part)
-        protocol_data[feat.type.name] = part
-        part_order.append(feat.type.name)
+        feat_type = feat.type.name
+        if feat_type in protocol_data:
+            if feat_type not in counter:
+                counter[feat_type] = 1
+            counter[feat_type] += 1
+            feat_type += '.' + str(counter[feat_type])
+
+        protocol_data[feat_type] = part
+        part_order.append(feat_type)
     return protocol_data, part_order
 
 
@@ -318,10 +326,17 @@ def multipartite_view_free(request, form_num):
                 if last_suffix == str(Seq(UT_SUFFIX).reverse_complement()):
                     last_suffix = UT_PREFIX
                 if last_suffix == 'CGCT':
-                    used_parts = OrderedDict({'vector': feats[0]})
+                    used_parts = OrderedDict({'Vector': feats[0]})
                     for feat in feats[1:]:
                         feat = Feature.objects.get(uniquename=feat)
-                        used_parts[feat.type.name] = feat.uniquename
+                        counters = {}
+                        feat_type = feat.type.name
+                        if feat_type in used_parts:
+                            if feat_type not in counters:
+                                counters[feat_type] = 1
+                            counters[feat_type] += 1
+                            feat_type = '{0}.{1}'.format(feat_type, counters[feat_type])
+                        used_parts[feat_type] = feat.uniquename
                     return render_to_response('multipartite_free_result.html',
                                               {'used_parts': used_parts,
                                                'multi_type': 'free',

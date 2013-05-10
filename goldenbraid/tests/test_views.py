@@ -199,8 +199,15 @@ class MultipartiteFreeTestViews(TestCase):
 
         assert multipartite_free_seq1 == multipartite_free_seq2
 
-
-
+        # with more than one part of the same type
+        url = reverse('multipartite_view_free', kwargs={'form_num': '5'})
+        response = client.post(url, {'part_1': 'pP2A11',
+                                     'part_2': 'GB0365',
+                                     'part_3': 'GB0653',
+                                     'part_4': 'GB0655',
+                                     'part_5': 'pT35S',
+                                     'vector': 'pDGB1_alpha1'})
+        assert "<p>Other.2:<a href='/feature/GB0655'>GB0655</a></p>" in  str(response)
 
     def test_genbank_view(self):
         'it test that the genbank file is generated'
@@ -225,6 +232,15 @@ class MultipartiteFreeTestViews(TestCase):
         assert  'GB_ASSEMB_2' in str(response)
         assert  'LOCUS' in str(response)
 
+        # with more than one part of the same type
+        response = client.post(url, {'part_1': 'pP2A11',
+                                     'part_2': 'GB0365',
+                                     'part_3': 'GB0653',
+                                     'part_4': 'GB0655',
+                                     'part_5': 'pT35S',
+                                     'vector': 'pDGB1_alpha1'})
+        assert '(pP2A11,GB0365,GB0653,GB0655,pT35S)pDGB1_alpha1' in str(response)
+
     def test_protocol_view(self):
         'it test that the protocol file is generated'
         client = Client()
@@ -239,6 +255,14 @@ class MultipartiteFreeTestViews(TestCase):
                                      'part_3': 'pTnos'})
 
         assert "75 ng of pPE8" in str(response)
+        # with more than one part of the same type
+        response = client.post(url, {'part_1': 'pP2A11',
+                                     'part_2': 'GB0365',
+                                     'part_3': 'GB0653',
+                                     'part_4': 'GB0655',
+                                     'part_5': 'pT35S',
+                                     'vector': 'pDGB1_alpha1'})
+        assert "75 ng of GB0653" in str(response)
 
 
 class MultipartiteTestViews(TestCase):
