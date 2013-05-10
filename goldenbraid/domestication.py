@@ -107,30 +107,46 @@ def _get_pcr_segments(seq, rec_sites, fragments):
         acumulated_seq_len += len(frag_5) + len(rec_site['modified'])
     segments['ends'].append(len(seq) - 1)
     segments = zip(segments['starts'], segments['ends'])
-    return _join_short_segments(segments)
+    return _join_segments(segments)
 
 
-def _join_short_segments(segments, min_length=MINIMUN_PCR_LENGTH):
+def _join_segments(segments, min_length=MINIMUN_PCR_LENGTH):
     # join short segments
+    segments = [{'start':s[0], 'end':s[1]} for s in segments]
+
+    while not _all_segments_ok(segments, min_length):
+        segments = _join_short_segments(segments, min_length)
+    return segments
+
+
+def _all_segments_ok(segments, min_length):
+    for segment in segments:
+        if segment['end'] - segment['start'] < min_length:
+            return False
+    return True
+
+
+def _join_short_segments(segments, min_length):
     len_segments = len(segments)
     joined_segments = []
     skip_segment = False
     for index, segment in enumerate(segments):
-
-        if segment[1] - segment[0] < min_length:
+        start = segment['start']
+        end = segment['end']
+        if end - start < min_length:
             # if not last segment
             if index + 1 != len_segments:
                 if skip_segment:
-                    joined_segments[-1]['end'] = segments[index + 1][1]
-                    joined_segments[-1]['forward_min'] = segment[1]
+                    joined_segments[-1]['end'] = segments[index + 1]['end']
+                    joined_segments[-1]['forward_min'] = end
                     new_segment = None
                 else:
-                    new_segment = {'start': segment[0],
-                                   'end': segments[index + 1][1],
-                                   'forward_min': segment[1]}
+                    new_segment = {'start': start,
+                                   'end': segments[index + 1]['end'],
+                                   'forward_min': end}
             else:
-                joined_segments[-1]['end'] = segment[1]
-                joined_segments[-1]['reverse_min'] = segment[0]
+                joined_segments[-1]['end'] = end
+                joined_segments[-1]['reverse_min'] = start
                 new_segment = None
             skip_segment = True
 
@@ -138,7 +154,7 @@ def _join_short_segments(segments, min_length=MINIMUN_PCR_LENGTH):
             if skip_segment:
                 skip_segment = False
                 continue
-            new_segment = {'start': segment[0], 'end': segment[1]}
+            new_segment = {'start': start, 'end': end}
         if new_segment:
             joined_segments.append(new_segment)
 
@@ -225,6 +241,7 @@ def _get_oligo(seq, min_melting_temp, min_length=None):
     'Giving a seq and a melting temperature it return the longest oligo'
     if not min_length or min_length < DOMESTICATION_MIN_OLIGO_LENGTH:
         min_length = DOMESTICATION_MIN_OLIGO_LENGTH
+    oligo = []
     for index in range(min_length, len(seq)):
         oligo = seq[:index]
         if _calculate_annealing_temp(oligo) >= min_melting_temp:

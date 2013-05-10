@@ -13,7 +13,6 @@ from goldenbraid.views.feature_views import FeatureForm
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from goldenbraid.models import Feature
 from goldenbraid.tags import VECTOR_TYPE_NAME, MODULE_TYPE_NAME
-from django.contrib.auth.models import User
 
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                          'goldenbraid', 'tests', 'data')
@@ -103,8 +102,7 @@ class FeatureTestViews(TestCase):
                                      'reference': 'vector1 ref',
                                      'vector': 'pDGB1_omega1R',
                                      'gbfile': open(gb_path)})
-
-        assert response.status_code == 200
+        assert response.status_code == 302
         # TODO url to genbank file
         # response = client.get('/media/genbank_files/pAn11.gb')
 
@@ -115,7 +113,7 @@ class FeatureTestViews(TestCase):
 
         # add a feature
         url = reverse('add_feature')
-        gb_path = gb_path = os.path.join(TEST_DATA, 'GB_ASSEMB_1.gb')
+        gb_path = gb_path = os.path.join(TEST_DATA, 'GB_DOMEST_15.gb')
         response = client.post(url, {'name': 'vector1',
                                      'type': 'TU',
                                      'description': 'vector1 desc',
@@ -123,7 +121,6 @@ class FeatureTestViews(TestCase):
                                      'vector': 'pDGB1_alpha2',
                                      'gbfile': open(gb_path)})
 
-        print response
         assert response.status_code == 200
 
         os.remove(os.path.join(proj_settings.MEDIA_ROOT,
@@ -201,6 +198,9 @@ class MultipartiteFreeTestViews(TestCase):
         multipartite_free_seq2 += str(seqrec2.seq)[:4]
 
         assert multipartite_free_seq1 == multipartite_free_seq2
+
+
+
 
     def test_genbank_view(self):
         'it test that the genbank file is generated'

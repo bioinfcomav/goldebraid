@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title%}Goldenbraid registration form {% endblock title%}
+{% block content %}
+
+<form action="/accounts/register/" method="post">{% csrf_token %}
+    <p>Please, before registering read the <a href='/mta.html'>disclaimer text.</a></p>
+    {{ form.as_p}}
+    <input type="submit" value="Submit" />
+</form>
+{% if form.errors %}
+    <p>The forms has errors.</p>
+{% endif %}
+{% endblock %}

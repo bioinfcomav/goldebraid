@@ -1,0 +1,7 @@
+Somebody has registered this email address in {{ site }}, please confirm it following the activation link:
+
+http://{{site}}/accounts/activate/{{activation_key}}
+
+If you don't activate the account it will expire in {{ expiration_days }} days. 
+
+Thanks you

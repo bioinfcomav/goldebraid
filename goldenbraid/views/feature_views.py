@@ -1,15 +1,17 @@
 import re
+import os
 
 from django.template.context import RequestContext
 from django.core.context_processors import csrf
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.core.exceptions import  MultipleObjectsReturned
 from django.db.utils import IntegrityError
-from django.http import HttpResponseServerError, HttpResponseForbidden
+from django.http import HttpResponseServerError
 from django.core.files import File
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db import transaction
+from django.http.response import HttpResponseBadRequest
 
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -22,7 +24,6 @@ from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               REFERENCE_TYPE_NAME)
 from goldenbraid.forms import (FeatureForm, FeatureManagementForm,
                                get_all_vectors_as_choices)
-from django.http.response import HttpResponseBadRequest
 
 
 def parse_rebase_file(fpath):
@@ -169,73 +170,86 @@ def _pref_suf_index_from_rec_sites(seq, forw_site, rev_site, rec_site,
 def add_feature(name, type_name, vector, genbank, props, owner,
                 is_public=False):
     'it adds a feature to the database'
-    seq = SeqIO.read(genbank, 'gb')
-    residues = str(seq.seq)
-    name = name
-    uniquename = seq.id
-    type_ = Cvterm.objects.get(name=type_name)
-    db = Db.objects.get(name=GOLDEN_DB)
-    genbank_file = File(genbank)
-    try:
-        dbxref = Dbxref.objects.create(db=db, accession=uniquename)
-    except IntegrityError as error:
-        raise IntegrityError('feature already in db' + str(error))
-    vector_type = Cvterm.objects.get(name=VECTOR_TYPE_NAME)
-    if vector and type_ == vector_type:
-        # already checked in form validation
-        raise RuntimeError("a vector feature can't  have a vector")
-    if vector:
-        vector = Feature.objects.get(uniquename=vector,
-                                               type=vector_type)
-    else:
-        vector = None
-    try:
-        user = User.objects.get(username=owner)
-    except User.DoesNotExist:
-        raise RuntimeError('the given user does not exist')
-    try:
-        feature = Feature.objects.create(uniquename=uniquename,
-                                                   name=name, type=type_,
-                                                   residues=residues,
-                                                  dbxref=dbxref, vector=vector,
-                                                  genbank_file=genbank_file)
-
-    except IntegrityError as error:
-        raise IntegrityError('feature already in db' + str(error))
-
-    FeaturePerm.objects.create(feature=feature, owner=user,
-                                                is_public=is_public)
-
-    for type_name, values in props.items():
+    feature = None
+    with transaction.commit_manually():
         try:
-            prop_type = Cvterm.objects.get(name=type_name)
-        except Cvterm.DoesNotExist:
-            msg = 'Trying to add a property which cvterm does not exist: {0}'
-            msg = msg.format(type_name)
-            raise RuntimeError(msg)
-        except MultipleObjectsReturned:
-            for p in Cvterm.objects.filter(name=type_name):
-                print p.name
-                print p.cvterm_id
-                print p.definition
-            print "type_name", type_name
-            print "feature", feature.uniquename
+            seq = SeqIO.read(genbank, 'gb')
+            residues = str(seq.seq)
+            name = name
+            uniquename = seq.id
+            type_ = Cvterm.objects.get(name=type_name)
+            db = Db.objects.get(name=GOLDEN_DB)
+            genbank_file = File(genbank)
+            try:
+                dbxref = Dbxref.objects.create(db=db, accession=uniquename)
+            except IntegrityError as error:
+                raise IntegrityError('feature already in db' + str(error))
+            vector_type = Cvterm.objects.get(name=VECTOR_TYPE_NAME)
+            if vector and type_ == vector_type:
+                # already checked in form validation
+                raise RuntimeError("a vector feature can't  have a vector")
+            if vector:
+                vector = Feature.objects.get(uniquename=vector,
+                                                       type=vector_type)
+            else:
+                vector = None
+            try:
+                user = User.objects.get(username=owner)
+            except User.DoesNotExist:
+                raise RuntimeError('the given user does not exist')
+            try:
+                feature = Feature.objects.create(uniquename=uniquename,
+                                                           name=name, type=type_,
+                                                           residues=residues,
+                                                          dbxref=dbxref, vector=vector,
+                                                          genbank_file=genbank_file)
+
+            except IntegrityError as error:
+                raise IntegrityError('feature already in db' + str(error))
+
+            FeaturePerm.objects.create(feature=feature, owner=user,
+                                                        is_public=is_public)
+
+            for type_name, values in props.items():
+                try:
+                    prop_type = Cvterm.objects.get(name=type_name)
+                except Cvterm.DoesNotExist:
+                    msg = 'Trying to add a property which cvterm does not exist: {0}'
+                    msg = msg.format(type_name)
+                    raise RuntimeError(msg)
+                except MultipleObjectsReturned:
+                    for p in Cvterm.objects.filter(name=type_name):
+                        print p.name
+                        print p.cvterm_id
+                        print p.definition
+                    print "type_name", type_name
+                    print "feature", feature.uniquename
+                    raise
+                rank = 0
+                for value in values:
+                    Featureprop.objects.create(feature=feature, type=prop_type,
+                                               value=value, rank=rank)
+                    rank += 1
+            if type_ == vector_type:
+                enzyme = props[ENZYME_IN_TYPE_NAME][0]
+            else:
+                enzyme = vector.enzyme_out[0]
+            prefix, suffix = get_prefix_and_suffix(residues, enzyme)
+            if prefix is None or suffix is None:
+                raise RuntimeError('The given vector is not compatible with this part')
+
+            feature.prefix = prefix
+            feature.suffix = suffix
+            feature.save()
+
+        except:
+            if feature:
+                os.remove(feature.genbank_file.path)
+            transaction.rollback()
             raise
-        rank = 0
-        for value in values:
-            Featureprop.objects.create(feature=feature, type=prop_type,
-                                       value=value, rank=rank)
-            rank += 1
-    if type_ == vector_type:
-        enzyme = props[ENZYME_IN_TYPE_NAME][0]
-    else:
-        enzyme = vector.enzyme_out[0]
-    prefix, suffix = get_prefix_and_suffix(residues, enzyme)
-    print prefix, suffix
-    feature.prefix = prefix
-    feature.suffix = suffix
-    feature.save()
-    return feature
+        else:
+            transaction.commit()
+            return feature
 
 
 def add_feature_from_form(form_data, user):
@@ -272,25 +286,18 @@ def add_feature_view(request):
             except IntegrityError as error:
                 if 'feature already in db' in str(error):
                     # TODO choose a template
-                    return render_to_response('feature_exists.html',
-                                              {},
+                    return render_to_response('feature_exists.html', {},
                                     context_instance=RequestContext(request))
                 else:
                     return HttpResponseServerError(str(error))
+
             except Exception as error:
-                return HttpResponseServerError(str(error))
+                return render_to_response('goldenbraid_info.html',
+                                          {'title': 'Error',
+                                           'info': str(error)},
+                                      context_instance=RequestContext(request))
             # if everithing os fine we show the just added feature
-            return render_to_response('feature_template.html',
-                                          {'feature': feature},
-                                          context_instance=RequestContext(request))
-#    elif request_data_get:
-#        vector = request_data_get['vector']
-#        type_ = request_data_get['type']
-#        genbank_file = request_data_get['genbank_file']
-#        form = FeatureForm()
-#        form.fields['vector'].widget.choices = [(vector, vector), ]
-#        form.fields['type'].widget.choices = [(type, type_), ]
-#        form.fields['type'].widget.choices
+            return redirect(feature.url)
 
     else:
         form = FeatureForm()
@@ -317,7 +324,6 @@ def feature_view(request, uniquename):
     else:
         request_data = None
     if not request_data:
-        # context['public_form'] = FeaturePublicForm()
         return render_to_response('feature_template.html', {'feature': feature},
                               context_instance=RequestContext(request))
     else:
@@ -328,10 +334,17 @@ def feature_view(request, uniquename):
             feature = Feature.objects.get(uniquename=form_data['feature'])
             if action == 'delete':
                 if request.user.is_staff or request.user == feature.owner:
+                    file_path = feature.genbank_file.path
                     feature.delete()
-                    return render_to_response('feature_deleted.html', {})
+                    os.remove(file_path)
+                    return render_to_response('goldenbraid_info.html',
+                                              {'title': 'Feature deleted',
+                                               'info': 'Feature Deleted'})
                 else:
-                    return HttpResponseForbidden('You are not allowed to delete this featuer')
+                    return render_to_response('goldenbraid_info.html',
+                                              {'title': 'Not Allowed',
+                        'info': 'You are not allowed to delete this feature'})
+
             elif action in 'make_public' or 'make_private':
                 if request.user.is_staff:
                     if action == 'make_public' and feature.is_public == False:
@@ -350,7 +363,9 @@ def feature_view(request, uniquename):
                                                'info': 'Feature modified'},
                               context_instance=RequestContext(request))
                 else:
-                    return HttpResponseForbidden()
+                    return render_to_response('Goldenbraid_info.html',
+                                              {'title': 'Not Allowed',
+                        'info': 'You are not allowed to modify this feature'})
 
             else:
                 return HttpResponseBadRequest()

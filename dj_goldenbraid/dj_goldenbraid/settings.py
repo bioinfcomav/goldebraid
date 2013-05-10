@@ -162,5 +162,6 @@ LOGGING = {
         },
     }
 }
-GOLDENBRAID_SEARCH_MENU_TYPE_CHOICES = ('PROM+UTR+ATG', 'CDS', 'TER', 'TU')
+GOLDENBRAID_SEARCH_MENU_TYPE_CHOICES = ('PROM+UTR+ATG', 'CDS', 'TER', 'TU',
+                                        'Other', 'SP')
 

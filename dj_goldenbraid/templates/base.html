@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="robots" content="index, follow" />
+<meta name="keywords" content="GoldenBraid, DNA Assembly, Plant Synhetic Biology, Multigene Engineering"/>
+<title>{% block title %}{% endblock %}</title>
+<link href="{{ STATIC_URL }}style/style.css" rel="stylesheet" type="text/css"/>
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-40089714-1', 'gbcloning.org');
+  ga('send', 'pageview');
+
+</script> 
+
+</head>
+
+<body>
+<div id="container">
+	
+	<div id="header"><a href='/'><h1>HOME</h1></a>
+	</div>
+
+	<div id="menu">
+		<ul>
+            {% if '/' == current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/'>HOME</a></li>
+            {% if 'search/feature' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/search/features'>SEARCH DB</a></li>
+            {% if 'tools' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/tools'>TOOLS</a></li>
+            {% if 'documents' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/documents'>TUTORIALS</a></li>
+            {% if 'contact' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/contact'>CONTACT</a></li>
+		    {% if not user.is_authenticated %}
+		       {% if '/login/' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/accounts/login'>LOGIN</a></li>
+		    {% else %}
+       			{% if '/login/' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href="/logout/?next=/">LOGOUT <span class="logout">({{user.username}})</span></a></li>
+	    {% endif %}
+    	</ul>
+	</div>
+
+    <div id='main'>
+    {% block content %}{% endblock %}
+    </div>
+
+<div class="clearfooter"></div>
+</div>
+<div style="clear:both;">&nbsp;</div>
+<div id="footer">
+<div class="footer_socialnet">
+<ul>
+	<li>
+		<a target="_blank" href="http://twitter.com/share?text='GoldenBraid 2.0 Multigene Assembly at http://goldenbraid.ibmcp.upv.es'" title="Click to share this post on Twitter"><img src="{{STATIC_URL}}style/images/twitter.png" alt="twitter share button" title="twitter share button"/></a>
+	</li>
+	<li>
+		<a target="_blank" href="http://www.facebook.com/sharer.php?u=http://goldenbraid.ibmcp.upv.es"><img src="{{STATIC_URL}}style/images/facebook.png" width="20" height="20" alt="facebook share button" title="facebook share button"/></a>
+	</li>
+	<li>
+		<a href="http://www.linkedin.com/shareArticle?mini=true&url=http://goldenbraid.ibmcp.upv.es&title=GoldenBraid 2.0 Multigene Assembly" target="_new"><img src="{{STATIC_URL}}style/images/linkedin.png" width="20" height="20" alt="linkedin share button" title="linkedin share button"/></a>
+	</li>
+	<li>Fruit Genomics and Biotechnology Lab: <a href="www.ibmcp.upv.es/FGB" title="www.ibmcp.upv.es/FGB" target="_new">www.ibmcp.upv.es/FGB</a> 
+	</li>
+	<li> 
+		Website Administrator: <a href="mailto:jforment@ibmcp.upv.es" title="jforment@ibmcp.upv.es">jforment@ibmcp.upv.es</a> 
+	</li>
+	<li><a href='/disclaimer'>Disclaimer</a></li>
+</ul>
+</div>
+</div>
+
+
+</body>
+</html>
+

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title%}Login{% endblock title%}
+{% block content %}
+	{% if form.errors %}
+		<p>Your username and password didn't match. Please try again.</p>
+	{% endif %}
+        <form method="post" action="{{LOGIN_URL}}">{% csrf_token %}
+        <div style="display: none;"></div>
+              <p> Login:</p> 
+              <p><label for="id_username">Username</label>
+                  <input id="id_username" name="username" maxlength="30" type="text" value=""></p>
+             
+              <p><label for="id_password">Password</label>
+                 <input name="password" id="id_password" type="password" ></p>
+            
+          
+       
+        <input value="Login" type="submit">
+        <input name="next" value="{{ next_after_login }}" type="hidden">
+        </form>
+
+{% endblock %}
+</div>

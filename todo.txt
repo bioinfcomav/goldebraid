@@ -1,7 +1,9 @@
-.-
-.-
-.-Cuando seleccionas el vector en multipartito, que sepas si estas construyendo directa o reversa.
-.- Search:
-    Buscar por nombre-uniquename-description
-    hacer link a las features del resultado de la busqueda
+.- Free multimartito no permite partes del mismo tipo. Habria que poner añadir al typo un .1 .2
+para que se pudieran poner varias
+
+
+.- captar todos los posibles errores.
+
+.- Si la secuencia que quieres domesticar es muy corta.
+Hay que domesticar pero sin devolver los oligos
 .- hacer test del domesticador

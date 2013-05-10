@@ -4,12 +4,19 @@ Created on 2013 ots 7
 @author: peio
 '''
 from django.test import TestCase
-from Bio.Seq import Seq
+import os.path
 
-from goldenbraid.domestication import domesticate, _join_short_segments, \
-    _get_pcr_segments, _get_segments_from_rec_site
-from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
+from Bio.Seq import Seq
+from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
+
+import goldenbraid
+from goldenbraid.domestication import (domesticate, _join_segments,
+                                       _get_pcr_segments,
+                                       _get_segments_from_rec_site)
+from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
+TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
+                         'goldenbraid', 'tests', 'data')
 
 
 class DomesticationTest(TestCase):
@@ -64,6 +71,13 @@ class DomesticationTest(TestCase):
                                  'oligo_reverse': 'GCGCCGTCTCGCTCGCATTTAGATCGACTGAAAAGATGACGTACGATA',
                                  'oligo_forward': 'GCGCCGTCTCGACTGGGTCATGCTAGCTGAT'}
 
+        gb_path = os.path.join(TEST_DATA, 'GB_DOMEST_15.gb')
+        seq = SeqIO.read(gb_path, 'gb')
+        category = '02 (OP)'
+        oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
+        assert oligo_pcrs[1]['oligo_reverse'] == 'GCGCCGTCTCGCTCGCATTCGCGACCACTCGTCGCCCAT'
+        assert oligo_pcrs[1]['oligo_forward'] == 'GCGCCGTCTCGACAACTCATCGACCATCACTA'
+
     def test_get_segments_from_rec_site(self):
         frag5 = 'TATCGATCGATCGATGCTAGCTGATCGATCGAATCTACTACTACTACTAC'
         rec_site = {'original': 'CGTCTC', 'modified': 'CGTATC'}
@@ -100,29 +114,36 @@ class DomesticationTest(TestCase):
     def test_join_short_segments(self):
         segments = [(0, 10), (8, 33), (31, 60)]
         min_length = 11
-        new_segments = _join_short_segments(segments, min_length)
+        new_segments = _join_segments(segments, min_length)
         assert new_segments == [{'start': 0, 'end': 33, 'forward_min': 10},
                                 {'start': 31, 'end': 60}]
 
         segments = [(0, 34), (31, 40), (38, 80)]
         min_length = 11
-        new_segments = _join_short_segments(segments, min_length)
+        new_segments = _join_segments(segments, min_length)
         assert new_segments == [{'start': 0, 'end': 34},
                                 {'start': 31, 'end': 80, 'forward_min': 40}]
         segments = [(0, 30), (31, 60), (61, 70)]
         min_length = 11
-        new_segments = _join_short_segments(segments, min_length)
+        new_segments = _join_segments(segments, min_length)
         assert new_segments == [{'start': 0, 'end': 30},
                                 {'start': 31, 'reverse_min': 61, 'end': 70}]
 
         segments = [(0, 10), (11, 20), (21, 70)]
         min_length = 11
-        new_segments = _join_short_segments(segments, min_length)
+        new_segments = _join_segments(segments, min_length)
         assert new_segments == [{'start': 0, 'end': 70, 'forward_min': 20}]
 
         segments = [(0, 50), (51, 60), (61, 70)]
         min_length = 11
-        new_segments = _join_short_segments(segments, min_length)
+        new_segments = _join_segments(segments, min_length)
         assert new_segments == [{'start': 0, 'end': 50},
                                 {'start': 51, 'reverse_min': 61, 'end': 70,
                                  'forward_min': 60}]
+
+        segments = [(0, 4083), (4080, 4092), (4089, 7116), (7113, 7125), (7122, 7126)]
+        min_length = 50
+        new_segments = _join_segments(segments, min_length)
+        assert new_segments == [{'start': 0, 'end': 4083},
+                                {'start': 4080, 'reverse_min': 7113,
+                                 'end': 7126}]
