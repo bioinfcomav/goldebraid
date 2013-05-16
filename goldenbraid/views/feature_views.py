@@ -339,11 +339,13 @@ def feature_view(request, uniquename):
                     os.remove(file_path)
                     return render_to_response('goldenbraid_info.html',
                                               {'title': 'Feature deleted',
-                                               'info': 'Feature Deleted'})
+                                               'info': 'Feature Deleted'},
+                                    context_instance=RequestContext(request))
                 else:
                     return render_to_response('goldenbraid_info.html',
                                               {'title': 'Not Allowed',
-                        'info': 'You are not allowed to delete this feature'})
+                        'info': 'You are not allowed to delete this feature'},
+                                    context_instance=RequestContext(request))
 
             elif action in 'make_public' or 'make_private':
                 if request.user.is_staff:
@@ -365,7 +367,8 @@ def feature_view(request, uniquename):
                 else:
                     return render_to_response('Goldenbraid_info.html',
                                               {'title': 'Not Allowed',
-                        'info': 'You are not allowed to modify this feature'})
+                        'info': 'You are not allowed to modify this feature'},
+                                    context_instance=RequestContext(request))
 
             else:
                 return HttpResponseBadRequest()
