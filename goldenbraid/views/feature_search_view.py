@@ -18,7 +18,7 @@ def _get_category_name(type_name):
     for key, values in CATEGORIES.items():
         if values[0] == type_name:
             return key
-    raise RuntimeError('Given Kind not in database')
+    return type_name
 
 
 def _prepare_feature_kind():
