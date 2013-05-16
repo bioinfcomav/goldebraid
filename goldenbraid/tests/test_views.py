@@ -190,7 +190,7 @@ class MultipartiteFreeTestViews(TestCase):
         assert response.status_code == 200
 
         seqrec1 = SeqIO.read(StringIO(str(response)), 'gb')
-        assert seqrec1.name == 'GB_ASSEMB_1'
+        assert seqrec1.name == 'GB_UA_1'
         multipartite_free_seq1 = str(seqrec1.seq)
         gb_path = os.path.join(TEST_DATA, 'pEGBMybrev_uniq.gb')
         seqrec2 = SeqIO.read(gb_path, 'gb')
@@ -221,7 +221,7 @@ class MultipartiteFreeTestViews(TestCase):
                                      'part_1': 'pPE8',
                                      'part_2': 'pANT1',
                                      'part_3': 'pTnos'})
-        assert  'GB_ASSEMB_1' in str(response)
+        assert  'GB_UA_1' in str(response)
         assert  'LOCUS' in str(response)
 
         response = client.post(url, {'assembled_seq': 'aaa',
@@ -229,7 +229,7 @@ class MultipartiteFreeTestViews(TestCase):
                                      'part_1': 'pPE8',
                                      'part_2': 'pANT1',
                                      'part_3': 'pTnos'})
-        assert  'GB_ASSEMB_2' in str(response)
+        assert  'GB_UA_2' in str(response)
         assert  'LOCUS' in str(response)
 
         # with more than one part of the same type
@@ -443,7 +443,7 @@ class BipartiteViewTest(TestCase):
         client = Client()
         url = reverse('bipartite_view_protocol')
         response = client.get(url)
-        assert response.status_code == 200
+        assert response.status_code == 400
 
         response = client.post(url, {'name': 'kk',
                                      'Description': 'desc',
@@ -452,7 +452,8 @@ class BipartiteViewTest(TestCase):
                                      'part_1': 'GB0125',
                                      'part_2': 'GB0126',
                                      'Vector':'pDGB1_omega1'})
-        print response
+
+        assert  'Bipartite Assembly Protocol' in str(response)
 
     # check bipartite_view_add
     def test_add_view(self):
@@ -461,14 +462,18 @@ class BipartiteViewTest(TestCase):
         client.login(username='admin', password='password')
         url = reverse('bipartite_view_add')
         response = client.get(url)
-        print response.status_code
-        assert response.status_code == 400
+
+        assert response.status_code == 200
 
         response = client.post(url, {'assembled_seq':'aaa',
                                      'part_1': 'GB0125',
                                      'part_2': 'GB0126',
-                                     'Vector':'pDGB1_omega1'})
-        assert "75 ng of GB0125" in str(response)
+                                     'Vector':'pDGB1_omega1',
+                                     'name': 'aa',
+                                     'description':'',
+                                     'reference': 'aa'})
+        assert  response.status_code == 302
+
 
 class DomesticationViewTest(TestCase):
     fixtures = FIXTURES_TO_LOAD
