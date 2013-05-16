@@ -1,4 +1,3 @@
-
 try:
     from collections import OrderedDict
 except ImportError:
@@ -17,7 +16,8 @@ from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME
 from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
                                   UT_PREFIX, SITE_B, SITE_A, SITE_C,
                                   BIPARTITE_ALLOWED_PARTS, CATEGORIES,
-                                  SEARCH_MENU_TYPE_CHOICES)
+                                  SEARCH_MENU_TYPE_CHOICES,
+                                  MINIMUN_PCR_LENGTH)
 
 
 def get_vector_choices(user):
@@ -360,6 +360,10 @@ class DomesticationForm(forms.Form):
             msg = 'The given file contains seqs with not allowed nucleotides'
             msg += ' ATGC'
             raise ValidationError(msg)
+        if len(seq) < MINIMUN_PCR_LENGTH + 20:
+            msg = 'Given seq must be at least 70 base pairs'
+            raise ValidationError(msg)
+
         if self._data_in(self.cleaned_data, 'category'):
             category = self.cleaned_data['category']
             if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',

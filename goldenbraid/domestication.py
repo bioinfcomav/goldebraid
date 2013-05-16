@@ -17,10 +17,9 @@ from goldenbraid.settings import (REBASE_FILE,
                                   DOMESTICATION_DEFAULT_MELTING_TEMP,
                                   DOMESTICATION_MIN_OLIGO_LENGTH,
                                   ENZYMES_USED_IN_GOLDENBRAID, PUPD_PREFIX,
-                                  OLIGO_UNIVERSAL, DOMESTICATED_SEQ)
+                                  OLIGO_UNIVERSAL, DOMESTICATED_SEQ,
+    MINIMUN_PCR_LENGTH)
 from goldenbraid.models import Feature, Count
-
-MINIMUN_PCR_LENGTH = 50
 
 
 def get_ret_sites(enzymes):
@@ -53,6 +52,7 @@ def domesticate(seqrec, category, prefix, suffix):
     min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
     new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq)
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
+
     pcr_products = [str(new_seq[s['start']:s['end'] + 1]) for s in segments]
     oligos = _get_oligos(new_seq, segments, min_melting_temp)
     oligos = _add_tags_to_oligos(oligos, prefix, suffix, kind)
@@ -191,7 +191,9 @@ def _get_stripped_vector_seq():
 
 def _add_tags_to_pcrproducts(pcr_products, prefix, suffix, kind):
     pcr_products_with_tags = []
-    if kind in ('13-14-15-16 (CDS)', '13-14-15 (CDS)'):
+    if kind is None:
+        pass
+    elif kind in ('13-14-15-16 (CDS)', '13-14-15 (CDS)'):
         prefix = 'A'
     elif kind in ('13 (SP)'):
         prefix = 'A'

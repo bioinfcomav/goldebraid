@@ -511,6 +511,11 @@ class DomesticationViewTest(TestCase):
                                      'category': '13 (SP)'})
         assert 'The provided seq must start with start' not in str(response)
 
+        # domesticate with prefix and suffix
+        response = client.post(url, {'seq': open(gb_path),
+                                     'suffix': 'ACCT', 'prefix': 'TTCC'})
+        assert  "<p>Prefix:TTCC</p>" in str(response)
+
     def test_genbank_view(self):
         'it test that the genbank file is generated'
         client = Client()

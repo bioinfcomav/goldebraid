@@ -19,6 +19,7 @@ SEARCH_MENU_TYPE_CHOICES = getattr(settings,
                                    None)
 DOMESTICATION_DEFAULT_MELTING_TEMP = 50
 DOMESTICATION_MIN_OLIGO_LENGTH = 20
+MINIMUN_PCR_LENGTH = 50
 
 PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
                                ('CDS', 'AATG', 'GCTT'),
@@ -108,5 +109,5 @@ PUPD_PREFIX = 'CTCG'
 
 # added to create all oligos in domesticator
 OLIGO_UNIVERSAL = 'GCGCCGTCTCG'
-ASSEMBLED_SEQ = 'GB_ASSEMB'
-DOMESTICATED_SEQ = 'GB_DOMEST'
+ASSEMBLED_SEQ = 'GB_UA'
+DOMESTICATED_SEQ = 'GB_UD'
