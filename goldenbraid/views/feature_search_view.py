@@ -11,6 +11,14 @@ from goldenbraid.models import Cvterm, Feature
 from goldenbraid.views.feature_views import feature_view
 from goldenbraid import settings
 from goldenbraid.tags import DESCRIPTION_TYPE_NAME
+from goldenbraid.settings import CATEGORIES
+
+
+def _get_category_name(type_name):
+    for key, values in CATEGORIES.items():
+        if values[0] == type_name:
+            return key
+    raise RuntimeError('Given Kind not in database')
 
 
 def _prepare_feature_kind():
@@ -20,7 +28,7 @@ def _prepare_feature_kind():
     else:
         kinds = Feature.objects.distinct('type').values('type__name')
         kinds = [kind['type__name'] for kind in kinds]
-        feature_kinds = [(kind, kind.replace('_', ' ')) for kind in kinds]
+        feature_kinds = [(kind, _get_category_name(kind)) for kind in kinds]
 
     feature_kinds.insert(0, ('', ''))  # no kind
     return feature_kinds
