@@ -25,9 +25,35 @@
     {% endfor %}
     <p>The resulted sequence of the assembly is <INPUT type="submit" value="genbank_file"></p>
 </form>
-<div class='tools'>
-<p><span class='tools'>If you wish to use this construct in a new assembly you should incorporate it into the GBDB through the following link:<br/>
-<a href='/add/feature'>Add GB_Element</a> (you will need to log in)</span></p>
-</div>
+
+{% if user.is_authenticated %}
+  <a id="displayText" href="javascript:toggle();">+Add part</a>
+  <div id="toggleText" style="display: none">
+    <form action='/do/bipartite/add/' method='POST'>{% csrf_token %}
+        <ul>
+        <li>
+            <label for="name">Name:</label><input id="id_name" maxlength="255" name="name" type="text" /><span class='addfeat'> We recomend using a descriptive name e.g. pYFP, pEGB 35S:DsRed:Tnos. </span>
+        </li>
+        <li>
+            <label for="name">Description:</label><input id="id_description" maxlength="255" name="description" type="text" />{{ form.description }} <span class='addfeat'> A short free text description associated with your construct.</span>
+            </li>
+        <li>
+            <label for="name">Reference:</label><input id="id_reference" maxlength="255" name="reference" type="text" /><span class='addfeat'> You can add bibliographic references here.</span>
+        </li>
+        </ul>
+        {% for key, value in used_parts.items %}
+            <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endfor %}
+         <INPUT type="hidden" name="assembled_seq" value="{{ assembled_seq }}">
+
+        <p>You can add the feature if you are loged <INPUT type="submit" value="add feature to GBDB"></p>
+    </form>
+  </div>
+{%else%}
+  <div class='tools'>
+  <p><span class='tools'>If you wish to use this construct in a new assembly you should incorporate it into the GBDB through the following link:<br/>
+  <a href='/add/feature'>Add GB_Element</a> (you will need to log in)</span></p>
+  </div>
+{% endif %}
 
 {% endblock content %}

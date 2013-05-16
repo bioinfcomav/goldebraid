@@ -443,6 +443,25 @@ class BipartiteViewTest(TestCase):
         client = Client()
         url = reverse('bipartite_view_protocol')
         response = client.get(url)
+        assert response.status_code == 200
+
+        response = client.post(url, {'name': 'kk',
+                                     'Description': 'desc',
+                                     'Reference': 'ref',
+                                     'assembled_seq':'aaa',
+                                     'part_1': 'GB0125',
+                                     'part_2': 'GB0126',
+                                     'Vector':'pDGB1_omega1'})
+        print response
+
+    # check bipartite_view_add
+    def test_add_view(self):
+        'it test that the protocol file is generated'
+        client = Client()
+        client.login(username='admin', password='password')
+        url = reverse('bipartite_view_add')
+        response = client.get(url)
+        print response.status_code
         assert response.status_code == 400
 
         response = client.post(url, {'assembled_seq':'aaa',
@@ -450,7 +469,6 @@ class BipartiteViewTest(TestCase):
                                      'part_2': 'GB0126',
                                      'Vector':'pDGB1_omega1'})
         assert "75 ng of GB0125" in str(response)
-
 
 class DomesticationViewTest(TestCase):
     fixtures = FIXTURES_TO_LOAD

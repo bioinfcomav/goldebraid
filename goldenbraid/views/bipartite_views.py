@@ -3,6 +3,11 @@ Created on 2013 ots 5
 
 @author: peio
 '''
+from django.contrib.auth.decorators import login_required
+from django.core.files.temp import NamedTemporaryFile
+from goldenbraid.views.feature_views import add_feature
+from django.db.utils import IntegrityError
+from django.http.response import HttpResponseServerError
 try:
     from collections import OrderedDict
 except ImportError:
@@ -11,12 +16,12 @@ except ImportError:
 
 from django.template.context import RequestContext
 from django.core.context_processors import csrf
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.db.models import Q
 
 from goldenbraid.views.multipartite_views import assemble_parts, write_protocol
-from goldenbraid.tags import VECTOR_TYPE_NAME
+from goldenbraid.tags import VECTOR_TYPE_NAME, MODULE_TYPE_NAME
 from goldenbraid.forms import (BipartiteForm1, BipartiteForm2,
                                get_part2_choices, BipartiteForm3,
                                get_bipart_vector_choices, get_part1_choice)
@@ -117,3 +122,44 @@ def bipartite_view_protocol(request):
     response = HttpResponse(protocol, mimetype='text/plain')
     response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
     return response
+
+
+@login_required
+def bipartite_view_add(request):
+    context = RequestContext(request)
+    context.update(csrf(request))
+    request_data = request.POST
+    if not request_data:
+        return render_to_response('goldenbraid_info.html',
+                               {'info': "Not enougth data to add the feature"},
+                                context_instance=RequestContext(request))
+    name = request_data['name']
+    used_parts = {'Vector': request_data['Vector'],
+                  'part_1': request_data['part_1'],
+                  'part_2': request_data['part_2']}
+    seq = assemble_parts(used_parts, ['part_1', 'part_2'])
+    props = {'Description': request_data['description'],
+             'Reference': request_data['reference']}
+    temp_fhand = NamedTemporaryFile(prefix=name)
+    temp_fhand.write(seq.format('gb'))
+    temp_fhand.flush()
+    temp_fhand.seek(0)
+    try:
+        feature = add_feature(name=name, type_name=MODULE_TYPE_NAME,
+                              vector='pUPD', genbank=temp_fhand, props=props,
+                              owner=request.user, is_public=False)
+
+    except IntegrityError as error:
+        print error
+        if 'feature already in db' in str(error):
+            # TODO choose a template
+            return render_to_response('feature_exists.html',
+                                      {},
+                            context_instance=RequestContext(request))
+        else:
+            return HttpResponseServerError()
+    except Exception as error:
+        print error
+        return HttpResponseServerError()
+    # if everithing os fine we show the just added feature
+    return redirect(feature.url)

@@ -10,7 +10,8 @@ from goldenbraid.views.multipartite_views import (multipartite_view,
                                                multipartite_view_free_protocol)
 from goldenbraid.views.bipartite_views import (bipartite_view,
                                                bipartite_view_genbank,
-                                               bipartite_view_protocol)
+                                               bipartite_view_protocol,
+                                               bipartite_view_add)
 from goldenbraid.views.domestication_view import (domestication_view,
                                                   domestication_view_genbank,
                                                   domestication_view_protocol,
@@ -38,6 +39,8 @@ urlpatterns = patterns('',
             name="multipartite_view_genbank"),
          url(r'^do/multipartite/(?P<multi_type>.+)?/?$', multipartite_view,
             name='multipartite_view'),
+        url(r'^do/bipartite/add/$', bipartite_view_add,
+            name='bipartite_view_add'),
         url(r'^do/bipartite/genbank/$', bipartite_view_genbank,
             name='bipartite_view_genbank'),
         url(r'^do/bipartite/protocol/$', bipartite_view_protocol,

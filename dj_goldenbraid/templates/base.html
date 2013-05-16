@@ -18,30 +18,43 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
   ga('create', 'UA-40089714-1', 'gbcloning.org');
   ga('send', 'pageview');
 
-</script> 
-
+</script>
+<script language="javascript">
+function toggle() {
+    var ele = document.getElementById("toggleText");
+    var text = document.getElementById("displayText");
+    if(ele.style.display == "block") {
+            ele.style.display = "none";
+        text.innerHTML = "+Add part";
+    }
+    else {
+        ele.style.display = "block";
+        text.innerHTML = "-Add part";
+    }
+}
+</script>
 </head>
 
 <body>
 <div id="container">
-	
-	<div id="header"><a href='/'><h1>HOME</h1></a>
-	</div>
 
-	<div id="menu">
-		<ul>
+  <div id="header"><a href='/'><h1>HOME</h1></a>
+  </div>
+
+  <div id="menu">
+    <ul>
             {% if '/' == current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/'>HOME</a></li>
             {% if 'search/feature' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/search/features'>SEARCH DB</a></li>
             {% if 'tools' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/tools'>TOOLS</a></li>
             {% if 'documents' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/documents'>TUTORIALS</a></li>
             {% if 'contact' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/contact'>CONTACT</a></li>
-		    {% if not user.is_authenticated %}
-		       {% if '/login/' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/accounts/login'>LOGIN</a></li>
-		    {% else %}
-       			{% if '/login/' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href="/logout/?next=/">LOGOUT <span class="logout">({{user.username}})</span></a></li>
-	    {% endif %}
-    	</ul>
-	</div>
+        {% if not user.is_authenticated %}
+           {% if '/login/' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href='/accounts/login'>LOGIN</a></li>
+        {% else %}
+             {% if '/login/' in current_path %}<li class="select">{% else %}<li>{% endif %}<a href="/logout/?next=/">LOGOUT <span class="logout">({{user.username}})</span></a></li>
+      {% endif %}
+      </ul>
+  </div>
 
     <div id='main'>
     {% block content %}{% endblock %}
@@ -53,21 +66,21 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 <div id="footer">
 <div class="footer_socialnet">
 <ul>
-	<li>
-		<a target="_blank" href="http://twitter.com/share?text='GoldenBraid 2.0 Multigene Assembly at http://goldenbraid.ibmcp.upv.es'" title="Click to share this post on Twitter"><img src="{{STATIC_URL}}style/images/twitter.png" alt="twitter share button" title="twitter share button"/></a>
-	</li>
-	<li>
-		<a target="_blank" href="http://www.facebook.com/sharer.php?u=http://goldenbraid.ibmcp.upv.es"><img src="{{STATIC_URL}}style/images/facebook.png" width="20" height="20" alt="facebook share button" title="facebook share button"/></a>
-	</li>
-	<li>
-		<a href="http://www.linkedin.com/shareArticle?mini=true&url=http://goldenbraid.ibmcp.upv.es&title=GoldenBraid 2.0 Multigene Assembly" target="_new"><img src="{{STATIC_URL}}style/images/linkedin.png" width="20" height="20" alt="linkedin share button" title="linkedin share button"/></a>
-	</li>
-	<li>Fruit Genomics and Biotechnology Lab: <a href="www.ibmcp.upv.es/FGB" title="www.ibmcp.upv.es/FGB" target="_new">www.ibmcp.upv.es/FGB</a> 
-	</li>
-	<li> 
-		Website Administrator: <a href="mailto:jforment@ibmcp.upv.es" title="jforment@ibmcp.upv.es">jforment@ibmcp.upv.es</a> 
-	</li>
-	<li><a href='/disclaimer'>Disclaimer</a></li>
+  <li>
+    <a target="_blank" href="http://twitter.com/share?text='GoldenBraid 2.0 Multigene Assembly at http://goldenbraid.ibmcp.upv.es'" title="Click to share this post on Twitter"><img src="{{STATIC_URL}}style/images/twitter.png" alt="twitter share button" title="twitter share button"/></a>
+  </li>
+  <li>
+    <a target="_blank" href="http://www.facebook.com/sharer.php?u=http://goldenbraid.ibmcp.upv.es"><img src="{{STATIC_URL}}style/images/facebook.png" width="20" height="20" alt="facebook share button" title="facebook share button"/></a>
+  </li>
+  <li>
+    <a href="http://www.linkedin.com/shareArticle?mini=true&url=http://goldenbraid.ibmcp.upv.es&title=GoldenBraid 2.0 Multigene Assembly" target="_new"><img src="{{STATIC_URL}}style/images/linkedin.png" width="20" height="20" alt="linkedin share button" title="linkedin share button"/></a>
+  </li>
+  <li>Fruit Genomics and Biotechnology Lab: <a href="www.ibmcp.upv.es/FGB" title="www.ibmcp.upv.es/FGB" target="_new">www.ibmcp.upv.es/FGB</a>
+  </li>
+  <li>
+    Website Administrator: <a href="mailto:jforment@ibmcp.upv.es" title="jforment@ibmcp.upv.es">jforment@ibmcp.upv.es</a>
+  </li>
+  <li><a href='/disclaimer'>Disclaimer</a></li>
 </ul>
 </div>
 </div>
