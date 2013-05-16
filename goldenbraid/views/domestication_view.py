@@ -102,6 +102,8 @@ def domestication_view_add(request):
     context.update(csrf(request))
     request_data = request.POST
     # request_data
+
+    print request_data
     seq = request_data['seq']
     category = request_data['category']
     prefix = request_data['prefix']
@@ -112,7 +114,8 @@ def domestication_view_add(request):
     category_name = CATEGORIES[category][0]
     seq = SeqRecord(Seq(seq), id=seq_name, name=seq_name)
     seq = domesticate(seq, category, prefix, suffix)[1]
-    temp_fhand = NamedTemporaryFile(prefix=seq_name)
+    temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(seq_name),
+                                    suffix='.gb')
     temp_fhand.write(seq.format('gb'))
     temp_fhand.flush()
     temp_fhand.seek(0)

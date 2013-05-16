@@ -5,6 +5,9 @@ Created on 2013 urt 17
 @author: peio
 '''
 import os
+from tempfile import NamedTemporaryFile
+from django.db.utils import IntegrityError
+from django.http.response import HttpResponseServerError
 try:
     from collections import OrderedDict
 except ImportError:
@@ -13,7 +16,7 @@ except ImportError:
 from django.forms.widgets import Select
 from django.core.context_processors import csrf
 from django.template.context import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from django import forms
 from django.conf import settings as proj_settings
@@ -28,7 +31,8 @@ from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX, UT_PREFIX,
                                   ASSEMBLED_SEQ)
 from goldenbraid.tags import (VECTOR_TYPE_NAME, REVERSE, TU_TYPE_NAME,
                               MODULE_TYPE_NAME)
-from goldenbraid.views.feature_views import get_prefix_and_suffix_index
+from goldenbraid.views.feature_views import get_prefix_and_suffix_index, \
+    add_feature
 from goldenbraid.forms import (get_multipartite_form,
                                get_multipartite_free_form,
                                MultipartiteFormFreeInitial,
@@ -117,6 +121,57 @@ def multipartite_view_genbank(request, multi_type=None):
             response['Content-Disposition'] += 'filename="{0}"'.format(filename)
             return response
     return HttpResponseBadRequest()
+
+
+def multipartite_view_add(request):
+    context = RequestContext(request)
+    context.update(csrf(request))
+    request_data = request.POST
+    if not request_data:
+        return render_to_response('goldenbraid_info.html',
+                               {'info': "Not enougth data to add the feature"},
+                                context_instance=RequestContext(request))
+    multi_type = request_data['category']
+
+    if multi_type is None or multi_type not in PARTS_TO_ASSEMBLE.keys():
+        return render_to_response('goldenbraid_info.html',
+                               {'info': "Not enougth data to add the feature"},
+                                context_instance=RequestContext(request))
+
+    part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
+    multi_data = {'Vector': request_data['Vector']}
+    for part_type in part_types:
+        multi_data[part_type] = request_data[part_type]
+    assembled_seq = assemble_parts(multi_data, part_types)
+    name = request_data['name']
+    temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(name), suffix='.gb')
+    temp_fhand.write(assembled_seq.format('gb'))
+    temp_fhand.flush()
+    temp_fhand.seek(0)
+
+    props = {'Description': request_data['description'],
+             'Reference': request_data['reference']}
+    try:
+        feature = add_feature(name=name, type_name=TU_TYPE_NAME,
+                              vector=request_data['Vector'],
+                              genbank=temp_fhand, props=props,
+                              owner=request.user, is_public=False)
+
+    except IntegrityError as error:
+        print error
+        if 'feature already in db' in str(error):
+            # TODO choose a template
+            return render_to_response('feature_exists.html',
+                                      {},
+                            context_instance=RequestContext(request))
+        else:
+            return HttpResponseServerError()
+    except Exception as error:
+        print error
+        return HttpResponseServerError()
+    # if everithing os fine we show the just added feature
+    print feature.url
+    return redirect(feature.url)
 
 
 def multipartite_view(request, multi_type=None):
