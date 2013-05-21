@@ -133,12 +133,19 @@ def multipartite_view_add(request):
                                 context_instance=RequestContext(request))
     multi_type = request_data['category']
 
-    if multi_type is None or multi_type not in PARTS_TO_ASSEMBLE.keys():
+    allowed_categories = PARTS_TO_ASSEMBLE.keys() + ['free']
+    if multi_type is None or multi_type not in allowed_categories:
         return render_to_response('goldenbraid_info.html',
                                {'info': "Not enougth data to add the feature"},
                                 context_instance=RequestContext(request))
-
-    part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
+    if multi_type == 'free':
+        part_types = []
+        for key in request_data.keys():
+            if key not in ('category', 'name', 'reference', 'description',
+                           'Vector', 'csrfmiddlewaretoken'):
+                part_types.append(key)
+    else:
+        part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
     multi_data = {'Vector': request_data['Vector']}
     for part_type in part_types:
         multi_data[part_type] = request_data[part_type]
@@ -170,7 +177,6 @@ def multipartite_view_add(request):
         print error
         return HttpResponseServerError()
     # if everithing os fine we show the just added feature
-    print feature.url
     return redirect(feature.url)
 
 
