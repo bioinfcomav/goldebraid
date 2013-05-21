@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load goldenbraid_extras %}
-{% block title %}Feature search {% endblock title %}
+{% block title %}Domestication Result Page{% endblock title %}
 {% block content %}
 <p>Category:{{category}}</p>
 <p>Prefix:{{prefix}}</p>
@@ -36,7 +36,11 @@
   <a id="displayText" href="javascript:toggle();">+Add part</a>
   <div id="toggleText" style="display: none">
     <form action='/do/domestication/add/' method='POST'>{% csrf_token %}
-        <ul>
+	 <div class='tools'>
+	 <p><span class='addfeat'>Once you have domesticated your DNA sequence, you can add the created GBpart/superpart to the GB database. This will allow you to use these GBpart/superparts in your next assemblies.</span></p>
+	 <p><span class='addfeat'>User-added GBdatabase entries are private and only accessible to the user who created them.</span></p>
+	 </div>
+	 <ul>
         <li>
             <label for="name">Name:</label><input id="id_name" maxlength="255" name="name" type="text" /><span class='addfeat'> We recomend using a descriptive name e.g. pYFP, pEGB 35S:DsRed:Tnos. </span>
         </li>
@@ -52,13 +56,12 @@
         <INPUT type="hidden" name="suffix" value="{{ suffix }}">
         <INPUT type="hidden" name="category" value="{{ category }}">
         <INPUT type="hidden" name="seq_name" value="{{ seq_name }}">
-        <p>You can add the feature if you are loged <INPUT type="submit" value="add feature to GBDB"></p>
+        <p>You can add the feature if you are logged <INPUT type="submit" value="add feature to GBDB"></p>
     </form>
   </div>
 {%else%}
   <div class='tools'>
-  <p><span class='tools'>If you wish to use this construct in a new assembly you should incorporate it into the GBDB through the following link:<br/>
-  <a href='/add/feature'>Add GB_Element</a> (you will need to log in)</span></p>
+  <p><span class='tools'>If you wish to use this construct in a new assembly you should incorporate it into the GB database through the <a href='/add/feature'>Add GB_Element</a> page. You will need to <a href='/accounts/login'>log in</a> first.</span></p>
   </div>
 {% endif %}
 {% endblock content %}
