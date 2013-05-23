@@ -51,7 +51,6 @@ def domesticate(seqrec, category, prefix, suffix):
     seq = seqrec.seq
     min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
     new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq)
-    print rec_site_pairs
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
 
     pcr_products = [str(new_seq[s['start']:s['end'] + 1]) for s in segments]
@@ -196,7 +195,6 @@ def  _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
         rev_start += 1
         fow_end += 1
         overhang = get_overhang(rev_start, fow_end, prev_seq_len, frag_5, frag_3, rec_site)
-        print count
         if count > 10:
             msg = 'Impossible to domesticate this  sequence\n:'
             msg += 'Domesticated rec site nucleotide is too far from oligo'
@@ -322,7 +320,6 @@ def _remove_rec_sites(seq):
 
     new_seq = Seq('', alphabet=generic_dna)
     # we can not convert a rec site in another rec site
-    unusable_rec_sites = rec_sites
     _cumulative_patch = ''  # it is only used to know the frame
     rec_site_pairs = []
     for fragment, rec_site_in_seq  in izip_longest(fragments,
@@ -331,9 +328,7 @@ def _remove_rec_sites(seq):
         if rec_site_in_seq is not None:
             _cumulative_patch += fragment + rec_site_in_seq
             new_rec_site = _domesticate_rec_site(rec_site_in_seq,
-                                                 _cumulative_patch,
-                                                 unusable_rec_sites)
-            unusable_rec_sites.append(new_rec_site)
+                                                 _cumulative_patch)
             rec_site_pairs.append({'original': rec_site_in_seq,
                                    'modified': new_rec_site})
 
@@ -347,7 +342,7 @@ def _remove_rec_sites(seq):
     return new_seq, rec_site_pairs, fragments
 
 
-def _domesticate_rec_site(rec_site, patch, unusable_rec_sites):
+def _domesticate_rec_site(rec_site, patch):
     '''it converts a rec site in a disabled rec_site. It changes one nucleotide
     but tries not to change aa.
     It can not convert in an already unusable rec_site'''
@@ -394,10 +389,7 @@ def _domesticate_rec_site(rec_site, patch, unusable_rec_sites):
         if baseindex_to_change < -1:
             newsite += rec_site[(baseindex_to_change + 1):]
         # check that new site is not one of the already domesticated sites
-        if newsite in unusable_rec_sites:
-            newsite = ''
-        else:
-            return newsite
+        return newsite
 
     # if we reach this is because no allowed domesticated site has been found
     raise ValueError('No domestication possible for ORF site ' + rec_site)
