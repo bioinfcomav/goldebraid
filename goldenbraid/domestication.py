@@ -51,11 +51,21 @@ def domesticate(seqrec, category, prefix, suffix):
     seq = seqrec.seq
     min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
     new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq)
+    print rec_site_pairs
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
 
     pcr_products = [str(new_seq[s['start']:s['end'] + 1]) for s in segments]
     oligos = _get_oligos(new_seq, segments, min_melting_temp)
     oligos = _add_tags_to_oligos(oligos, prefix, suffix, kind)
+    # coprobar que los overhangs son distintos posiciones 12-15
+    forw_bin_sites = []
+    for olig_for, olig_rev in oligos:
+        for_bin = olig_for[11:15]
+        if for_bin in forw_bin_sites:
+            raise RuntimeError('Repeated overhang')
+        forw_bin_sites.append(for_bin)
+
+    # print oligos
     pcr_products = _add_tags_to_pcrproducts(pcr_products, prefix, suffix, kind)
 
     vector_seq = _get_stripped_vector_seq()
@@ -98,10 +108,19 @@ def _get_pcr_segments(seq, rec_sites, fragments):
     segments['starts'].append(0)
 
     acumulated_seq_len = 0
-    for frag_5, rec_site in zip(fragments, rec_sites):
-
-        start, end = _get_segments_from_rec_site(frag_5, rec_site,
-                                                 acumulated_seq_len)
+    overhangs = []
+    frag_rec_sites = zip(fragments, rec_sites)
+    for index, frag_5_rec_site in enumerate(frag_rec_sites):
+        frag_5 = frag_5_rec_site[0]
+        rec_site = frag_5_rec_site[1]
+        try:
+            frag_3 = fragments[index + 1]
+        except IndexError:
+            frag_3 = None
+        start, end, overhangs = _get_segments_from_rec_site(frag_5, frag_3,
+                                                           rec_site,
+                                                           acumulated_seq_len,
+                                                           overhangs)
         segments['starts'].append(start)
         segments['ends'].append(end)
         acumulated_seq_len += len(frag_5) + len(rec_site['modified'])
@@ -161,7 +180,8 @@ def _join_short_segments(segments, min_length):
     return joined_segments
 
 
-def  _get_segments_from_rec_site(frag_5, rec_site, prev_seq_len):
+def  _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
+                                 overhangs):
     change_pos = 0
     for letter1, letter2 in zip(rec_site['original'], rec_site['modified']):
         if letter1 != letter2:
@@ -170,8 +190,34 @@ def  _get_segments_from_rec_site(frag_5, rec_site, prev_seq_len):
     change_index = prev_seq_len + len(frag_5) + change_pos
     fow_end = change_index + 1
     rev_start = fow_end - 3
+    overhang = get_overhang(rev_start, fow_end, prev_seq_len, frag_5, frag_3, rec_site)
+    count = 0
+    while overhang in overhangs:
+        rev_start += 1
+        fow_end += 1
+        overhang = get_overhang(rev_start, fow_end, prev_seq_len, frag_5, frag_3, rec_site)
+        print count
+        if count > 10:
+            msg = 'Impossible to domesticate this  sequence\n:'
+            msg += 'Domesticated rec site nucleotide is too far from oligo'
+            msg += ' start'
+            raise RuntimeError(msg)
+        count += 1
 
-    return rev_start, fow_end
+    overhangs.append(overhang)
+    return rev_start, fow_end, overhangs
+
+
+def get_overhang(rev_start, fow_end, prev_seq_len, frag_5, frag_3, rec_site):
+    overhang_start = rev_start - prev_seq_len - len(frag_5)
+    overhang_end = fow_end - prev_seq_len - len(frag_5)
+    overhang = rec_site['modified'][overhang_start:overhang_end + 1]
+    # si es el ultimo no pasa por aqui
+    if frag_3 is not  None:
+        index = 0
+        while len(overhang) < 4:
+            overhang += frag_3[index].upper()
+    return overhang
 
 
 def _get_stripped_vector_seq():
@@ -298,7 +344,6 @@ def _remove_rec_sites(seq):
     if  rec_sites_regex.search(str(new_seq)):
         msg = 'Not all rec_sites modified'
         raise ValueError(msg)
-
     return new_seq, rec_site_pairs, fragments
 
 
@@ -308,7 +353,6 @@ def _domesticate_rec_site(rec_site, patch, unusable_rec_sites):
     It can not convert in an already unusable rec_site'''
     # get a dictionary for codon_table
     codon_table = get_codontable()
-
     # get the last complete codon
     lastcodon = ''
     baseindex_to_change = ''
