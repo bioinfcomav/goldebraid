@@ -2,6 +2,7 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+from operator import itemgetter
 
 from django import forms
 from django.core.exceptions import ValidationError
@@ -55,6 +56,7 @@ def features_to_choices(features, blank_line=True):
         else:
             show = feat.uniquename
         choices.append((feat.uniquename, show))
+    choices = sorted(choices, key=itemgetter(0))
     return choices
 
 
@@ -298,7 +300,10 @@ def get_part2_choices(part1_uniquename, user):
             else:
                 show = part.uniquename
             part_rev_choices.append((part.uniquename, show))
-
+    
+    part_forw_choices = sorted(part_forw_choices, key=itemgetter(0))
+    part_rev_choices = sorted(part_rev_choices, key=itemgetter(0))
+    
     part_choices = (('', ''),
                       ('Forward parts', part_forw_choices),
                       ('Reverse parts', part_rev_choices))
