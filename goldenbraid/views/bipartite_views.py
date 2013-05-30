@@ -134,7 +134,8 @@ def bipartite_view_add(request):
                                {'info': "Not enougth data to add the feature"},
                                 context_instance=RequestContext(request))
     name = request_data['name']
-    used_parts = {'Vector': request_data['Vector'],
+    vector_name = request_data['Vector']
+    used_parts = {'Vector': vector_name,
                   'part_1': request_data['part_1'],
                   'part_2': request_data['part_2']}
     seq = assemble_parts(used_parts, ['part_1', 'part_2'])
@@ -146,7 +147,7 @@ def bipartite_view_add(request):
     temp_fhand.seek(0)
     try:
         feature = add_feature(name=name, type_name=MODULE_TYPE_NAME,
-                              vector='pUPD', genbank=temp_fhand, props=props,
+                              vector=vector_name, genbank=temp_fhand, props=props,
                               owner=request.user, is_public=False)
 
     except IntegrityError as error:
