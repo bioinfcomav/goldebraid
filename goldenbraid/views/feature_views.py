@@ -324,8 +324,17 @@ def feature_view(request, uniquename):
     else:
         request_data = None
     if not request_data:
-        return render_to_response('feature_template.html', {'feature': feature},
-                              context_instance=RequestContext(request))
+        if (feature.is_public  or
+            (request.user.is_staff or request.user == feature.owner)):
+            return render_to_response('feature_template.html', {'feature':
+                                                                     feature},
+                                      context_instance=RequestContext(request))
+        else:
+            return render_to_response('goldenbraid_info.html',
+                                              {'title': 'Not Allowed',
+                         'info': 'You are not allowed to view this feature'},
+                                      context_instance=RequestContext(request))
+
     else:
         form = FeatureManagementForm(request_data)
         if form.is_valid():
