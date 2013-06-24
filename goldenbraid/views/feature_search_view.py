@@ -81,11 +81,16 @@ def _build_feature_query(search_criteria, user):
                                           criteria['name_exact'])
     if 'kind' in criteria and criteria['kind']:
         query = query.filter(type__name=criteria['kind'])
-    if 'only_user' in criteria and criteria['only_user']:
-        query = query.filter(featureperm__owner__username=user)
+    if user.is_staff:
+        if 'only_user' in criteria and criteria['only_user']:
+            query = query.filter(featureperm__owner__username=user)
+
     else:
-        query = query.filter(Q(featureperm__is_public=True) |
-                     Q(featureperm__owner__username=user))
+        if 'only_user' in criteria and criteria['only_user']:
+            query = query.filter(featureperm__owner__username=user)
+        else:
+            query = query.filter(Q(featureperm__is_public=True) |
+                                 Q(featureperm__owner__username=user))
 
     query = query.distinct()
     return query
