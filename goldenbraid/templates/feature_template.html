@@ -38,7 +38,7 @@
           {% endif %}
       {% endfor %}
    {% endif %}
-   {% if feature.owner == user%}
+   {% if feature.owner == user or user.is_staff %}
         <form action='' method='POST' onsubmit="return confirm('Are you sure you want to delete the feature?')">{% csrf_token %}
             <INPUT type="hidden" name="feature" value="{{ feature.uniquename }}">
             <INPUT type="hidden" name="action" value="delete">
