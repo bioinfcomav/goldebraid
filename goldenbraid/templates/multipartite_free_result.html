@@ -46,6 +46,7 @@
         {% for key, value in used_parts.items %}
             <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
         {% endfor %}
+        <INPUT type="hidden" name="order" value="{{ order }}">
         <INPUT type="hidden" name="category" value="{{ multi_type }}">
         <p>You can add the feature if you are loged <INPUT type="submit" value="add feature to GBDB"></p>
     </form>

@@ -113,7 +113,7 @@ class FeatureTestViews(TestCase):
 
         # add a feature
         url = reverse('add_feature')
-        gb_path = gb_path = os.path.join(TEST_DATA, 'GB_DOMEST_15.gb')
+        gb_path = os.path.join(TEST_DATA, 'GB_DOMEST_15.gb')
         response = client.post(url, {'name': 'vector1',
                                      'type': 'TU',
                                      'description': 'vector1 desc',
@@ -190,7 +190,7 @@ class MultipartiteFreeTestViews(TestCase):
         assert response.status_code == 200
 
         seqrec1 = SeqIO.read(StringIO(str(response)), 'gb')
-        assert seqrec1.name == 'GB_UA_1'
+        assert seqrec1.name == 'GB_UA_8'
         multipartite_free_seq1 = str(seqrec1.seq)
         gb_path = os.path.join(TEST_DATA, 'pEGBMybrev_uniq.gb')
         seqrec2 = SeqIO.read(gb_path, 'gb')
@@ -221,7 +221,7 @@ class MultipartiteFreeTestViews(TestCase):
                                      'part_1': 'pPE8',
                                      'part_2': 'pANT1',
                                      'part_3': 'pTnos'})
-        assert  'GB_UA_1' in str(response)
+        assert  'GB_UA_8' in str(response)
         assert  'LOCUS' in str(response)
 
         response = client.post(url, {'assembled_seq': 'aaa',
@@ -229,7 +229,7 @@ class MultipartiteFreeTestViews(TestCase):
                                      'part_1': 'pPE8',
                                      'part_2': 'pANT1',
                                      'part_3': 'pTnos'})
-        assert  'GB_UA_2' in str(response)
+        assert  'GB_UA_9' in str(response)
         assert  'LOCUS' in str(response)
 
         # with more than one part of the same type
@@ -263,6 +263,24 @@ class MultipartiteFreeTestViews(TestCase):
                                      'part_5': 'pT35S',
                                      'vector': 'pDGB1_alpha1'})
         assert "75 ng of GB0653" in str(response)
+
+    def test_mantras_bug(self):
+        'it test that the protocol file is generated'
+        client = Client()
+        client.login(username='admin', password='password')
+        url = reverse('multipartite_view_add')
+        response = client.get(url)
+
+        assert response.status_code == 200
+
+        response = client.post(url, {'Other': 'GB_UD_186',
+                                     'Other.2': 'GB_UD_188',
+                                     'Vector': 'pDGB1_alpha1',
+                                     'category': 'free',
+                                     'name': 'aa',
+                                     'description': '',
+                                     'reference': 'aa',
+                                     'order': 'Other:Other.2'})
 
 
 class MultipartiteTestViews(TestCase):

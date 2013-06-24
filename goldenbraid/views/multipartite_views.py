@@ -139,16 +139,14 @@ def multipartite_view_add(request):
                                {'info': "Not enougth data to add the feature"},
                                 context_instance=RequestContext(request))
     if multi_type == 'free':
-        part_types = []
-        for key in request_data.keys():
-            if key not in ('category', 'name', 'reference', 'description',
-                           'Vector', 'csrfmiddlewaretoken'):
-                part_types.append(key)
+        part_types = request_data['order'].split(':')
     else:
         part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
+
     multi_data = {'Vector': request_data['Vector']}
     for part_type in part_types:
         multi_data[part_type] = request_data[part_type]
+
     assembled_seq = assemble_parts(multi_data, part_types)
     name = request_data['name']
     temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(name), suffix='.gb')
@@ -388,6 +386,7 @@ def multipartite_view_free(request, form_num):
                     last_suffix = UT_PREFIX
                 if last_suffix == 'CGCT':
                     used_parts = OrderedDict({'Vector': feats[0]})
+                    part_order = []
                     for feat in feats[1:]:
                         feat = Feature.objects.get(uniquename=feat)
                         counters = {}
@@ -398,10 +397,13 @@ def multipartite_view_free(request, form_num):
                             counters[feat_type] += 1
                             feat_type = '{0}.{1}'.format(feat_type, counters[feat_type])
                         used_parts[feat_type] = feat.uniquename
+                        part_order.append(feat_type)
+
                     return render_to_response('multipartite_free_result.html',
                                               {'used_parts': used_parts,
                                                'multi_type': 'free',
-                                               'post_data': form.cleaned_data},
+                                               'post_data': form.cleaned_data,
+                                               'order': ":".join(part_order)},
                                       context_instance=RequestContext(request))
                 else:
                     # add new_field
