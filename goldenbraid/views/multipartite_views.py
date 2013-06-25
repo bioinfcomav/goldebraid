@@ -154,8 +154,8 @@ def multipartite_view_add(request):
     temp_fhand.flush()
     temp_fhand.seek(0)
 
-    props = {'Description': request_data['description'],
-             'Reference': request_data['reference']}
+    props = {'Description': [request_data['description']],
+             'Reference': [request_data['reference']]}
     try:
         feature = add_feature(name=name, type_name=TU_TYPE_NAME,
                               vector=request_data['Vector'],

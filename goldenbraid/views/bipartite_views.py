@@ -139,8 +139,8 @@ def bipartite_view_add(request):
                   'part_1': request_data['part_1'],
                   'part_2': request_data['part_2']}
     seq = assemble_parts(used_parts, ['part_1', 'part_2'])
-    props = {'Description': request_data['description'],
-             'Reference': request_data['reference']}
+    props = {'Description': [request_data['description']],
+             'Reference': [request_data['reference']]}
     temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(name), suffix='.gb')
     temp_fhand.write(seq.format('gb'))
     temp_fhand.flush()

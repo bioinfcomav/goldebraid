@@ -119,8 +119,8 @@ def domestication_view_add(request):
     temp_fhand.write(seq.format('gb'))
     temp_fhand.flush()
     temp_fhand.seek(0)
-    props = {'Description': request_data['description'],
-             'Reference': request_data['reference']}
+    props = {'Description': [request_data['description']],
+             'Reference': [request_data['reference']]}
     try:
         feature = add_feature(name=name, type_name=category_name,
                               vector='pUPD', genbank=temp_fhand, props=props,
