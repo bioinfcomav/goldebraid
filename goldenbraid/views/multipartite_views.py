@@ -20,6 +20,7 @@ from django.shortcuts import render_to_response, redirect
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from django import forms
 from django.conf import settings as proj_settings
+from django.db.models import Q
 
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
