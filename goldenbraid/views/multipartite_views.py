@@ -149,7 +149,8 @@ def multipartite_view_add(request):
 
     assembled_seq = assemble_parts(multi_data, part_types)
     name = request_data['name']
-    temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(name), suffix='.gb')
+    temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(assembled_seq.id),
+                                    suffix='.gb')
     temp_fhand.write(assembled_seq.format('gb'))
     temp_fhand.flush()
     temp_fhand.seek(0)

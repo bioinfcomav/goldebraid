@@ -114,7 +114,7 @@ def domestication_view_add(request):
         category_name = CATEGORIES[category][0]
     seq = SeqRecord(Seq(seq), id=seq_name, name=seq_name)
     seq = domesticate(seq, category, prefix, suffix)[1]
-    temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(seq_name),
+    temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(seq.id),
                                     suffix='.gb')
     temp_fhand.write(seq.format('gb'))
     temp_fhand.flush()
