@@ -390,15 +390,16 @@ def multipartite_view_free(request, form_num):
                 if last_suffix == 'CGCT':
                     used_parts = OrderedDict({'Vector': feats[0]})
                     part_order = []
+                    counters = {}
                     for feat in feats[1:]:
                         feat = Feature.objects.get(uniquename=feat)
-                        counters = {}
                         feat_type = feat.type.name
                         if feat_type in used_parts:
                             if feat_type not in counters:
                                 counters[feat_type] = 1
                             counters[feat_type] += 1
                             feat_type = '{0}.{1}'.format(feat_type, counters[feat_type])
+
                         used_parts[feat_type] = feat.uniquename
                         part_order.append(feat_type)
 
