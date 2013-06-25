@@ -367,6 +367,7 @@ def multipartite_view_free(request, form_num):
     else:
         request_data = None
     form = None
+    user = request.user
     if form_num is None:
         form = MultipartiteFormFreeInitial()
         form.fields['vector'].widget.choices = get_vector_choices(request.user)
@@ -410,6 +411,15 @@ def multipartite_view_free(request, form_num):
                     # add new_field
                     part_num = len(feats)
                     feats = Feature.objects.filter(prefix=last_suffix)
+                    if user.is_staff:
+                        pass
+                    elif user.is_authenticated():
+                        feats = feats.filter(Q(featureperm__owner__username=user) |
+                                             Q(featureperm__is_public=True))
+
+                    else:
+                        feats = feats.filter(featureperm__is_public=True)
+
                     feats = feats.exclude(type__name__in=[VECTOR_TYPE_NAME,
                                                           TU_TYPE_NAME,
                                                           MODULE_TYPE_NAME])
