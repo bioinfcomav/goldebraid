@@ -239,7 +239,7 @@ def write_protocol(protocol_data, assembly_type, part_order):
         protocol.append("\t75 ng of {0}".format(part_name))
 
     for enzyme in get_enzymes_for_protocol(protocol_data, part_order):
-    protocol.append("\t3u of {0}".format(enzyme))
+	    protocol.append("\t3u of {0}".format(enzyme))
     protocol.append("")
     protocol.append(u"\t3u of T4 ligase")
     protocol.append("")
