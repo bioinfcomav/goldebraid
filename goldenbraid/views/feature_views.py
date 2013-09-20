@@ -323,6 +323,13 @@ def feature_view(request, uniquename):
         request_data = request.GET
     else:
         request_data = None
+
+    if feature is None:
+       return render_to_response('goldenbraid_info.html',
+                                 {'title': 'Feature not exist',
+                                  'info': 'This feature ({0}) does not exist in the database'.format(uniquename)},
+                                 context_instance=RequestContext(request))
+
     if not request_data:
         if (feature.is_public  or
             (request.user.is_staff or request.user == feature.owner)):
