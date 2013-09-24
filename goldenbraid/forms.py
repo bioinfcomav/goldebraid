@@ -86,6 +86,18 @@ def get_all_vectors_as_choices(user):
     return features_to_choices(vectors, blank_line=True)
 
 
+class VectorForm(forms.Form):
+    'Form to add vectors to db'
+    name = forms.CharField(max_length=255, required=False)
+    description = forms.CharField(max_length=255)
+    reference = forms.CharField(max_length=255, required=False)
+    enzyme_in = forms.CharField(max_length=255)
+    enzyme_out = forms.CharField(max_length=255)
+    resistance = forms.CharField(max_length=255)
+    gbfile_label = 'Select a GenBank-formatted local file on your computer'
+    gbfile = forms.FileField(label=gbfile_label, required=True)
+
+
 class FeatureForm(forms.Form):
     'Form to add features to db'
     name = forms.CharField(max_length=255, required=False)
@@ -300,10 +312,10 @@ def get_part2_choices(part1_uniquename, user):
             else:
                 show = part.uniquename
             part_rev_choices.append((part.uniquename, show))
-    
+
     part_forw_choices = sorted(part_forw_choices, key=itemgetter(0))
     part_rev_choices = sorted(part_rev_choices, key=itemgetter(0))
-    
+
     part_choices = (('', ''),
                       ('Forward parts', part_forw_choices),
                       ('Reverse parts', part_rev_choices))

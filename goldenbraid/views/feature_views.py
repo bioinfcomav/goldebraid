@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http.response import HttpResponseBadRequest
+from django.contrib.admin.views.decorators import staff_member_required
 
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -21,9 +22,10 @@ from goldenbraid.models import (Cvterm, Feature, Db, Dbxref, Featureprop,
 from goldenbraid.settings import REBASE_FILE
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
-                              REFERENCE_TYPE_NAME)
+                              REFERENCE_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
+    RESISTANCE_TYPE_NAME)
 from goldenbraid.forms import (FeatureForm, FeatureManagementForm,
-                               get_all_vectors_as_choices)
+                               get_all_vectors_as_choices, VectorForm)
 
 
 def parse_rebase_file(fpath):
@@ -252,6 +254,24 @@ def add_feature(name, type_name, vector, genbank, props, owner,
             return feature
 
 
+def add_vector_from_form(form_data, user):
+    'With this function we add a feature to the database'
+    props = {}
+    props[DESCRIPTION_TYPE_NAME] = [form_data['description']]
+    props[ENZYME_IN_TYPE_NAME] = [form_data['enzyme_in']]
+    props[ENZYME_OUT_TYPE_NAME] = [form_data['enzyme_out']]
+    props[RESISTANCE_TYPE_NAME] = [form_data['resistance']]
+
+    if form_data['reference']:
+        props[REFERENCE_TYPE_NAME] = [form_data['reference']]
+
+    vector = add_feature(name=form_data['name'], type_name=VECTOR_TYPE_NAME,
+                          vector=None, genbank=form_data['gbfile'],
+                          props=props, owner=user)
+
+    return vector
+
+
 def add_feature_from_form(form_data, user):
     'With this function we add a feature to the database'
     props = {}
@@ -267,6 +287,44 @@ def add_feature_from_form(form_data, user):
                           props=props, owner=user)
 
     return feature
+
+
+@staff_member_required
+def add_vector_view(request):
+    'The add feature view'
+    context = RequestContext(request)
+    context.update(csrf(request))
+    request_data_post = request.POST if request.method == 'POST' else None
+#    request_data_get = request.GET if request.method == 'GET' else None
+
+    if request_data_post:
+        form = VectorForm(request_data_post, request.FILES)
+        if form.is_valid():
+            vector_form_data = form.cleaned_data
+            try:
+                vector = add_vector_from_form(vector_form_data, request.user)
+            except IntegrityError as error:
+                if 'feature already in db' in str(error):
+                    # TODO choose a template
+                    return render_to_response('feature_exists.html', {},
+                                    context_instance=RequestContext(request))
+                else:
+                    return HttpResponseServerError(str(error))
+
+            except Exception as error:
+                return render_to_response('goldenbraid_info.html',
+                                          {'title': 'Error',
+                                           'info': str(error)},
+                                      context_instance=RequestContext(request))
+            # if everithing os fine we show the just added feature
+            return redirect(vector.url)
+
+    else:
+        form = VectorForm()
+
+    context['form'] = form
+    template = 'vector_add_template.html'
+    return render_to_response(template, context)
 
 
 @login_required

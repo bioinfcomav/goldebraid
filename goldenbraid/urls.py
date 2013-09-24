@@ -1,6 +1,7 @@
 
 from django.conf.urls import patterns, url
-from goldenbraid.views.feature_views import add_feature_view, feature_view
+from goldenbraid.views.feature_views import (add_feature_view, feature_view,
+                                             add_vector_view)
 from goldenbraid.views.feature_search_view import search_features_view
 from goldenbraid.views.multipartite_views import (multipartite_view,
                                                   multipartite_protocol_view,
@@ -20,6 +21,7 @@ from goldenbraid.views.domestication_view import (domestication_view,
 
 
 urlpatterns = patterns('',
+        url(r'^add/vector/$', add_vector_view, name='add_vector'),
         url(r'^add/feature/$', add_feature_view, name='add_feature'),
         url(r'^search/features/$', search_features_view,
             name='search_features'),

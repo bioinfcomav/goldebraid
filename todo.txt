@@ -1,5 +1,8 @@
 .- captar todos los posibles errores.
 
+.- Añadir formulario para vectores.
+
+.- No borrar features, sino ponerlas como nousables en la bd
 
 .- hacer test del domesticador
 
@@ -10,3 +13,5 @@
 .- Fallo en el domesticador que me mando marta a fecha de 16/05/2013
 
 Todos los que añaden desde formulario de resultado comparten el codigo. Ver que se puede reciclar
+
+
