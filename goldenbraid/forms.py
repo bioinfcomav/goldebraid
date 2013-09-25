@@ -51,11 +51,12 @@ def features_to_choices(features, blank_line=True):
     choices = [('', '')] if blank_line else []
 
     for feat in features:
+        uniquename = feat.uniquename.encode('utf-8')
         if feat.name:
-            show = '{0} - {1}'.format(feat.uniquename, feat.name)
+            show = u'{0} - {1}'.format(feat.uniquename, feat.name)
         else:
-            show = feat.uniquename
-        choices.append((feat.uniquename, show))
+            show = uniquename
+        choices.append((uniquename, show))
     choices = sorted(choices, key=itemgetter(0))
     return choices
 
@@ -298,20 +299,22 @@ def get_part2_choices(part1_uniquename, user):
     part_forw_choices = []
     for part in parts_forw:
         if part.enzyme_out == part1_enzyme_out:
+            uniquename = part.uniquename.encode('utf-8')
             if part.name:
-                show = '{0} - {1}'.format(part.uniquename, part.name)
+                show = u'{0} - {1}'.format(uniquename, part.name)
             else:
-                show = part.uniquename
-            part_forw_choices.append((part.uniquename, show))
+                show = uniquename
+            part_forw_choices.append((uniquename, show))
 
     part_rev_choices = []
     for part in parts_rev:
         if part.enzyme_out == part1_enzyme_out:
+            uniquename = part.uniquename.encode('utf-8')
             if part.name:
-                show = '{0} - {1}'.format(part.uniquename, part.name)
+                show = u'{0} - {1}'.format(uniquename, part.name)
             else:
-                show = part.uniquename
-            part_rev_choices.append((part.uniquename, show))
+                show = uniquename
+            part_rev_choices.append((uniquename, show))
 
     part_forw_choices = sorted(part_forw_choices, key=itemgetter(0))
     part_rev_choices = sorted(part_rev_choices, key=itemgetter(0))
