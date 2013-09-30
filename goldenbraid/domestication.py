@@ -18,7 +18,7 @@ from goldenbraid.settings import (REBASE_FILE,
                                   DOMESTICATION_MIN_OLIGO_LENGTH,
                                   ENZYMES_USED_IN_GOLDENBRAID, PUPD_PREFIX,
                                   OLIGO_UNIVERSAL, DOMESTICATED_SEQ,
-    MINIMUN_PCR_LENGTH)
+                                  MINIMUN_PCR_LENGTH)
 from goldenbraid.models import Feature, Count
 
 
@@ -156,15 +156,15 @@ def _join_short_segments(segments, min_length):
             if index + 1 != len_segments:
                 if skip_segment:
                     joined_segments[-1]['end'] = segments[index + 1]['end']
-                    joined_segments[-1]['forward_min'] = end
+                    joined_segments[-1]['forward_min'] = end + 8
                     new_segment = None
                 else:
                     new_segment = {'start': start,
                                    'end': segments[index + 1]['end'],
-                                   'forward_min': end}
+                                   'forward_min': end + 8}
             else:
                 joined_segments[-1]['end'] = end
-                joined_segments[-1]['reverse_min'] = start
+                joined_segments[-1]['reverse_min'] = start - 8
                 new_segment = None
             skip_segment = True
 
