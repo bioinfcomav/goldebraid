@@ -179,6 +179,22 @@ def _join_short_segments(segments, min_length):
     return joined_segments
 
 
+def is_dna_palindrome(seq):
+    nucl_palindromes = [('A', 'T'), ('T', 'A'), ('C', 'G'), ('G', 'C')]
+    seq_pals = []
+    if divmod(len(seq), 2)[1] != 0:
+        return False
+    for num in range(0, len(seq)):
+        rev_num = len(seq) - 1 - num
+        nucl_a = seq[num]
+        nucl_b = seq[rev_num]
+        if (nucl_a, nucl_b) in nucl_palindromes:
+            seq_pals.append(True)
+        else:
+            seq_pals.append(False)
+    return all(seq_pals)
+
+
 def  _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
                                  overhangs):
     change_pos = 0
@@ -189,7 +205,14 @@ def  _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
     change_index = prev_seq_len + len(frag_5) + change_pos
     fow_end = change_index + 1
     rev_start = fow_end - 3
-    overhang = get_overhang(rev_start, fow_end, prev_seq_len, frag_5, frag_3, rec_site)
+
+    overhang = get_overhang(rev_start, fow_end, prev_seq_len, frag_5, frag_3,
+                            rec_site)
+    if is_dna_palindrome(overhang):
+        fow_end = change_index + 2
+        rev_start = fow_end - 3
+        overhang = get_overhang(rev_start, fow_end, prev_seq_len, frag_5,
+                                frag_3, rec_site)
     count = 0
     while overhang in overhangs:
         rev_start += 1

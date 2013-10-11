@@ -49,9 +49,12 @@ class DomesticationTest(TestCase):
         seq = SeqRecord(Seq(seq))
         category = '13-14-15-16 (CDS)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
-        assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC',
-                                 'oligo_reverse': 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA',
-                                 'oligo_forward': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGA'}
+        assert oligo_pcrs[0]['pcr_product'] == 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC'
+        assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA'
+        assert oligo_pcrs[0]['oligo_forward'] == 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGAT'
+#         assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC',
+#                                  'oligo_reverse': 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA',
+#                                  'oligo_forward': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGA'}
 
         seq = 'aggctgactatgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacgCGTCTCgctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
@@ -173,3 +176,8 @@ class DomesticationTest(TestCase):
         assert new_segments == [{'start': 0, 'end': 4083},
                                 {'start': 4080, 'reverse_min': 7105,
                                  'end': 7126}]
+
+    def test_rec_site_domestication(self):
+        seq = SeqIO.read(os.path.join(TEST_DATA, 'CH3H.gb'), 'gb')
+        category = '13-14-15-16 (CDS)'
+        oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')
