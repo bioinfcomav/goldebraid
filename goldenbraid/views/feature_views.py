@@ -1,3 +1,18 @@
+# Copyright 2013 Diego Orzaez, Univ.Politecnica Valencia, Consejo Superior de
+# Investigaciones Cientificas
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import re
 import os
 
@@ -23,7 +38,7 @@ from goldenbraid.settings import REBASE_FILE
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
-    RESISTANCE_TYPE_NAME)
+                              RESISTANCE_TYPE_NAME)
 from goldenbraid.forms import (FeatureForm, FeatureManagementForm,
                                get_all_vectors_as_choices, VectorForm)
 
