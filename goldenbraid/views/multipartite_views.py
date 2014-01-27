@@ -250,7 +250,7 @@ def write_protocol(protocol_data, assembly_type, part_order):
         protocol.append("\t75 ng of {0}".format(part_name))
 
     for enzyme in get_enzymes_for_protocol(protocol_data, part_order):
-	    protocol.append("\t3u of {0}".format(enzyme))
+	    protocol.append("\t5-10u of {0}".format(enzyme))
     protocol.append("")
     protocol.append(u"\t3u of T4 ligase")
     protocol.append("")
@@ -258,6 +258,13 @@ def write_protocol(protocol_data, assembly_type, part_order):
     protocol.append("")
     protocol.append(u"Final volume: 10 microlitre")
     protocol.append("")
+    
+    lline0 = "We use Promega T4 DNA ligase(M180B), NEB BsaI (R0535S or R0535L), "
+    lline0 += "NEB BtgZI (R0703S) and fermentas BsmBI/Esp3I (ER0451). We haven't "
+    lline0 += "tried other enzymes suppliers but they will problably work as well"
+    protocol.append(lline0)
+    protocol.append("")
+    
     long_line1 = "Set your reaction in a thermocycler: 25 cycles x "
     long_line1 += "(37C 2', 16C 5')."
     protocol.append(long_line1)

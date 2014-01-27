@@ -299,6 +299,7 @@ def _add_tags_to_oligos(oligos, prefix, suffix, kind):
         prefix = 'A'
     elif kind == '12 (NT)':
         prefix = 'CC'
+        suffix = 'TCAATG'
     elif kind == '16 (CT)':
         prefix = 'GCAGGG'
     suffix = str(Seq(suffix).reverse_complement())
