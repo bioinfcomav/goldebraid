@@ -75,7 +75,9 @@ def domesticate(seqrec, category, prefix, suffix):
         forw_bin_sites.append(for_bin)
 
     # print oligos
-    pcr_products = _add_tags_to_pcrproducts(pcr_products, prefix, suffix, kind)
+    pcr_products, prefix, suffix = _add_tags_to_pcrproducts(pcr_products,
+                                                            prefix, suffix,
+                                                            kind)
 
     vector_seq = _get_stripped_vector_seq()
     prepared_new_seq = prefix + new_seq + suffix + vector_seq
@@ -290,7 +292,7 @@ def _add_tags_to_pcrproducts(pcr_products, prefix, suffix, kind):
 
         pcr_tag += str(Seq(OLIGO_UNIVERSAL).reverse_complement())
         pcr_products_with_tags.append(pcr_tag.upper())
-    return pcr_products_with_tags
+    return pcr_products_with_tags, prefix, suffix
 
 
 def _add_tags_to_oligos(oligos, prefix, suffix, kind):

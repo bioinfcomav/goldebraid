@@ -52,6 +52,13 @@ class DomesticationTest(TestCase):
         assert ('TCGCATGCTCCCGGCCGCCATGGCGGCCGCGGGAATTCGATGGGCGATGAGTGGTCTCG') in domesticated_seq.seq
         assert ('TCGCATGCTCCCGGCCGCCATGGCGGCCGCGGGAATTCGATGGGCGATGAGTGGTCTCGT') not in domesticated_seq.seq
 
+        # prefix-suffix mod in tags
+        seq = SeqIO.read(os.path.join(TEST_DATA, 'gfp.txt'), 'fasta')
+
+        new_seq = domesticate(seq, '16 (CT)', 'GCAG', 'GCTT')[1]
+        result_seq = SeqIO.read(os.path.join(TEST_DATA, 'CTresult.gb'), 'gb')
+        assert str(new_seq.seq).upper() == str(result_seq.seq).upper()
+
     def test_domestication_short_segments(self):
         seq = 'aggctgactatgtcagctaGAGACCgctgacgatcgatgctagctagctgactagctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
