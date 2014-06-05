@@ -198,3 +198,13 @@ class DomesticationTest(TestCase):
         seq = SeqIO.read(os.path.join(TEST_DATA, 'CH3H.gb'), 'gb')
         category = '13-14-15-16 (CDS)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')
+
+    def test_domestication_sp_category(self):
+        seq = 'ATGATGATGGGCACTTCCTCTGTTTTTCTACTATTCCTTCTTTCTTTTCTTCTCCTTCTCCCG'
+        seq += 'TCCCTCCTA'
+
+        seqrec = SeqRecord(Seq(seq))
+        category = '13 (SP)'
+        oligo_pcrs = domesticate(seqrec, category, 'AATG', 'AGCC')[0]
+        assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTCGGGCTGCTAGGAGGGACGGGAGAAGGA'
+

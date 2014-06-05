@@ -268,19 +268,26 @@ def _get_stripped_vector_seq():
     return stripped_seq
 
 
-def _add_tags_to_pcrproducts(pcr_products, prefix, suffix, kind):
-    pcr_products_with_tags = []
-    if kind is None:
-        pass
-    elif kind in ('13-14-15-16 (CDS)', '13-14-15 (CDS)'):
+def _guess_prefix_suffix_tag(kind, prefix, suffix):
+    '''It select the needed prefix and suffix to add  to oligos and
+    pcr_products for especial category cases'''
+
+    if kind in ('13-14-15-16 (CDS)', '13-14-15 (CDS)'):
         prefix = 'A'
-    elif kind in ('13 (SP)'):
+    elif kind == '13 (SP)':
         prefix = 'A'
         suffix = 'GCAGCC'
     elif kind == '12 (NT)':
         prefix = 'CC'
+        suffix = 'TCAATG'
     elif kind == '16 (CT)':
         prefix = 'GCAGGG'
+    return prefix, suffix
+
+
+def _add_tags_to_pcrproducts(pcr_products, prefix, suffix, kind):
+    pcr_products_with_tags = []
+    prefix, suffix = _guess_prefix_suffix_tag(kind, prefix, suffix)
     len_pcr = len(pcr_products)
     for index, pcr_product in enumerate(pcr_products):
         pcr_tag = OLIGO_UNIVERSAL
@@ -297,13 +304,8 @@ def _add_tags_to_pcrproducts(pcr_products, prefix, suffix, kind):
 
 def _add_tags_to_oligos(oligos, prefix, suffix, kind):
     oligos_with_tags = []
-    if kind in ('13-14-15-16 (CDS)', '13 (SP)', '13-14-15 (CDS)'):
-        prefix = 'A'
-    elif kind == '12 (NT)':
-        prefix = 'CC'
-        suffix = 'TCAATG'
-    elif kind == '16 (CT)':
-        prefix = 'GCAGGG'
+    prefix, suffix = _guess_prefix_suffix_tag(kind, prefix, suffix)
+
     suffix = str(Seq(suffix).reverse_complement())
     len_oligos = len(oligos)
     for index, oligo_pair in enumerate(oligos):
