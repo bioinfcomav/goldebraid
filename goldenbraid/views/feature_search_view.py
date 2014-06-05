@@ -25,28 +25,44 @@ from django.db.models import Q
 from goldenbraid.models import Cvterm, Feature
 from goldenbraid.views.feature_views import feature_view
 from goldenbraid import settings
-from goldenbraid.tags import DESCRIPTION_TYPE_NAME
+from goldenbraid.tags import (DESCRIPTION_TYPE_NAME,VECTOR_TYPE_NAME, 
+                              TU_TYPE_NAME, MODULE_TYPE_NAME, OTHER_TYPE_NAME)
 from goldenbraid.settings import CATEGORIES
 
+SPECIAL_SEARCH_CATEGORIES = (VECTOR_TYPE_NAME, TU_TYPE_NAME, MODULE_TYPE_NAME,
+                             OTHER_TYPE_NAME)
 
-def _get_category_name(type_name):
-    for key, values in CATEGORIES.items():
-        if values[0] == type_name:
-            return key
-    return type_name
+def _get_category_name(category):
+    if category[0] in SPECIAL_SEARCH_CATEGORIES:
+        return category[0]
+    for name, category_def in CATEGORIES.items():
+        if category == category_def:
+            return name
+    return '{0}: {1}'.format(category[0], ','.join(category))
+    raise ValueError('The given category not in the CATEGORY dictionary')
 
 
 def _prepare_feature_kind():
     'It prepares the feature kind select choices to put in the type widget'
     if settings.SEARCH_MENU_TYPE_CHOICES:
-        feature_kinds = [(kind, kind) for kind in settings.SEARCH_MENU_TYPE_CHOICES]
+        feature_categories = [(kind, kind) for kind in settings.SEARCH_MENU_TYPE_CHOICES]
     else:
-        kinds = Feature.objects.distinct('type').values('type__name')
-        kinds = [kind['type__name'] for kind in kinds]
-        feature_kinds = [(kind, _get_category_name(kind)) for kind in kinds]
+        categories = Feature.objects.distinct('type', 'suffix', 'prefix').values('type__name', 'prefix', 'suffix')
+        #VECTOR, other is special. manually added
+        feature_categories = []
+        for special_category in SPECIAL_SEARCH_CATEGORIES:
+            feature_categories.append(('{0},None,None'.format(special_category),
+                                                              special_category))
+        for dict_category in categories:
+            if dict_category['type__name'] in SPECIAL_SEARCH_CATEGORIES:
+                continue
+            category = (dict_category['type__name'], dict_category['prefix'], 
+                        dict_category['suffix'])
+            category_name = _get_category_name(category)
+            feature_categories.append((','.join(category), category_name))
 
-    feature_kinds.insert(0, ('', ''))  # no kind
-    return feature_kinds
+    feature_categories.insert(0, ('', ''))  # no kind
+    return feature_categories
 
 
 class SearchFeatureForm(forms.Form):
@@ -56,10 +72,10 @@ class SearchFeatureForm(forms.Form):
                                           label=help_name)
     choices = _prepare_feature_kind()
     help_kind = 'Type of feature'
-    kind = forms.CharField(max_length=200, label=help_kind, required=False,
+    category = forms.CharField(max_length=200, label=help_kind, required=False,
                            widget=Select(choices=choices))
 
-    def clean_kind(self):
+    def xclean_kind(self):
         type_str = self.cleaned_data['kind']
         if not type_str:
             return type_str
@@ -94,8 +110,11 @@ def _build_feature_query(search_criteria, user):
         query = _build_name_or_prop_query(query,
                                           criteria['name_or_description'],
                                           criteria['name_exact'])
-    if 'kind' in criteria and criteria['kind']:
-        query = query.filter(type__name=criteria['kind'])
+    if 'category' in criteria and criteria['category']:
+        kind, prefix, suffix =  criteria['category'].split(',')
+        query = query.filter(type__name=kind)
+        if kind not in SPECIAL_SEARCH_CATEGORIES:
+            query = query.filter(prefix=prefix, suffix=suffix)
     if user.is_staff:
         if 'only_user' in criteria and criteria['only_user']:
             query = query.filter(featureperm__owner__username=user)
