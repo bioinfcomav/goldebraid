@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}CDS {{feature.name}} {% endblock title %}
+{% block content %}
+{% load goldenbraid_extras %}
+{% if not feature %}
+   <h1> This feature does not exist</h1>
+{% else %}
+  <p><span class='key'>Accession:</span> <span class='value'>{{ feature.uniquename }}</span></p>
+  <p><span class='key'>Name:</span> <span class='value'>{{ feature.name }}</span></p>
+  <p><span class='key'>Description:</span> <span class='value'>{{ feature.description }}</span></p>
+  <p><span class='key'>Species:</span> <span class='value'>{{ feature.species|capfirst|replaceunderscore }}</span></p>
+  <div>
+  <h2> This CDS in other databases</h2>
+  {% for  dbxref in feature.secondary_dbxrefs %}
+  		<p><span>In {{ dbxref.db.name }} is {{ dbxref.accession|link_if_url:dbxref }}</span>
+  {% endfor %}
+  </div>
+{% endif %}
+
+{% endblock content %}

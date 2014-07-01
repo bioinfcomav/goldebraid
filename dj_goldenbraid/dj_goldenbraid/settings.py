@@ -44,7 +44,21 @@ LOCAL_DATABASE = {
         'PORT': '',  # Set to empty string for default. Not used with sqlite3.
     }
 
+GENOME_DOMETICATION_DB = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'gb_genome_domest.db',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
+    }
+
+
 DATABASES['default'] = LOCAL_DATABASE
+GB_GENOME_DOMESTICATION_DBNAME = 'gb_genome_domestication'
+DATABASES[GB_GENOME_DOMESTICATION_DBNAME] = GENOME_DOMETICATION_DB
+
+DATABASE_ROUTERS = ['gb_genome_domestication.db_router.GenomeDomesticationRouter']
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -147,6 +161,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'goldenbraid',
+    'gb_genome_domestication',
 )
 
 # A sample logging configuration. The only tangible logging
