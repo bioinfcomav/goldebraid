@@ -15,7 +15,8 @@
 
 # Django settings for dj_goldenbraid project.
 import os
-PROJECT_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
+from os.path import join, dirname, abspath
+PROJECT_DIR = abspath(join(__file__, '..', '..'))
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -162,6 +163,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'goldenbraid',
     'gb_genome_domestication',
+    'restcmd_client',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -195,3 +197,16 @@ LOGGING = {
 GOLDENBRAID_SEARCH_MENU_TYPE_CHOICES = ('PROM+UTR+ATG', 'CDS', 'TER', 'TU',
                                         'Other', 'SP')
 
+# restcmd
+ARAB_DB = abspath(join(dirname(__file__), '..', '..',
+                       'gb_genome_domestication', 'tests', 'data', 'at.fasta'))
+RESTCMD_SERVER_URL = 'http://localhost:8001/cmd_server/'
+RESTCMD_SERVER_USER = 'testclient'
+RESTCMD_SERVER_PASS = 'test'
+BLAST_VIEW_CONFIG = {os.path.basename(ARAB_DB):
+                        {'subject_url': '/genome_domestication/feature/%s'}}
+
+RESTCMD_TOOL_CONFIG = {'blastplus': {'database': {'choices':
+                                                  [[ARAB_DB, 'arabidopsis'],
+                                                   ['tair8_cdna', 'arabid8']]}}
+                       }
