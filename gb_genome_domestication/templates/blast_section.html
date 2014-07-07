@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block header %}  <META HTTP-EQUIV="refresh" CONTENT="{{ wait }}">  {% endblock header %}
+
+{% block title %}Blast Result {%endblock title%}
+
+{% block content %}
+{% load gb_genome_domestication_extras %}
+{% if blast %}
+<div id='main'>
+<div class='blast'>
+    <h3>Blast result</h3>
+    <p>Database: {{ blast.database }}</p>
+
+    {% if blast.query_url %}
+      <p>Query:
+  {% if blast.query_url %}
+    <a href='{{ blast.query_url }}' target="_blank">{{ blast.query }}</a>
+        {% else %}
+    {{blast.query}}
+        {% endif%}
+    </p>
+    {% endif %}
+
+    <h4>Descriptions</h4>
+    {% if blast.descriptions %}
+        <table>
+        <tr><td>Subject</td><td>Score</td><td>evalue</td><td>Num of restriction sites</td></tr>
+        {% for des in blast.descriptions %}
+            <tr>
+                <td>
+                {% if des.subject.url %}
+                  <a href='{{ des.subject.url }}'target="_blank">{{ des.subject.name }}</a>
+                {% else %}
+                	{{ des.subject.desc }}
+                  	{{ des.subject.name }}
+                {% endif %}
+                &nbsp;{{ des.subject.description}}
+                </td>
+                <td>{{ des.score }}</td>
+                <td><a href = #{{ des.subject.name }}>{{ des.evalue }}</a></td>
+                <td>{{ des.subject.name|rec_sites}}</td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <p>No hits found</p>
+    {% endif %}
+    {% if blast.alignments %}
+        <h4>Aligments</h4>
+      {% for ali in blast.alignments %}
+        {% if ali.subject.url %}
+      <pre>><a name='{{ ali.subject.name }}' href='{{ ali.subject.url }}' target="_blank">{{ ali.subject.name }}</a> {{ ali.subject.description }}
+    {% else %}
+      <pre>>{{ ali.subject.name }} {{ ali.subject.description }}
+
+    {% endif %}
+        {{ ali.alignment }}
+        </pre>
+      {% endfor %}
+    {% endif %}
+</div>
+{% else %}
+    <div id='main'>
+        <h3>The page will be reloaded in {{ wait }} seconds</h3>
+    </div>
+{% endif %}
+</div>
+{% endblock content%}

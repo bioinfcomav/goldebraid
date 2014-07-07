@@ -8,5 +8,5 @@ from gb_genome_domestication.views.feature_views import feature_view
 
 urlpatterns = patterns('',
                        url(r'^feature/(?P<uniquename>.+)/$', feature_view,
-                        name='feature_view'),
+                           name='feature_view'),
                        )
