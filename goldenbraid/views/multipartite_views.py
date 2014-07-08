@@ -128,7 +128,7 @@ def multipartite_view_genbank(request, multi_type=None):
             assembled_seq = assemble_parts(multi_form_data, part_types)
             filename = assembled_seq.name + '.gb'
             response = HttpResponse(assembled_seq.format('genbank'),
-                                    mimetype='text/plain')
+                                    content_type='text/plain')
             response['Content-Disposition'] = 'attachment; '
             response['Content-Disposition'] += 'filename="{0}"'.format(filename)
             return response
@@ -225,8 +225,8 @@ def multipartite_view(request, multi_type=None):
     context['form'] = form
 
     template = 'multipartite_template.html'
-    mimetype = None
-    return render_to_response(template, context, mimetype=mimetype)
+    content_type = None
+    return render_to_response(template, context, content_type=content_type)
 
 
 def write_protocol(protocol_data, assembly_type, part_order):
@@ -258,13 +258,13 @@ def write_protocol(protocol_data, assembly_type, part_order):
     protocol.append("")
     protocol.append(u"Final volume: 10 microlitre")
     protocol.append("")
-    
+
     lline0 = "We use Promega T4 DNA ligase(M180B), NEB BsaI (R0535S or R0535L), "
     lline0 += "NEB BtgZI (R0703S) and fermentas BsmBI/Esp3I (ER0451). We haven't "
     lline0 += "tried other enzymes suppliers but they will problably work as well"
     protocol.append(lline0)
     protocol.append("")
-    
+
     long_line1 = "Set your reaction in a thermocycler: 25 cycles x "
     long_line1 += "(37C 2', 16C 5')."
     protocol.append(long_line1)
@@ -309,7 +309,7 @@ def multipartite_protocol_view(request):
         return HttpResponseBadRequest(msg)
     part_order = [p[0] for p in PARTS_TO_ASSEMBLE[request.POST['multi_type']]]
     protocol = write_protocol(request.POST, 'multipartite', part_order)
-    response = HttpResponse(protocol, mimetype='text/plain')
+    response = HttpResponse(protocol, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
     return response
 
@@ -341,7 +341,7 @@ def multipartite_view_free_protocol(request):
         return HttpResponseBadRequest(msg)
     protocol_data, part_order = _get_fragments_from_request(request)
     protocol = write_protocol(protocol_data, 'multipartite', part_order)
-    response = HttpResponse(protocol, mimetype='text/plain')
+    response = HttpResponse(protocol, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
     return response
 
@@ -369,7 +369,7 @@ def multipartite_view_free_genbank(request):
             protocol_data, part_order = _get_fragments_from_request(request)
             assembled_seq = assemble_parts(protocol_data, part_order)
             response = HttpResponse(assembled_seq.format('genbank'),
-                                    mimetype='text/plain')
+                                    content_type='text/plain')
             filename = assembled_seq.name + '.gb'
             response['Content-Disposition'] = 'attachment; '
             response['Content-Disposition'] += 'filename="{0}"'.format(filename)
@@ -458,5 +458,5 @@ def multipartite_view_free(request, form_num):
 
     context['form'] = form
     template = 'multipartite_free_template.html'
-    mimetype = None
-    return render_to_response(template, context, mimetype=mimetype)
+    content_type = None
+    return render_to_response(template, context, content_type=content_type)

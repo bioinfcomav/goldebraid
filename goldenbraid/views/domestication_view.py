@@ -46,6 +46,8 @@ def domestication_view(request):
         if form.is_valid():
             # do domestication
             seq = form.cleaned_data['seq']
+            if seq is None:
+                seq = form.cleaned_data['residues']
             category = form.cleaned_data.get('category', None)
             if category is None:
                 prefix = form.cleaned_data.get('prefix')
@@ -67,14 +69,14 @@ def domestication_view(request):
     context['form'] = form
 
     template = 'domestication_template.html'
-    mimetype = None
-    return render_to_response(template, context, mimetype=mimetype)
+    content_type = None
+    return render_to_response(template, context, content_type=content_type)
 
 
 def domestication_view_genbank(request):
     def function(pcrs, seq):
         response = HttpResponse(seq.format('genbank'),
-                                mimetype='text/plain')
+                                content_type='text/plain')
         response['Content-Disposition'] = 'attachment; '
         response['Content-Disposition'] += 'filename="{0}.gb"'.format(seq.id)
         return response
@@ -162,7 +164,7 @@ def domestication_view_add(request):
 def domestication_view_protocol(request):
     def function(pcrs, seq):
         protocol = write_domestication_protocol(pcrs)
-        response = HttpResponse(protocol, mimetype='text/plain')
+        response = HttpResponse(protocol, content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
         return response
 

@@ -25,7 +25,7 @@ from django.db.models import Q
 from goldenbraid.models import Cvterm, Feature
 from goldenbraid.views.feature_views import feature_view
 from goldenbraid import settings
-from goldenbraid.tags import (DESCRIPTION_TYPE_NAME,VECTOR_TYPE_NAME, 
+from goldenbraid.tags import (DESCRIPTION_TYPE_NAME,VECTOR_TYPE_NAME,
                               TU_TYPE_NAME, MODULE_TYPE_NAME, OTHER_TYPE_NAME)
 from goldenbraid.settings import CATEGORIES
 
@@ -56,7 +56,7 @@ def _prepare_feature_kind():
         for dict_category in categories:
             if dict_category['type__name'] in SPECIAL_SEARCH_CATEGORIES:
                 continue
-            category = (dict_category['type__name'], dict_category['prefix'], 
+            category = (dict_category['type__name'], dict_category['prefix'],
                         dict_category['suffix'])
             category_name = _get_category_name(category)
             feature_categories.append((','.join(category), category_name))
@@ -143,7 +143,7 @@ def search_features_view(request):
         request_data = None
 
     template = 'search_feature.html'
-    mimetype = None  # default
+    content_type = None  # default
     if request_data:
         form = SearchFeatureForm(request_data)
 
@@ -160,7 +160,7 @@ def search_features_view(request):
             if feature_queryset and download_search:
                 context['queryset'] = feature_queryset
                 template = 'search_feature_download.txt'
-                mimetype = 'text/plain'
+                content_type = 'text/plain'
             elif feature_queryset and not download_search:
                 if feature_queryset.count() == 1:
                     feature_uniquename = feature_queryset[0].uniquename
@@ -192,4 +192,4 @@ def search_features_view(request):
 
     context['form'] = form
 
-    return render_to_response(template, context, mimetype=mimetype)
+    return render_to_response(template, context, content_type=content_type)

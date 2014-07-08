@@ -8,21 +8,24 @@
 </div>
 {% load goldenbraid_extras %}
 <form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
-
-<ul>
-	<li>
-        {{ form.category.errors }}<label for="name">Choose a category to domesticate to:</label>{{ form.category }}<a href='/gbclasses'  target="blank"><span class='gbdom'>What's this?</span></a>
-  	</li>
-	<li>
-        {{ form.seq.errors }}<label for="name">Add a genbank or a fasta file:</label>{{ form.seq }} 
-    	</li>
-	<li>
-        {{ form.prefix.errors }}<label for="name">Custom prefix:</label>{{ form.prefix }} 
-    	</li>
-	<li>
-        {{ form.suffix.errors }}<label for="name">Custom suffix:</label>{{ form.suffix }} 
-    	</li>
-</ul>
-<input type="submit" value="Submit" />
+{% if form.residues.errors %}
+	{{form.residues.errors}}
+{% else %}
+	<ul>
+		<li>
+	        {{ form.category.errors }}<label for="name">Choose a category to domesticate to:</label>{{ form.category }}<a href='/gbclasses'  target="blank"><span class='gbdom'>What's this?</span></a>
+	  	</li>
+		<li>
+	        {{ form.seq.errors }}<label for="name">Add a genbank or a fasta file:</label>{{ form.seq }}
+	    	</li>
+		<li>
+	        {{ form.prefix.errors }}<label for="name">Custom prefix:</label>{{ form.prefix }}
+	    	</li>
+		<li>
+	        {{ form.suffix.errors }}<label for="name">Custom suffix:</label>{{ form.suffix }}
+	    	</li>
+	</ul>
+	<input type="submit" value="Submit" />
+{% endif %}
 </form>
 {% endblock content %}

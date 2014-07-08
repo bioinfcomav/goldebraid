@@ -96,8 +96,8 @@ def bipartite_view(request, form_num):
         context['form_num'] = '1'
     context['form'] = form
     template = 'bipartite_template.html'
-    mimetype = None
-    return render_to_response(template, context, mimetype=mimetype)
+    content_type = None
+    return render_to_response(template, context, content_type=content_type)
 
 
 def bipartite_view_genbank(request):
@@ -115,7 +115,7 @@ def bipartite_view_genbank(request):
         if form.is_valid():
             seq = assemble_parts(form.cleaned_data, ['part_1', 'part_2'])
             response = HttpResponse(seq.format('genbank'),
-                                    mimetype='text/plain')
+                                    content_type='text/plain')
             filename = seq.name + '.gb'
             response['Content-Disposition'] = 'attachment; '
             response['Content-Disposition'] += 'filename="{0}"'.format(filename)
@@ -129,7 +129,7 @@ def bipartite_view_protocol(request):
         msg = "To show the protocol you need first to assemble parts"
         return HttpResponseBadRequest(msg)
     protocol = write_protocol(request.POST, "bipartite", ['part_1', 'part_2'])
-    response = HttpResponse(protocol, mimetype='text/plain')
+    response = HttpResponse(protocol, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
     return response
 

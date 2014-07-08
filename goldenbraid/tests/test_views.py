@@ -146,14 +146,14 @@ class FeatureTestViews(TestCase):
         url = reverse('search_features')
         response = client.get(url)
         assert response.status_code == 200
-        assert  "<option value=" in str(response)
+        assert "<option value=" in str(response)
 
         response = client.post(url, {'name_or_description': 'pAn11'})
         assert response.status_code == 302
 
         response = client.post(url, {'kind': 'TER'})
         assert response.status_code == 200
-        assert  "<td>Agrobacterium tumefaciens terminator" in str(response)
+        assert "<td>This is a pGreen destiny vector of the" in str(response)
 
         client.login(username='test', password='testpass')
         response = client.post(url, {'only_user': True})
@@ -525,21 +525,23 @@ class DomesticationViewTest(TestCase):
         # add seq and category
         response = client.post(url, {'seq': open(gb_path),
                                      'category': '12 (NT)'})
-        assert """<ul class="errorlist"><li>This field is required.</li></ul>""" not in str(response)
+        #print str(response)
+        assert """<ul class="errorlist"><li>The provided s"""  in str(response)
 
         # not add a sequence
         response = client.post(url, {'seq': '',
                                      'category': '12 (NT)'})
-        assert """<ul class="errorlist"><li>This field is required.</li></ul>""" in str(response)
+        assert """<ul class="errorlist"><li>Fasta or genbank File Required</li></ul>""" in str(response)
 
         # add category, prefix and suffix
+
         response = client.post(url, {'seq': open(gb_path),
-                                     'prefix': 'ggac', 'suffix': 'cgtc', 'category': '12 (NT)'})
+                                     'prefix': 'ggac', 'suffix': 'cgtc', 'category': '17-21 (TER)'})
         assert """<ul class="errorlist"><li>Can not use category and prefix/suffix simoultaneously</li></ul>"""in str(response)
 
         # add category and suffix
         response = client.post(url, {'seq': open(gb_path),
-                                     'prefix': '', 'suffix': 'cgtc', 'category': '12 (NT)'})
+                                     'prefix': '', 'suffix': 'cgtc', 'category': '17-21 (TER)'})
         assert """<ul class="errorlist"><li>Can not use category and prefix/suffix simoultaneously</li></ul>"""in str(response)
 
         # add suffix
@@ -571,6 +573,11 @@ class DomesticationViewTest(TestCase):
         response = client.post(url, {'seq': open(gb_path),
                                      'suffix': 'ACCT', 'prefix': 'TTCC'})
         assert  "<p>Prefix:TTCC</p>" in str(response)
+
+        residues = str(SeqIO.read(open(gb_path), format='gb').seq)
+        response = client.post(url, {'residues': residues,
+                                     'category': '13-14-15-16 (CDS)'})
+        assert 'The provided seq must start with start' in str(response)
 
     def test_genbank_view(self):
         'it test that the genbank file is generated'

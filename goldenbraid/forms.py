@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from Bio.SeqRecord import SeqRecord
 
 try:
     from collections import OrderedDict
@@ -362,10 +363,11 @@ class DomesticationForm(forms.Form):
     for category_name in CATEGORIES.keys():
         choices.append((category_name, category_name))
     category = forms.CharField(max_length=100,
-                              label='Choose a category to domesticate to',
-                              widget=Select(choices=choices), required=False)
+                               label='Choose a category to domesticate to',
+                               widget=Select(choices=choices), required=False)
     seq = forms.FileField(max_length=100,
-                           label='Add a genbank or a fast file')
+                          label='Add a genbank or a fast file', required=False)
+    residues = forms.CharField(widget=forms.HiddenInput(), required=False)
     prefix = forms.CharField(max_length=4,
                              label='custom prefix', required=False)
     suffix = forms.CharField(max_length=4,
@@ -380,17 +382,7 @@ class DomesticationForm(forms.Form):
             raise ValidationError('You must choose a valid category')
         return category_name
 
-    def clean_seq(self):
-        content = self.cleaned_data['seq'].chunks().next()
-        self.cleaned_data['seq'].seek(0)
-        if content.startswith('LOCUS') or content.startswith('>'):
-            pass
-        else:
-            msg = 'The given file must be a fasta or a genbank file'
-            raise ValidationError(msg)
-        format_ = 'fasta' if content.startswith('>') else 'genbank'
-        seq = SeqIO.read(self.cleaned_data['seq'], format_)
-        seq = seq.upper()
+    def _seq_validation(self, seq):
         if not _seq_is_dna(seq.seq):
             msg = 'The given file contains seqs with not allowed nucleotides'
             msg += ' ATGC'
@@ -398,7 +390,6 @@ class DomesticationForm(forms.Form):
         if len(seq) < MINIMUN_PCR_LENGTH + 20:
             msg = 'Given seq must be at least 70 base pairs'
             raise ValidationError(msg)
-
         if self._data_in(self.cleaned_data, 'category'):
             category = self.cleaned_data['category']
             if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',
@@ -423,7 +414,32 @@ class DomesticationForm(forms.Form):
                     msg = 'The provided seq must have less than 500 nucleotides in'
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
+        return seq
 
+    def clean_seq(self):
+        inmemoryfile = self.cleaned_data['seq']
+        if not inmemoryfile:
+            del self.cleaned_data['seq']
+            return inmemoryfile
+        content = inmemoryfile.chunks().next()
+        self.cleaned_data['seq'].seek(0)
+        if content.startswith('LOCUS') or content.startswith('>'):
+            pass
+        else:
+            msg = 'The given file must be a fasta or a genbank file'
+            raise ValidationError(msg)
+        format_ = 'fasta' if content.startswith('>') else 'genbank'
+        seq = SeqIO.read(self.cleaned_data['seq'], format_)
+        seq = self._seq_validation(seq)
+        return seq
+
+    def clean_residues(self):
+        residues = self.cleaned_data['residues']
+        if not residues:
+            del self.cleaned_data['residues']
+            return residues
+        seq = SeqRecord(seq=Seq(residues))
+        seq = self._seq_validation(seq)
         return seq
 
     def _clean_customtags(self, kind):
@@ -471,6 +487,31 @@ class DomesticationForm(forms.Form):
 
     def _multi_field_validation(self):
         cleaned_data = self.cleaned_data
+        if not 'seq' in self._errors and not 'residues' in self._errors:
+            try:
+                if (not self._data_in(cleaned_data, 'seq') and
+                    not self._data_in(cleaned_data, 'residues')):
+                    raise ValidationError('Fasta or genbank File Required')
+
+            except ValidationError, e:
+                self._errors['seq'] = self.error_class(e.messages)
+                for name in ('seq', 'residues'):
+                    if name in self.cleaned_data:
+                        del self.cleaned_data[name]
+                return
+
+            try:
+                if (self._data_in(cleaned_data, 'seq') and
+                    self._data_in(cleaned_data, 'residues')):
+                    raise ValidationError('Form can not accept File and residues')
+
+            except ValidationError, e:
+                self._errors['seq'] = self.error_class(e.messages)
+                for name in ('seq', 'residues'):
+                    if name in self.cleaned_data:
+                        del self.cleaned_data[name]
+                return
+
         try:
             if (not self._data_in(cleaned_data, 'category') and
                 not self._data_in(cleaned_data, 'suffix') and
@@ -511,7 +552,6 @@ class DomesticationForm(forms.Form):
             self._errors[name] = self.error_class(e.messages)
             if name in self.cleaned_data:
                 del self.cleaned_data[name]
-
 
 
 def _seq_is_dna(string):
