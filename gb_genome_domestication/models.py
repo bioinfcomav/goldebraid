@@ -35,7 +35,7 @@ class Feature(models.Model):
     feature_id = models.AutoField(primary_key=True)
     uniquename = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
-    description = models.CharField(max_length=512)
+    description = models.CharField(max_length=1024)
     species = models.CharField(max_length=255)
     residues = models.TextField()
     dbxref = models.ForeignKey(Dbxref)
@@ -62,7 +62,7 @@ class Feature(models.Model):
 
 
 class FeatureDbxref(models.Model):
-    feature_dbxref_id = models.IntegerField(primary_key=True)
+    feature_dbxref_id = models.AutoField(primary_key=True)
     feature = models.ForeignKey(Feature)
     dbxref = models.ForeignKey(Dbxref)
 
