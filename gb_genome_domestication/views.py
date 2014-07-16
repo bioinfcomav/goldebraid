@@ -1,3 +1,8 @@
+'''
+Created on 2014 uzt 16
+
+@author: peio
+'''
 from django.shortcuts import render_to_response
 from gb_genome_domestication.models import Feature
 from gb_genome_domestication.settings import DB
