@@ -63,7 +63,7 @@ def domestication_view(request):
                                        'pcrs': pcr,
                                        'seq': str(seq.seq),
                                        'seq_name': seq.name},
-                                context_instance=RequestContext(request))
+                                      context_instance=RequestContext(request))
     else:
         form = DomesticationForm()
     context['form'] = form
@@ -151,7 +151,7 @@ def domestication_view_add(request):
             # TODO choose a template
             return render_to_response('feature_exists.html',
                                       {},
-                            context_instance=RequestContext(request))
+                                      context_instance=RequestContext(request))
         else:
             return HttpResponseServerError()
     except Exception as error:

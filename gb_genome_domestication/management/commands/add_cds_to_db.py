@@ -38,7 +38,10 @@ class Command(BaseCommand):
 
 def run_command(cds_fpath, spp, database_name, urlprefix):
     with transaction.commit_on_success():
-        ext_db = get_or_load_db(database_name, urlprefix=urlprefix)
+        if not database_name or not urlprefix:
+            ext_db = None
+        else:
+            ext_db = get_or_load_db(database_name, urlprefix=urlprefix)
         prim_db = get_or_load_db(DB, urlprefix=DB_URLPREFIX)
 
         for seq in SeqIO.parse(open(cds_fpath), format='fasta'):
@@ -47,14 +50,14 @@ def run_command(cds_fpath, spp, database_name, urlprefix):
             desc = seq.description
             residues = str(seq.seq)
             prim_dbxref = Dbxref.objects.using(DB).create(db=prim_db,
-                                                         accession=id_)
+                                                          accession=id_)
             feat = Feature.objects.using(DB).create(uniquename=id_,
                                                     name=name, species=spp,
                                                     description=desc,
                                                     dbxref=prim_dbxref,
                                                     residues=residues)
-
-            ext_dbxref = Dbxref.objects.using(DB).create(db=ext_db,
-                                                         accession=id_)
-            FeatureDbxref.objects.using(DB).create(feature=feat,
-                                                   dbxref=ext_dbxref)
+            if ext_db is not None:
+                ext_dbxref = Dbxref.objects.using(DB).create(db=ext_db,
+                                                             accession=id_)
+                FeatureDbxref.objects.using(DB).create(feature=feat,
+                                                       dbxref=ext_dbxref)
