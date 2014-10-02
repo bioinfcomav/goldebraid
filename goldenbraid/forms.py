@@ -414,6 +414,11 @@ class DomesticationForm(forms.Form):
                     msg = 'The provided seq must have less than 500 nucleotides in'
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
+            if category in ('13-14-15 (CDS)', '12 (NT)', '13 (SP)'):
+                if _seq_has_codon_end(seq.seq):
+                    msg = 'The provided seq must not end with a stop codon in '
+                    msg += 'order to use as choosen category'
+                    raise ValidationError(msg)
         return seq
 
     def clean_seq(self):
