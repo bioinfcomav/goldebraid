@@ -15,3 +15,14 @@ def rec_sites(name):
     return str(num_rec_sites)
 
 register.filter('rec_sites', rec_sites)
+
+
+def species(name):
+    try:
+        feat = Feature.objects.get(uniquename=name)
+        species_ = feat.species
+    except Feature.DoesNotExist:
+        species_ = 'Unknown'
+    return species_.replace('_', ' ').capitalize()
+
+register.filter('species', species)

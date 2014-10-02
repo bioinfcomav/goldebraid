@@ -25,7 +25,12 @@
     <h4>Descriptions</h4>
     {% if blast.descriptions %}
         <table>
-        <tr><td>Subject</td><td>Score</td><td>evalue</td><td>Num of restriction sites</td></tr>
+        <tr><td>Subject</td>
+        	<td>Score</td>
+        	<td>evalue</td>
+        	<td>Num of restriction sites</td>
+        	<td>Species</td>
+        </tr>
         {% for des in blast.descriptions %}
             <tr>
                 <td>
@@ -40,6 +45,7 @@
                 <td>{{ des.score }}</td>
                 <td><a href = #{{ des.subject.name }}>{{ des.evalue }}</a></td>
                 <td>{{ des.subject.name|rec_sites}}</td>
+                <td>{{ des.subject.name|species}}</td>
             </tr>
         {% endfor %}
         </table>
