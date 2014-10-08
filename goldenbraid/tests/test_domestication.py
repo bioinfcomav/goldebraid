@@ -23,7 +23,9 @@ from Bio.SeqRecord import SeqRecord
 import goldenbraid
 from goldenbraid.domestication import (domesticate, _join_segments,
                                        _get_pcr_segments,
-                                       _get_segments_from_rec_site)
+                                       _get_segments_from_rec_site,
+                                       domesticate_for_synthesis,
+    _get_stripped_vector_seq)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                          'goldenbraid', 'tests', 'data')
@@ -208,3 +210,28 @@ class DomesticationTest(TestCase):
         oligo_pcrs = domesticate(seqrec, category, 'AATG', 'AGCC')[0]
         assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTCGGGCTGCTAGGAGGGACGGGAGAAGGA'
 
+    def test_domestication_sintesis(self):
+        seq = 'ATGATGATGGGCACTTCCTCTGTTTTTCTACTATTCCTTCTTTCTTTTCTTCTCCTTCTCCCG'
+        seq += 'TCCCTCCTA'
+
+        seqrec = SeqRecord(Seq(seq))
+        category = '13 (SP)'
+        prefix = 'AATG'
+        suffix = 'AGCC'
+        seq_sin, prep_seq = domesticate_for_synthesis(seqrec, category, prefix,
+                                                      suffix)
+        result = 'GCGCCGTCTCGCTCGAATGATGATGGGCACTTCCTCTGTTTTTCTACTATTCCTTCTTTC'
+        result += 'TTTTCTTCTCCTTCTCCCGTCCCTCCTAGCAGCCCGAGCGAGACGGCGC'
+        assert seq_sin == result
+        assert 'AATGATGATGGGCACTTCCTCTGTTTTTCTACTATTCCTTC' in str(prep_seq.seq)
+
+        # with rec site
+        seq = 'ATGATGATGGGCACTTCCTCTGTTTGGTCTCTATTCCTTCTTTCTTTTCTTCTCCTTCTCCCG'
+        seq += 'TCCCTCCTA'
+
+        seqrec = SeqRecord(Seq(seq))
+        category = '13 (SP)'
+        seq_sin = domesticate_for_synthesis(seqrec, category, 'AATG', 'AGCC')[0]
+        result = 'GCGCCGTCTCGCTCGAATGATGATGGGCACTTCCTCTGTTTGGTCGCTATTCCTTCTTTC'
+        result += 'TTTTCTTCTCCTTCTCCCGTCCCTCCTAGCAGCCCGAGCGAGACGGCGC'
+        assert seq_sin == result

@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from tempfile import NamedTemporaryFile
-
+from textwrap import fill
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
@@ -26,13 +26,21 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponseServerError
 from django.db.utils import IntegrityError
 
-from goldenbraid.domestication import domesticate
+from goldenbraid.domestication import domesticate, domesticate_for_synthesis
 from goldenbraid.forms import DomesticationForm
 from goldenbraid.settings import CATEGORIES
 from goldenbraid.views.feature_views import add_feature
 
 
+def synthesis_view(request):
+    return _domestication_view(request, kind='synthesis')
+
+
 def domestication_view(request):
+    return _domestication_view(request, kind='domestication')
+
+
+def _domestication_view(request, kind):
     context = RequestContext(request)
     context.update(csrf(request))
     if request.method == 'POST':
@@ -55,14 +63,28 @@ def domestication_view(request):
             else:
                 prefix = CATEGORIES[category][1]
                 suffix = CATEGORIES[category][2]
-            pcr = domesticate(seq, category, prefix, suffix)[0]
-            return render_to_response('domestication_result.html',
-                                      {'category': category,
-                                       'prefix': prefix,
-                                       'suffix': suffix,
-                                       'pcrs': pcr,
-                                       'seq': str(seq.seq),
-                                       'seq_name': seq.name},
+            if kind == 'domestication':
+                pcr = domesticate(seq, category, prefix, suffix)[0]
+                return render_to_response('domestication_result.html',
+                                          {'category': category,
+                                           'prefix': prefix,
+                                           'suffix': suffix,
+                                           'pcrs': pcr,
+                                           'seq': str(seq.seq),
+                                           'seq_name': seq.name},
+                                      context_instance=RequestContext(request))
+            elif kind == 'synthesis':
+                seq_for_syn, prepared_seq = domesticate_for_synthesis(seq,
+                                                                    category,
+                                                                    prefix,
+                                                                    suffix)
+                return render_to_response('synthesis_result.html',
+                                          {'category': category,
+                                           'prefix': prefix,
+                                           'suffix': suffix,
+                                           'seq_syn': seq_for_syn,
+                                           'seq': str(prepared_seq.seq),
+                                           'seq_name': prepared_seq.name},
                                       context_instance=RequestContext(request))
     else:
         form = DomesticationForm()
@@ -73,14 +95,37 @@ def domestication_view(request):
     return render_to_response(template, context, content_type=content_type)
 
 
-def domestication_view_genbank(request):
-    def function(pcrs, seq):
+def synthesis_view_genbank(request):
+    def function(seq, category, prefix, suffix):
+        seq = domesticate_for_synthesis(seq, category, prefix, suffix)[1]
         response = HttpResponse(seq.format('genbank'),
                                 content_type='text/plain')
         response['Content-Disposition'] = 'attachment; '
         response['Content-Disposition'] += 'filename="{0}.gb"'.format(seq.id)
         return response
     return _domestication_view_no_template(request, function)
+
+
+def domestication_view_genbank(request):
+    def function(seq, category, prefix, suffix):
+        seq = domesticate(seq, category, prefix, suffix)[0]
+        response = HttpResponse(seq.format('genbank'),
+                                content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; '
+        response['Content-Disposition'] += 'filename="{0}.gb"'.format(seq.id)
+        return response
+    return _domestication_view_no_template(request, function)
+
+
+def write_synthesis_protocol(seq_for_syn):
+    protocol = '''Domestication Protocol for the Synthetic Strategy
+
+Order the following sequence:
+{0}
+
+
+'''
+    return protocol.format(fill(seq_for_syn, 80))
 
 
 def write_domestication_protocol(pcrs):
@@ -161,8 +206,20 @@ def domestication_view_add(request):
     return redirect(feature.url)
 
 
+def synthesis_view_protocol(request):
+    def function(seq, category, prefix, suffix):
+        seq = domesticate_for_synthesis(seq, category, prefix, suffix)[0]
+        protocol = write_synthesis_protocol(seq)
+        response = HttpResponse(protocol, content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
+        return response
+
+    return _domestication_view_no_template(request, function)
+
+
 def domestication_view_protocol(request):
-    def function(pcrs, seq):
+    def function(seq, category, prefix, suffix):
+        pcrs, seq = domesticate(seq, category, prefix, suffix)
         protocol = write_domestication_protocol(pcrs)
         response = HttpResponse(protocol, content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
@@ -184,5 +241,4 @@ def _domestication_view_no_template(request, function):
     suffix = request_data['suffix']
     seq_name = request_data['seq_name']
     seq = SeqRecord(Seq(seq), id=seq_name, name=seq_name)
-    pcrs, seq = domesticate(seq, category, prefix, suffix)
-    return function(pcrs, seq)
+    return function(seq, category, prefix, suffix)

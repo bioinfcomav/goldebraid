@@ -56,6 +56,31 @@ def get_codontable():
     return codon_table
 
 
+def domesticate_for_synthesis(seqrec, category, prefix, suffix):
+    kind = category
+    seq = seqrec.seq
+    new_seq = _remove_rec_sites(seq)[0]
+    seqs_for_sintesis, prefix, suffix = _add_tags_to_pcrproducts([new_seq],
+                                                                 prefix,
+                                                                 suffix,
+                                                                 kind)
+
+    try:
+        count = Count.objects.get(name=DOMESTICATED_SEQ)
+    except Count.DoesNotExist:
+        count = Count.objects.create(name=DOMESTICATED_SEQ, value=1)
+    next_value = count.next
+    seq_name = DOMESTICATED_SEQ + '_' + next_value
+    vector_seq = _get_stripped_vector_seq()
+    print 'vector', len(vector_seq)
+    prepared_new_seq = prefix + new_seq + suffix + vector_seq
+    print 'prepared_Seq', len(prepared_new_seq)
+    seq_for_synthesis = str(seqs_for_sintesis[0])
+    prepared_seq = SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
+
+    return seq_for_synthesis, prepared_seq
+
+
 def domesticate(seqrec, category, prefix, suffix):
     kind = category
     seq = seqrec.seq
@@ -129,9 +154,9 @@ def _get_pcr_segments(seq, rec_sites, fragments):
         except IndexError:
             frag_3 = None
         start, end, overhangs = _get_segments_from_rec_site(frag_5, frag_3,
-                                                           rec_site,
-                                                           acumulated_seq_len,
-                                                           overhangs)
+                                                            rec_site,
+                                                            acumulated_seq_len,
+                                                            overhangs)
         segments['starts'].append(start)
         segments['ends'].append(end)
         acumulated_seq_len += len(frag_5) + len(rec_site['modified'])
@@ -207,7 +232,7 @@ def is_dna_palindrome(seq):
     return all(seq_pals)
 
 
-def  _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
+def _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
                                  overhangs):
     change_pos = 0
     for letter1, letter2 in zip(rec_site['original'], rec_site['modified']):

@@ -31,7 +31,10 @@ from goldenbraid.views.bipartite_views import (bipartite_view,
 from goldenbraid.views.domestication_view import (domestication_view,
                                                   domestication_view_genbank,
                                                   domestication_view_protocol,
-                                                  domestication_view_add)
+                                                  domestication_view_add,
+                                                  synthesis_view,
+                                                  synthesis_view_genbank,
+                                                  synthesis_view_protocol)
 
 
 urlpatterns = patterns('',
@@ -76,7 +79,11 @@ urlpatterns = patterns('',
             name='domestication_view_protocol'),
         url(r'^do/domestication/$', domestication_view,
             name='domestication_view'),
-
-
-                       )
+        url(r'^do/synthesis/$', synthesis_view,
+            name='domestication_view'),
+        url(r'^do/synthesis/genbank/$', synthesis_view_genbank,
+            name='shinthesis_view_genbank'),
+        url(r'^do/synthesis/protocol/$', synthesis_view_protocol,
+            name='synthesis_view_protocol'),
+        )
 
