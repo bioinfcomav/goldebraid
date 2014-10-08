@@ -72,9 +72,7 @@ def domesticate_for_synthesis(seqrec, category, prefix, suffix):
     next_value = count.next
     seq_name = DOMESTICATED_SEQ + '_' + next_value
     vector_seq = _get_stripped_vector_seq()
-    print 'vector', len(vector_seq)
     prepared_new_seq = prefix + new_seq + suffix + vector_seq
-    print 'prepared_Seq', len(prepared_new_seq)
     seq_for_synthesis = str(seqs_for_sintesis[0])
     prepared_seq = SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
 
