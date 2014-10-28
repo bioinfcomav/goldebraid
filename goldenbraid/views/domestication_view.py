@@ -89,6 +89,7 @@ def _domestication_view(request, kind):
     else:
         form = DomesticationForm()
     context['form'] = form
+    context['kind'] = kind
 
     template = 'domestication_template.html'
     content_type = None

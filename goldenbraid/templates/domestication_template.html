@@ -2,9 +2,14 @@
 {% block title %}Domestication formulary {% endblock title %}
 {% block content %}
 <div class='tools'>
-<h2>GB Domesticator</h2>
-<p><span class='tools'>The first step in the GoldenBraid assembly strategy is to adapt your DNA building block to the GB grammar and to remove  the internal restriction sites for the enzymes used in GoldenBraid.</span></p>
-<p><span class='tools'>This process is referred to as domestication and is computer assisted by the GB Domesticator software tool. Here you can domesticate your  DNA sequence to convert it into a GBpart/superpart. For this,  you can either select one of the standard GBpart categories from the dropdown menu (e.g. 01-02-03-11-12 PROM+UTR+ATG; 16 CT) or you can introduce the prefix and suffix of your choice (4 nts barcodes).</span></p>
+{% if kind == 'domestication'%}
+	<h2>GB Domesticator</h2>
+	<p><span class='tools'>The first step in the GoldenBraid assembly strategy is to adapt your DNA building block to the GB grammar and to remove  the internal restriction sites for the enzymes used in GoldenBraid.</span></p>
+	<p><span class='tools'>This process is referred to as domestication and is computer assisted by the GB Domesticator software tool. Here you can domesticate your  DNA sequence to convert it into a GBpart/superpart. For this,  you can either select one of the standard GBpart categories from the dropdown menu (e.g. 01-02-03-11-12 PROM+UTR+ATG; 16 CT) or you can introduce the prefix and suffix of your choice (4 nts barcodes).</span></p>
+{% else%}
+	<h2>Synthetic Strategy</h2>
+	<p><span class='tools'>The Synthetic Strategy generates a domesticated sequence for gene synthesis. By synthesizing your sequence, you can skip the mutagenesis PCR step and go directly to the BsmBI restriction ligation reaction that brings together the part and the pUPD vector.</span></p>
+{% endif %}
 </div>
 {% load goldenbraid_extras %}
 <form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
