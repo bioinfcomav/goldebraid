@@ -108,7 +108,7 @@ def synthesis_view_genbank(request):
 
 def domestication_view_genbank(request):
     def function(seq, category, prefix, suffix):
-        seq = domesticate(seq, category, prefix, suffix)[0]
+        seq = domesticate(seq, category, prefix, suffix)[1]
         response = HttpResponse(seq.format('genbank'),
                                 content_type='text/plain')
         response['Content-Disposition'] = 'attachment; '
