@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Run {% endblock title %}
+{% block content %}
+<div id='main'>
+<p>ppppp</p>
+{% if tool == 'blast'%}
+
+	<div class='tools'>
+	<h2>Phylogeny Search</h2>
+	<p><span class='tools'>The Phylogenetic Search, searches a CDSs database containing sequences from N.benthamiana, A. thaliana or S. lycopersicum among other plant species for the closest orthologous genes containing minimum GB internal restriction sites.</span></p>
+	</div>
+    <form action="." method="POST" class="formulario">
+        {{ form.non_field_errors }}
+
+        <div><label for="id_sequence">Sequence:</label> {{form.sequence }}</div>
+        <div><label for="id_database">Database:</label> {{form.database }}</div>
+        <div><label for="id_program">Program:</label> {{form.program}}</div>
+        {% for hidden in form.hidden_fields %}
+        {{ hidden }}
+        {% endfor %}
+        <span class="linea margin20"></span>
+        <p class="tright"><input value="Submit" type="submit"><input type="reset" value="Reset form" /></p>
+    </form>
+
+{% else %}
+
+    <form action='.' method='POST'>
+        <table>
+            {{ form.as_table }}
+        </table>
+        <p><input type='submit' value='Submit'><input type="reset" value="Reset form" /></p>
+    </form>
+{% endif %}
+</div>
+{% endblock content %}
