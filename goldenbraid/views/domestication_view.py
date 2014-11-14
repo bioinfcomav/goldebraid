@@ -124,6 +124,19 @@ def write_synthesis_protocol(seq_for_syn):
 Order the following sequence:
 {0}
 
+Once you have the synthetic sequence the domestication reaction should be performed as follows:
+40 ng of the synthesized product
+75 ng of pUPD
+5-10u BsmBI
+3u T4 Ligase
+1 microlitre Ligase Buffer
+
+Final volume: 10 microlitres
+
+We use Promega T4 DNA ligase(M180B) and fermentas BsmBI/Esp3I (ER0451). We haven't tried other enzymes suppliers but they will problably work as well.
+
+Set your reaction in a thermocycler: 25 cycles x (37C 2', 16C 5').
+One microlitre of the reaction is enough to be transform E.coli electrocompetent cells. Positive clones are selected in Ampicillin (50 microgram ml-1), IPTG (0.5mM) and Xgal (40 microgram ml-1) plates. You will distinguish between colonies carrying intact vectors (blue) and those transformed with your construction (white).
 
 '''
     return protocol.format(fill(seq_for_syn, 80))
