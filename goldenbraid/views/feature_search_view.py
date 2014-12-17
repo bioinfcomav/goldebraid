@@ -111,7 +111,7 @@ def _build_feature_query(search_criteria, user):
                                           criteria['name_or_description'],
                                           criteria['name_exact'])
     if 'category' in criteria and criteria['category']:
-        kind, prefix, suffix =  criteria['category'].split(',')
+        kind, prefix, suffix = criteria['category'].split(',')
         query = query.filter(type__name=kind)
         if kind not in SPECIAL_SEARCH_CATEGORIES:
             query = query.filter(prefix=prefix, suffix=suffix)

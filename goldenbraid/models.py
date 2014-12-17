@@ -12,6 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import re
+import os
+
+from Bio import SeqIO
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -19,7 +23,7 @@ from goldenbraid import settings
 from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
-                              FORWARD, REVERSE)
+                              FORWARD, REVERSE, DERIVES_FROM)
 
 
 class Db(models.Model):
@@ -239,12 +243,53 @@ class Feature(models.Model):
         'owner of the feat'
         return FeaturePerm.objects.get(feature=self).is_public
 
+    @property
+    def children(self):
+        children = []
+        for frls in FeatureRelationship.objects.filter(object=self):
+            children.append(frls.subject)
+        return children
+
+    def add_relations(self, seq=None):
+        """If seq object is not given, it will look in the genbank file
+        associated with the feature"""
+        if seq is None:
+            path = self.genbank_file.path
+            if os.path.exists(path):
+                seq = SeqIO.read(path, 'gb')
+        children = _parse_children_relations_from_gb(seq)
+        if not children:
+            return
+
+        for child in children:
+            child = Feature.objects.get(uniquename=child)
+            _get_or_create_feature_relationship(object_=self, subject=child)
+
+
+def _parse_children_relations_from_gb(seq):
+    definition = seq.description
+    if '(' in definition and ')' in definition:
+        match = re.match('\((.+)\)', definition)
+        return match.group(1).split(',')
+    else:
+        return None
+
+
+def _get_or_create_feature_relationship(object_, subject):
+    derives_from = Cvterm.objects.get(name=DERIVES_FROM)
+    try:
+        FeatureRelationship.objects.get(subject=subject,
+                                        type=derives_from, object=object_)
+    except FeatureRelationship.DoesNotExist:
+        FeatureRelationship.objects.create(subject=subject,
+                                           type=derives_from, object=object_)
+
 
 class FeaturePerm(models.Model):
     'Model to store the perms of the features'
     feature = models.OneToOneField(Feature, primary_key=True)
     owner = models.ForeignKey(User)
-    is_public = models.BooleanField()
+    is_public = models.BooleanField(default=False)
 
     class Meta:
         db_table = u'featureperm'
@@ -262,3 +307,12 @@ class Featureprop(models.Model):
         db_table = u'featureprop'
 
 
+class FeatureRelationship(models.Model):
+    'Store the relationsshiop between parts'
+    featurerelationship_id = models.AutoField(primary_key=True)
+    type = models.ForeignKey(Cvterm)
+    subject = models.ForeignKey(Feature, related_name='subject')
+    object = models.ForeignKey(Feature, related_name='object')
+
+    class Meta:
+        db_table = u'feature_relationship'

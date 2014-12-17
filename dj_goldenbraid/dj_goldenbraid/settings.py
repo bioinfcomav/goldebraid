@@ -139,7 +139,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'dj_goldenbraid.urls'
-
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'dj_goldenbraid.wsgi.application'
 
