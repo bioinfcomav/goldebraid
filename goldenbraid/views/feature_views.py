@@ -33,12 +33,12 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 
 from goldenbraid.models import (Cvterm, Feature, Db, Dbxref, Featureprop,
-                                FeaturePerm)
+                                FeaturePerm, FeatureRelationship)
 from goldenbraid.settings import REBASE_FILE
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
-                              RESISTANCE_TYPE_NAME)
+                              RESISTANCE_TYPE_NAME, DERIVES_FROM)
 from goldenbraid.forms import (FeatureForm, FeatureManagementForm,
                                get_all_vectors_as_choices, VectorForm)
 
@@ -181,6 +181,35 @@ def _pref_suf_index_from_rec_sites(seq, forw_site, rev_site, rec_site,
     if suffix_index < 0:
         suffix_index = len(seq) - abs(suffix_index)
     return prefix_index, suffix_index
+
+
+def get_or_create_feature_relationship(object_, subject):
+    derives_from = Cvterm.objects.get(name=DERIVES_FROM)
+    try:
+        FeatureRelationship.objects.get(subject=subject,
+                                        type=derives_from, object=object_)
+    except FeatureRelationship.DoesNotExist:
+        FeatureRelationship.objects.create(subject=subject,
+                                           type=derives_from, object=object_)
+
+
+def add_relations(feature, seq):
+    children = _parse_children_relations_from_gb(seq)
+    if not children:
+        return
+
+    for child in children:
+        child = Feature.objects.get(uniquename=child)
+        get_or_create_feature_relationship(object_=feature, subject=child)
+
+
+def _parse_children_relations_from_gb(seq):
+    definition = seq.description
+    if '(' in definition and ')' in definition:
+        match = re.match('\((.+)\)', definition)
+        return match.group(1).split(',')
+    else:
+        return None
 
 
 def add_feature(name, type_name, vector, genbank, props, owner,
