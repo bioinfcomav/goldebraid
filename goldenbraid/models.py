@@ -262,15 +262,21 @@ class Feature(models.Model):
             return
 
         for child in children:
-            child = Feature.objects.get(uniquename=child)
+	    try:
+	        child = Feature.objects.get(uniquename=child)
+	    except Feature.DoesNotExist:
+		continue
             _get_or_create_feature_relationship(object_=self, subject=child)
 
 
 def _parse_children_relations_from_gb(seq):
     definition = seq.description
     if '(' in definition and ')' in definition:
-        match = re.match('\((.+)\)', definition)
-        return match.group(1).split(',')
+        match = re.search('\((.+)\)', definition)
+	if match:
+	    return match.group(1).split(',')
+	else:
+	    print definition
     else:
         return None
 
