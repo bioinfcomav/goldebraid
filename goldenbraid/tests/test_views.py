@@ -50,7 +50,7 @@ class FeatureTestViews(TestCase):
         # test of the form
         gb_path = os.path.join(test_data, 'pAn11_uniq.gb')
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
-                     'type': 'CDS', 'vector':'pDGB1_alpha1'}
+                     'type': 'CDS', 'vector': 'pDGB1_alpha1'}
         uploaded_fhand = open(gb_path)
         file_dict = {'gbfile': SimpleUploadedFile(uploaded_fhand.name,
                                                   uploaded_fhand.read())}
@@ -60,7 +60,7 @@ class FeatureTestViews(TestCase):
         # test of the form with blanck values
         gb_path = os.path.join(test_data, 'pAn11_uniq.gb')
         post_dict = {'uniquename': 'vector1', 'name': 'vector1',
-                     'type': 'CDS', 'vector':'pDGB1_alpha1'}
+                     'type': 'CDS', 'vector': 'pDGB1_alpha1'}
         uploaded_fhand = open(gb_path)
         file_dict = {}
         form = FeatureForm(post_dict, file_dict)
@@ -107,7 +107,7 @@ class FeatureTestViews(TestCase):
         client.login(username='admin', password='password')
         # show form
         response = client.get(url)
-        assert "pDGB1_alpha1"  in str(response)
+        assert "pDGB1_alpha1" in str(response)
 
         # add a feature
         url = reverse('add_feature')
@@ -123,8 +123,8 @@ class FeatureTestViews(TestCase):
 
         feat = Feature.objects.get(uniquename='pAn11_uniq')
         assert feat.name == 'vector1'
-        assert  feat.props == {u'Description': [u'vector1 desc'],
-                               u'Reference': [u'vector1 ref']}
+        assert feat.props == {u'Description': [u'vector1 desc'],
+                              u'Reference': [u'vector1 ref']}
 
         # add a feature
         url = reverse('add_feature')
@@ -193,7 +193,7 @@ class MultipartiteFreeTestViews(TestCase):
                                      'part_2': 'pLuciferase',
                                      'part_3': 'pT35S'})
 
-        assert  "<p>You have assembled in the GoldenBraid" in str(response)
+        assert "<p>You have assembled in the GoldenBraid" in str(response)
 
         # reverse vector
         url = reverse('multipartite_view_free_genbank')
@@ -236,16 +236,16 @@ class MultipartiteFreeTestViews(TestCase):
                                      'part_1': 'pPE8',
                                      'part_2': 'pANT1',
                                      'part_3': 'pTnos'})
-        assert  'GB_UA_8' in str(response)
-        assert  'LOCUS' in str(response)
+        assert 'GB_UA_8' in str(response)
+        assert 'LOCUS' in str(response)
 
         response = client.post(url, {'assembled_seq': 'aaa',
                                      'vector': 'pDGB1_omega1',
                                      'part_1': 'pPE8',
                                      'part_2': 'pANT1',
                                      'part_3': 'pTnos'})
-        assert  'GB_UA_9' in str(response)
-        assert  'LOCUS' in str(response)
+        assert 'GB_UA_9' in str(response)
+        assert 'LOCUS' in str(response)
 
         # with more than one part of the same type
         response = client.post(url, {'part_1': 'pP2A11',
@@ -263,8 +263,8 @@ class MultipartiteFreeTestViews(TestCase):
         response = client.get(url)
         assert response.status_code == 400
 
-        response = client.post(url, {'assembled_seq':'aaa',
-                                     'vector':'pDGB1_omega1',
+        response = client.post(url, {'assembled_seq': 'aaa',
+                                     'vector': 'pDGB1_omega1',
                                      'part_1': 'pPE8',
                                      'part_2': 'pANT1',
                                      'part_3': 'pTnos'})
@@ -314,29 +314,31 @@ class MultipartiteTestViews(TestCase):
         url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
         response = client.post(url)
         assert """<p><label for="id_TER">Ter:</label>""" in str(response)
-        assert """<select id="id_TER" name="TER">""" in str(response)
+        assert """<select id="id_TER" maxlength="100" name="TER">""" in str(response)
         assert """<option value="pDGB1_alpha1R">pDGB1_alpha""" in str(response)
         client = Client()
         url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
         response = client.post(url, {"PROM+UTR+ATG": 'pPE8',
                                      "CDS": 'pANT1',
                                      "TER": 'pTnos',
-                                     'Vector':'pDGB1_alpha1'})
+                                     'Vector': 'pDGB1_alpha1'})
 
         # print response
         assert 'error' not in response
         assert response.status_code == 200
 
         client = Client()
-        url = reverse('multipartite_view_genbank', kwargs={'multi_type': 'basic'})
+        url = reverse('multipartite_view_genbank',
+                      kwargs={'multi_type': 'basic'})
         response = client.post(url, {"PROM+UTR+ATG": 'pPE8',
                                      "CDS": 'pANT1',
                                      "TER": 'pTnos',
                                      'Vector': 'pDGB1_alpha1'})
 
-        assert "LOCUS" in  str(response)
+        assert "LOCUS" in str(response)
         client = Client()
-        url = reverse('multipartite_view', kwargs={'multi_type': 'basic'})
+        url = reverse('multipartite_view',
+                      kwargs={'multi_type': 'basic'})
         response = client.post(url, {"PROM+UTR+ATG": 'pPE8',
                                      "CDS": 'pANT1',
                                      "TER": 'pTno'})
@@ -347,7 +349,8 @@ class MultipartiteTestViews(TestCase):
         assert err2 in str(response)
 
         # forward vector
-        url = reverse('multipartite_view_genbank', kwargs={'multi_type': 'basic'})
+        url = reverse('multipartite_view_genbank',
+                      kwargs={'multi_type': 'basic'})
         response = client.post(url, {"PROM+UTR+ATG": 'pP35S',
                                      "CDS": 'pMYB12',
                                      "TER": 'pTnos',
@@ -361,7 +364,8 @@ class MultipartiteTestViews(TestCase):
         assert multipartite_seq1 == multipartite_seq2
 
         # reverse vector
-        url = reverse('multipartite_view_genbank', kwargs={'multi_type': 'basic'})
+        url = reverse('multipartite_view_genbank',
+                      kwargs={'multi_type': 'basic'})
         response = client.post(url, {"PROM+UTR+ATG": 'pP2A11',
                                      "CDS": 'pMYB12',
                                      "TER": 'pTerm2A11',
@@ -385,12 +389,12 @@ class MultipartiteTestViews(TestCase):
         response = client.get(url)
         assert response.status_code == 400
 
-        response = client.post(url, {'assembled_seq':'aaa',
-                                    'multi_type':'basic',
-                                    "PROM+UTR+ATG": 'pPE8',
+        response = client.post(url, {'assembled_seq': 'aaa',
+                                     'multi_type': 'basic',
+                                     "PROM+UTR+ATG": 'pPE8',
                                      "CDS": 'pANT1',
                                      "TER": 'pTnos',
-                                     'Vector':'pDGB1_alpha1'})
+                                     'Vector': 'pDGB1_alpha1'})
         assert "75 ng of pPE8" in str(response)
 
     def test_genbank_view(self):
@@ -402,12 +406,12 @@ class MultipartiteTestViews(TestCase):
         assert response.status_code == 400
 
         response = client.post(url, {'assembled_seq': 'aaa',
-                                    'multi_type': 'basic',
-                                    "PROM+UTR+ATG": 'pPE8',
+                                     'multi_type': 'basic',
+                                     "PROM+UTR+ATG": 'pPE8',
                                      "CDS": 'pANT1',
                                      "TER": 'pTnos',
                                      'Vector': 'pDGB1_alpha1'})
-        assert  'LOCUS' in str(response)
+        assert 'LOCUS' in str(response)
 
 
 class BipartiteViewTest(TestCase):
@@ -467,8 +471,8 @@ class BipartiteViewTest(TestCase):
         response = client.post(url, {'assembled_seq':'aaa',
                                      'part_1': 'GB0125',
                                      'part_2': 'GB0126',
-                                     'Vector':'pDGB1_omega1'})
-        assert  'LOCUS' in str(response)
+                                     'Vector': 'pDGB1_omega1'})
+        assert 'LOCUS' in str(response)
 
     # check bipartite_view_protocol
     def test_protocol_view(self):
@@ -481,12 +485,12 @@ class BipartiteViewTest(TestCase):
         response = client.post(url, {'name': 'kk',
                                      'Description': 'desc',
                                      'Reference': 'ref',
-                                     'assembled_seq':'aaa',
+                                     'assembled_seq': 'aaa',
                                      'part_1': 'GB0125',
                                      'part_2': 'GB0126',
-                                     'Vector':'pDGB1_omega1'})
+                                     'Vector': 'pDGB1_omega1'})
 
-        assert  'Bipartite Assembly Protocol' in str(response)
+        assert 'Bipartite Assembly Protocol' in str(response)
 
     # check bipartite_view_add
     def test_add_view(self):
@@ -498,14 +502,14 @@ class BipartiteViewTest(TestCase):
 
         assert response.status_code == 200
 
-        response = client.post(url, {'assembled_seq':'aaa',
+        response = client.post(url, {'assembled_seq': 'aaa',
                                      'part_1': 'GB0125',
                                      'part_2': 'GB0126',
-                                     'Vector':'pDGB1_omega1',
+                                     'Vector': 'pDGB1_omega1',
                                      'name': 'aa',
-                                     'description':'',
+                                     'description': '',
                                      'reference': 'aa'})
-        assert  response.status_code == 302
+        assert response.status_code == 302
 
 
 class DomesticationViewTest(TestCase):
@@ -525,8 +529,8 @@ class DomesticationViewTest(TestCase):
         # add seq and category
         response = client.post(url, {'seq': open(gb_path),
                                      'category': '12 (NT)'})
-        #print str(response)
-        assert """<ul class="errorlist"><li>The provided s"""  in str(response)
+        # print str(response)
+        assert """<ul class="errorlist"><li>The provided s""" in str(response)
 
         # not add a sequence
         response = client.post(url, {'seq': '',
@@ -536,17 +540,20 @@ class DomesticationViewTest(TestCase):
         # add category, prefix and suffix
 
         response = client.post(url, {'seq': open(gb_path),
-                                     'prefix': 'ggac', 'suffix': 'cgtc', 'category': '17-21 (TER)'})
+                                     'prefix': 'ggac', 'suffix': 'cgtc',
+                                     'category': '17-21 (TER)'})
         assert """<ul class="errorlist"><li>Can not use category and prefix/suffix simoultaneously</li></ul>"""in str(response)
 
         # add category and suffix
         response = client.post(url, {'seq': open(gb_path),
-                                     'prefix': '', 'suffix': 'cgtc', 'category': '17-21 (TER)'})
+                                     'prefix': '', 'suffix': 'cgtc',
+                                     'category': '17-21 (TER)'})
         assert """<ul class="errorlist"><li>Can not use category and prefix/suffix simoultaneously</li></ul>"""in str(response)
 
         # add suffix
         response = client.post(url, {'seq': open(gb_path),
-                                     'prefix': '', 'suffix': 'cgtc', 'category': ''})
+                                     'prefix': '', 'suffix': 'cgtc',
+                                     'category': ''})
         assert """<ul class="errorlist"><li>You must provide prefix and suffix together</li></ul>""" in str(response)
 
         # not add category nor prefix and suffix
@@ -590,7 +597,7 @@ class DomesticationViewTest(TestCase):
                                      'suffix': 'aatg',
                                      'category': '01-02-03-11-12 (PROM+UTR+ATG)',
                                      'seq_name': 'test'})
-        assert  'LOCUS' in str(response)
+        assert 'LOCUS' in str(response)
 
     # check bipartite_view_protocol
     def test_protocol_view(self):
@@ -603,5 +610,5 @@ class DomesticationViewTest(TestCase):
                                      'prefix': 'ggag',
                                      'suffix': 'aatg',
                                      'category': '01-02-03-11-12 (PROM+UTR+ATG)',
-                                     'seq_name':'test'})
+                                     'seq_name': 'test'})
         assert "Oligo forward: GCGCCGTCTCGCTCGGGAGGAGAGGGGGGGGAGAGAGAT" in str(response)

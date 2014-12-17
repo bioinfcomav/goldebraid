@@ -1,0 +1,9 @@
+[{"pk": 31, 
+  "model": "goldenbraid.Cvterm", 
+  "fields":{
+  	"cv": 1,
+  	"name": "derives_from",
+  	"definition": ""
+  }
+}
+]

@@ -19,7 +19,6 @@ import os
 from django.template.context import RequestContext
 from django.core.context_processors import csrf
 from django.shortcuts import render_to_response, redirect
-from django.core.exceptions import  MultipleObjectsReturned
 from django.db.utils import IntegrityError
 from django.http import HttpResponseServerError
 from django.core.files import File
@@ -28,17 +27,18 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http.response import HttpResponseBadRequest
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.exceptions import MultipleObjectsReturned
 
 from Bio import SeqIO
 from Bio.Seq import Seq
 
 from goldenbraid.models import (Cvterm, Feature, Db, Dbxref, Featureprop,
-                                FeaturePerm)
+                                FeaturePerm, FeatureRelationship, Cv)
 from goldenbraid.settings import REBASE_FILE
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
-                              RESISTANCE_TYPE_NAME)
+                              RESISTANCE_TYPE_NAME, DERIVES_FROM)
 from goldenbraid.forms import (FeatureForm, FeatureManagementForm,
                                get_all_vectors_as_choices, VectorForm)
 
@@ -47,7 +47,7 @@ def parse_rebase_file(fpath):
     'It parses the rebase enzyme file and return a list with all the enzymes'
     enzymes = {}
     enz_name = None
-    for line in  open(fpath):
+    for line in open(fpath):
         line = line.strip()
         if not line:
             continue
@@ -145,8 +145,7 @@ def get_prefix_and_suffix_index(seq, enzyme):
 def get_prefix_and_suffix(seq, enzyme):
     'it gets the prefix and the suffix of the feature seq'
     try:
-        prefix_index, suffix_index, prefix_size = \
-                                      get_prefix_and_suffix_index(seq, enzyme)
+        prefix_index, suffix_index, prefix_size = get_prefix_and_suffix_index(seq, enzyme)
     except RuntimeError as error:
         if str(error) == "No rec_site":
             return None, None
@@ -184,12 +183,42 @@ def _pref_suf_index_from_rec_sites(seq, forw_site, rev_site, rec_site,
     return prefix_index, suffix_index
 
 
+def get_or_create_feature_relationship(object_, subject):
+    derives_from = Cvterm.objects.get(name=DERIVES_FROM)
+    try:
+        FeatureRelationship.objects.get(subject=subject,
+                                        type=derives_from, object=object_)
+    except FeatureRelationship.DoesNotExist:
+        FeatureRelationship.objects.create(subject=subject,
+                                           type=derives_from, object=object_)
+
+
+def add_relations(feature, seq):
+    children = _parse_children_relations_from_gb(seq)
+    if not children:
+        return
+
+    for child in children:
+        child = Feature.objects.get(uniquename=child)
+        get_or_create_feature_relationship(object_=feature, subject=child)
+
+
+def _parse_children_relations_from_gb(seq):
+    definition = seq.description
+    if '(' in definition and ')' in definition:
+        match = re.match('\((.+)\)', definition)
+        return match.group(1).split(',')
+    else:
+        return None
+
+
 def add_feature(name, type_name, vector, genbank, props, owner,
                 is_public=False):
     'it adds a feature to the database'
     feature = None
-    with transaction.commit_manually():
-        try:
+    #transaction.set_autocommit(False)
+    try:
+        with transaction.atomic():
             seq = SeqIO.read(genbank, 'gb')
             residues = str(seq.seq)
             name = name
@@ -207,7 +236,7 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                 raise RuntimeError("a vector feature can't  have a vector")
             if vector:
                 vector = Feature.objects.get(uniquename=vector,
-                                                       type=vector_type)
+                                             type=vector_type)
             else:
                 vector = None
             try:
@@ -216,16 +245,18 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                 raise RuntimeError('the given user does not exist')
             try:
                 feature = Feature.objects.create(uniquename=uniquename,
-                                                           name=name, type=type_,
-                                                           residues=residues,
-                                                          dbxref=dbxref, vector=vector,
-                                                          genbank_file=genbank_file)
+                                                 name=name, type=type_,
+                                                 residues=residues,
+                                                 dbxref=dbxref, vector=vector,
+                                                 genbank_file=genbank_file)
 
             except IntegrityError as error:
                 raise IntegrityError('feature already in db' + str(error))
 
             FeaturePerm.objects.create(feature=feature, owner=user,
-                                                        is_public=is_public)
+                                       is_public=is_public)
+
+            add_relations(feature, seq)
 
             for type_name, values in props.items():
                 try:
@@ -259,14 +290,12 @@ def add_feature(name, type_name, vector, genbank, props, owner,
             feature.suffix = suffix
             feature.save()
 
-        except:
-            if feature:
-                os.remove(feature.genbank_file.path)
-            transaction.rollback()
-            raise
-        else:
-            transaction.commit()
-            return feature
+    except (IntegrityError, RuntimeError):
+        if feature:
+            os.remove(feature.genbank_file.path)
+        transaction.rollback()
+        raise
+    return feature
 
 
 def add_vector_from_form(form_data, user):
@@ -281,8 +310,8 @@ def add_vector_from_form(form_data, user):
         props[REFERENCE_TYPE_NAME] = [form_data['reference']]
 
     vector = add_feature(name=form_data['name'], type_name=VECTOR_TYPE_NAME,
-                          vector=None, genbank=form_data['gbfile'],
-                          props=props, owner=user)
+                         vector=None, genbank=form_data['gbfile'],
+                         props=props, owner=user)
 
     return vector
 
@@ -398,21 +427,21 @@ def feature_view(request, uniquename):
         request_data = None
 
     if feature is None:
-       return render_to_response('goldenbraid_info.html',
-                                 {'title': 'Feature not exist',
-                                  'info': 'This feature ({0}) does not exist in the database'.format(uniquename)},
-                                 context_instance=RequestContext(request))
+        return render_to_response('goldenbraid_info.html',
+                                  {'title': 'Feature not exist',
+                                   'info': 'This feature ({0}) does not exist in the database'.format(uniquename)},
+                                  context_instance=RequestContext(request))
 
     if not request_data:
-        if (feature.is_public  or
-            (request.user.is_staff or request.user == feature.owner)):
-            return render_to_response('feature_template.html', {'feature':
-                                                                     feature},
+        if (feature.is_public or
+           (request.user.is_staff or request.user == feature.owner)):
+            return render_to_response('feature_template.html',
+                                      {'feature': feature},
                                       context_instance=RequestContext(request))
         else:
             return render_to_response('goldenbraid_info.html',
-                                              {'title': 'Not Allowed',
-                         'info': 'You are not allowed to view this feature'},
+                                      {'title': 'Not Allowed',
+                                       'info': 'You are not allowed to view this feature'},
                                       context_instance=RequestContext(request))
 
     else:
@@ -438,17 +467,16 @@ def feature_view(request, uniquename):
 
             elif action in 'make_public' or 'make_private':
                 if request.user.is_staff:
-                    if action == 'make_public' and feature.is_public == False:
+                    if action == 'make_public' and not feature.is_public:
                         featperm = FeaturePerm.objects.get(feature=feature)
                         featperm.is_public = True
                         featperm.save()
-                    elif action == 'make_private' and feature.is_public == True:
+                    elif action == 'make_private' and feature.is_public:
                         featperm = FeaturePerm.objects.get(feature=feature)
                         featperm.is_public = False
                         featperm.save()
                     else:
                         raise RuntimeError('bad conbinations of input request')
-
                     return render_to_response('feature_template.html',
                                               {'feature': feature,
                                                'info': 'Feature modified'},

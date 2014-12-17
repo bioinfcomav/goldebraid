@@ -239,12 +239,19 @@ class Feature(models.Model):
         'owner of the feat'
         return FeaturePerm.objects.get(feature=self).is_public
 
+    @property
+    def children(self):
+        children = []
+        for frls in FeatureRelationship.objects.filter(object=self):
+            children.append(frls.subject)
+        return children
+
 
 class FeaturePerm(models.Model):
     'Model to store the perms of the features'
     feature = models.OneToOneField(Feature, primary_key=True)
     owner = models.ForeignKey(User)
-    is_public = models.BooleanField()
+    is_public = models.BooleanField(default=False)
 
     class Meta:
         db_table = u'featureperm'
@@ -262,3 +269,12 @@ class Featureprop(models.Model):
         db_table = u'featureprop'
 
 
+class FeatureRelationship(models.Model):
+    'Store the relationsshiop between parts'
+    featurerelationship_id = models.AutoField(primary_key=True)
+    type = models.ForeignKey(Cvterm)
+    subject = models.ForeignKey(Feature, related_name='subject')
+    object = models.ForeignKey(Feature, related_name='object')
+
+    class Meta:
+        db_table = u'feature_relationship'

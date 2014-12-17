@@ -1,3 +1,7 @@
+Parent/childen
+Poner la relacion entre piecas cuando se hacen construcciones. Hay que mirar el genbank para las piezas que ya hay hechas y ver las relaciones ahí
+
+
 .- captar todos los posibles errores.
 
 .- Añadir formulario para vectores.
