@@ -39,12 +39,13 @@
       {% endfor %}
    {% endif %}
    {% if feature.children%}
-   		<h2>This piece derives from this other pieces:</h2>
+   		<h2>This piece derives from these other pieces:</h2>
 	  {% with features=feature.children %}
     	{% include "feature_table.html" %}
       {% endwith %}
 
    {%endif%}
+   <h2> Feature Management Tools (only if permission granted)</h2>
    {% if feature.owner == user or user.is_staff %}
         <form action='' method='POST' onsubmit="return confirm('Are you sure you want to delete the feature?')">{% csrf_token %}
             <INPUT type="hidden" name="feature" value="{{ feature.uniquename }}">
