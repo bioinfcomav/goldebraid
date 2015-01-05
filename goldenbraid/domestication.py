@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import  division
+from __future__ import division
 import re
 from itertools import izip_longest
 
@@ -58,7 +58,7 @@ def get_codontable():
 
 def domesticate_for_synthesis(seqrec, category, prefix, suffix):
     kind = category
-    seq = seqrec.seq
+    seq = seqrec.seq.upper()
     new_seq = _remove_rec_sites(seq)[0]
     seqs_for_sintesis, prefix, suffix = _add_tags_to_pcrproducts([new_seq],
                                                                  prefix,
@@ -81,7 +81,7 @@ def domesticate_for_synthesis(seqrec, category, prefix, suffix):
 
 def domesticate(seqrec, category, prefix, suffix):
     kind = category
-    seq = seqrec.seq
+    seq = seqrec.seq.upper()
     min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
     new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq)
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
@@ -378,13 +378,11 @@ def _remove_rec_sites(seq):
             rec_sites_in_seq.append(splitted_part)
         else:
             fragments.append(splitted_part)
-
     new_seq = Seq('', alphabet=generic_dna)
     # we can not convert a rec site in another rec site
     _cumulative_patch = ''  # it is only used to know the frame
     rec_site_pairs = []
-    for fragment, rec_site_in_seq  in izip_longest(fragments,
-                                                   rec_sites_in_seq):
+    for fragment, rec_site_in_seq in izip_longest(fragments, rec_sites_in_seq):
         new_seq += fragment
         if rec_site_in_seq is not None:
             _cumulative_patch += fragment + rec_site_in_seq
@@ -397,7 +395,7 @@ def _remove_rec_sites(seq):
     if str(seq.translate()) != str(new_seq.translate()):
         msg = 'The generated sequence does not produce the same peptide'
         raise ValueError(msg)
-    if  rec_sites_regex.search(str(new_seq)):
+    if rec_sites_regex.search(str(new_seq)):
         msg = 'Not all rec_sites modified'
         raise ValueError(msg)
     return new_seq, rec_site_pairs, fragments

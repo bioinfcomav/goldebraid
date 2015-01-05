@@ -25,7 +25,7 @@ from goldenbraid.domestication import (domesticate, _join_segments,
                                        _get_pcr_segments,
                                        _get_segments_from_rec_site,
                                        domesticate_for_synthesis,
-    _get_stripped_vector_seq)
+                                       _get_stripped_vector_seq)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                          'goldenbraid', 'tests', 'data')
@@ -108,6 +108,12 @@ class DomesticationTest(TestCase):
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTCGCATTTCAAGCACCCACACTGTGAAGCACAACTGTCTCAACA'
         assert oligo_pcrs[0]['oligo_forward'] == 'GCGCCGTCTCGCTCGAATGGTGACCGTCGAAGAAGT'
+
+    def test_domestication_with_intron(self):
+        seq = SeqIO.read(os.path.join(TEST_DATA, 'seq_with_intron.fasta'),
+                         'fasta')
+        oligo_pcrs = domesticate(seq, None, 'CCAT', 'AATG')
+        assert len(oligo_pcrs[0]) == 4
 
     def test_domestication_multiple_sites(self):
         seq = SeqIO.read(os.path.join(TEST_DATA, 'seq_with_rep_rec_sites.fasta'), 'fasta')
