@@ -7,6 +7,7 @@
             <th>Type</th>
             <th>Description</th>
             <th>Owner</th>
+            <th>Entry Date</th>
             <th>Genbank File</th>
         </tr>
     </thead>
@@ -18,6 +19,7 @@
             <td>{{ feature.type.name }}</td>
             <td>{{ feature.description }}</td>
             <td>{{ feature.owner.username }}</td>
+            <td>{{ feature.timecreation }}</td>
             <td>{{ "Download"|link_if_url:feature.genbank_file }}</td>
         </tr>
         {% endfor %}
