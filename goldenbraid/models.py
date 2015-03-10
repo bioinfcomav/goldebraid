@@ -56,7 +56,7 @@ class Dbxref(models.Model):
 
     @property
     def url(self):
-        return  self.db.urlprefix + self.accession
+        return self.db.urlprefix + self.accession
 
 
 class Cvterm(models.Model):

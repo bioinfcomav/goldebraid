@@ -78,6 +78,3 @@ def load_features(reader):
 
         add_feature(name, type_name, vector, open(genbank_fpath),
                     props=props, owner=owner, is_public=is_public)
-
-
-

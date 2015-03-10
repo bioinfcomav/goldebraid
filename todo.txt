@@ -1,5 +1,15 @@
-Parent/childen
-Poner la relacion entre piecas cuando se hacen construcciones. Hay que mirar el genbank para las piezas que ya hay hechas y ver las relaciones ahí
+Cambios para MoClo:
+    1. Cambiar la secuencia del pUPD por la del nuevo vector.
+    	- Cambiar el vector. Implementarlo es sencillo. SOlo hay que cambiar el vector en get_stripper_vec, pero hay que tener una manera de marcar las secuencias y saber si han sido domesticadas con uno u otro vector. En la DB tiene puesto el vector con el que está la feature.
+    	- Mirar el PUPD_PREFIX
+    2. Cambiar el suffix de 13-14-15 (CDS) de GCAG a TTCG.
+	3. Cambiar el prefix de 16 (CT) de GCAG a TTCG.
+		- Estos dos cambio estan relacionados. En el domesticador hay dos funciones que dependiendo el tipo de part a domesticar modifican el prefix y suffix. Hay que ver si eso influye en los cambios y como.
+		- Con cambiar en el settings el PARTS_TO_ASSEMBLE, es suficiente.
+		- Habrá que marcar la parte como imcompatible. Aquellas que no cumplan con las deficiniciones de categorias de los settings
+		- En setting unificar CATEGORIES y PARTS_TO_ASSEMBLE, Para que solo esten las cosas deficinads una vez.
+    
+    
 
 
 .- captar todos los posibles errores.
