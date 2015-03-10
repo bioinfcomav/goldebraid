@@ -15,6 +15,7 @@
 
 from django.test import TestCase
 import os.path
+import re
 
 from Bio.Seq import Seq
 from Bio import SeqIO
@@ -25,8 +26,11 @@ from goldenbraid.domestication import (domesticate, _join_segments,
                                        _get_pcr_segments,
                                        _get_segments_from_rec_site,
                                        domesticate_for_synthesis,
-                                       _get_stripped_vector_seq)
+                                       get_ret_sites,
+                                       change_nucl_in_intron_rec_site)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
+from goldenbraid.settings import ENZYMES_USED_IN_GOLDENBRAID
+
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                          'goldenbraid', 'tests', 'data')
 
@@ -39,7 +43,7 @@ class DomesticationTest(TestCase):
         seq = 'aggctgactatgtcagctagctgacgatcgatgctagctagctgactagctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
-        seq = SeqRecord(Seq(seq))
+        seq = SeqRecord(Seq(seq.upper()))
         category = '13-14-15-16 (CDS)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC',
@@ -65,7 +69,7 @@ class DomesticationTest(TestCase):
         seq = 'aggctgactatgtcagctaGAGACCgctgacgatcgatgctagctagctgactagctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
-        seq = SeqRecord(Seq(seq))
+        seq = SeqRecord(Seq(seq.upper()))
         category = '13-14-15-16 (CDS)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[0]['pcr_product'] == 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC'
@@ -78,7 +82,7 @@ class DomesticationTest(TestCase):
         seq = 'aggctgactatgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacgCGTCTCgctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
-        seq = SeqRecord(Seq(seq))
+        seq = SeqRecord(Seq(seq.upper()))
         category = '13-14-15-16 (CDS)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[1] == {'pcr_product': 'GCGCCGTCTCGCTTGCTAGCAGGTGCTAGGAGACAGGGTCATGCTAGCTTCAGCTAGCTGATCGATCGACTAGCTGATCGATCTGATCGATGCTAGCTAGCTGTACGGAGACAGGCGAGACGGCGC',
@@ -88,7 +92,7 @@ class DomesticationTest(TestCase):
         seq = 'aggctgactatgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacggctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgctgcgtcgggcgtctgatgctagctagctCGTCTCgtacgtcatcttttcagtcgatcta'
-        seq = SeqRecord(Seq(seq))
+        seq = SeqRecord(Seq(seq.upper()))
         category = '13-14-15-16 (CDS)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[2] == {'pcr_product': 'GCGCCGTCTCGCAGGGTCATGCTAGCTGATCTGATCGCTGCGTCGGGCGTCTGATGCTAGCTAGCTCGTATCGTACGTCATCTTTTCAGTCGATCTAAATGCGAGCGAGACGGCGC',
@@ -241,3 +245,17 @@ class DomesticationTest(TestCase):
         result = 'GCGCCGTCTCGCTCGAATGATGATGGGCACTTCCTCTGTTTGGTCGCTATTCCTTCTTTC'
         result += 'TTTTCTTCTCCTTCTCCCGTCCCTCCTAGCAGCCCGAGCGAGACGGCGC'
         assert seq_sin == result
+
+    def test_change_nucl_in_intron_rec_site(self):
+        rec_sites = get_ret_sites(ENZYMES_USED_IN_GOLDENBRAID)
+        # regex with the sites to domesticate
+        rec_sites_regex = '(' + '|'.join(rec_sites) + ')'
+        rec_sites_regex = re.compile(rec_sites_regex, flags=re.IGNORECASE)
+        rec_site = 'cGTCTC'
+        res = change_nucl_in_intron_rec_site(rec_site, rec_sites_regex)
+        assert res == 'aGTCTC'
+        rec_site = 'CGTCTc'
+        res = change_nucl_in_intron_rec_site(rec_site, rec_sites_regex)
+        assert res == 'CGTCTa'
+
+

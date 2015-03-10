@@ -58,7 +58,7 @@ def get_codontable():
 
 def domesticate_for_synthesis(seqrec, category, prefix, suffix):
     kind = category
-    seq = seqrec.seq.upper()
+    seq = seqrec.seq
     new_seq = _remove_rec_sites(seq)[0]
     seqs_for_sintesis, prefix, suffix = _add_tags_to_pcrproducts([new_seq],
                                                                  prefix,
@@ -81,7 +81,7 @@ def domesticate_for_synthesis(seqrec, category, prefix, suffix):
 
 def domesticate(seqrec, category, prefix, suffix):
     kind = category
-    seq = seqrec.seq.upper()
+    seq = seqrec.seq
     min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
     new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq)
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
@@ -91,7 +91,8 @@ def domesticate(seqrec, category, prefix, suffix):
     oligos = _add_tags_to_oligos(oligos, prefix, suffix, kind)
     # coprobar que los overhangs son distintos posiciones 12-15
     forw_bin_sites = []
-    for olig_for, olig_rev in oligos:
+    for oligo in oligos:
+        olig_for = oligo[0]
         for_bin = olig_for[11:15]
         if for_bin in forw_bin_sites:
             raise RuntimeError('Repeated overhang')
@@ -165,7 +166,7 @@ def _get_pcr_segments(seq, rec_sites, fragments):
 
 def _join_segments(segments, min_length=MINIMUN_PCR_LENGTH):
     # join short segments
-    segments = [{'start':s[0], 'end':s[1]} for s in segments]
+    segments = [{'start': s[0], 'end': s[1]} for s in segments]
 
     while not _all_segments_ok(segments, min_length):
         segments = _join_short_segments(segments, min_length)
@@ -231,7 +232,7 @@ def is_dna_palindrome(seq):
 
 
 def _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
-                                 overhangs):
+                                overhangs):
     change_pos = 0
     for letter1, letter2 in zip(rec_site['original'], rec_site['modified']):
         if letter1 != letter2:
@@ -252,7 +253,8 @@ def _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
     while overhang in overhangs:
         rev_start += 1
         fow_end += 1
-        overhang = get_overhang(rev_start, fow_end, prev_seq_len, frag_5, frag_3, rec_site)
+        overhang = get_overhang(rev_start, fow_end, prev_seq_len, frag_5,
+                                frag_3, rec_site)
         if count > 10:
             msg = 'Impossible to domesticate this  sequence\n:'
             msg += 'Domesticated rec site nucleotide is too far from oligo'
@@ -269,7 +271,7 @@ def get_overhang(rev_start, fow_end, prev_seq_len, frag_5, frag_3, rec_site):
     overhang_end = fow_end - prev_seq_len - len(frag_5)
     overhang = rec_site['modified'][overhang_start:overhang_end + 1]
     # si es el ultimo no pasa por aqui
-    if frag_3 is not  None:
+    if frag_3 is not None:
         index = 0
         while len(overhang) < 4:
             overhang += frag_3[index].upper()
@@ -279,8 +281,8 @@ def get_overhang(rev_start, fow_end, prev_seq_len, frag_5, frag_3, rec_site):
 def _get_stripped_vector_seq():
     pupd = Feature.objects.get(uniquename='pUPD')
     vec_seq = pupd.residues
-    prefix_index, suffix_index, prefix_size = get_prefix_and_suffix_index(vec_seq,
-                                                        pupd.enzyme_in[0])
+    pre_suf_size = get_prefix_and_suffix_index(vec_seq, pupd.enzyme_in[0])
+    prefix_index, suffix_index, prefix_size = pre_suf_size
     prefix_start = prefix_index
     suffix_end = suffix_index + prefix_size
     if prefix_start > suffix_end:
@@ -370,7 +372,7 @@ def _remove_rec_sites(seq):
     rec_sites = get_ret_sites(ENZYMES_USED_IN_GOLDENBRAID)
     # regex with the sites to domesticate
     rec_sites_regex = '(' + '|'.join(rec_sites) + ')'
-    rec_sites_regex = re.compile(rec_sites_regex)
+    rec_sites_regex = re.compile(rec_sites_regex, flags=re.IGNORECASE)
     rec_sites_in_seq = []
     fragments = []
     for splitted_part in rec_sites_regex.split(str(seq)):
@@ -387,12 +389,15 @@ def _remove_rec_sites(seq):
         if rec_site_in_seq is not None:
             _cumulative_patch += fragment + rec_site_in_seq
             new_rec_site = _domesticate_rec_site(rec_site_in_seq,
-                                                 _cumulative_patch)
+                                                 _cumulative_patch,
+                                                 rec_sites_regex)
             rec_site_pairs.append({'original': rec_site_in_seq,
                                    'modified': new_rec_site})
 
             new_seq += new_rec_site
-    if str(seq.translate()) != str(new_seq.translate()):
+    coding_seq = Seq(_get_upper_nucls(seq))
+    new_coding_seq = Seq(_get_upper_nucls(new_seq))
+    if str(coding_seq.translate()) != str(new_coding_seq.translate()):
         msg = 'The generated sequence does not produce the same peptide'
         raise ValueError(msg)
     if rec_sites_regex.search(str(new_seq)):
@@ -401,25 +406,48 @@ def _remove_rec_sites(seq):
     return new_seq, rec_site_pairs, fragments
 
 
-def _domesticate_rec_site(rec_site, patch):
+def _get_upper_nucls(seq):
+    return ''.join([nucl for nucl in seq if nucl.isupper()])
+
+
+def change_nucl_in_intron_rec_site(rec_site, rec_sites_regex):
+    for index, nucl in enumerate(rec_site):
+        if nucl.islower():
+            for new_nucl in ('a', 't', 'c', 'g'):
+                new_rec_site = rec_site[:index] + new_nucl
+                if index < (len(rec_site) - 1):
+                    new_rec_site += rec_site[index + 1:]
+
+                if not rec_sites_regex.match(new_rec_site):
+                    return new_rec_site
+
+
+def _domesticate_rec_site(rec_site, patch, rec_sites_regex):
     '''it converts a rec site in a disabled rec_site. It changes one nucleotide
     but tries not to change aa.
     It can not convert in an already unusable rec_site'''
+    with_intron = False
+    for letter in rec_site:
+        if letter.islower():
+            with_intron = True
+    if with_intron:
+        return change_nucl_in_intron_rec_site(rec_site, rec_sites_regex)
     # get a dictionary for codon_table
     codon_table = get_codontable()
     # get the last complete codon
     lastcodon = ''
     baseindex_to_change = ''
-    frame = divmod(len(patch), 3)[1] + 1
+    coding_patch = _get_upper_nucls(patch)
+    frame = divmod(len(coding_patch), 3)[1] + 1
     if frame == 1:
         baseindex_to_change = -1
-        lastcodon = patch[-3:]
+        lastcodon = coding_patch[-3:]
     elif frame == 2:
         baseindex_to_change = -2
-        lastcodon = patch[-4:-1]
+        lastcodon = coding_patch[-4:-1]
     elif frame == 3:
         baseindex_to_change = -3
-        lastcodon = patch[-5:-2]
+        lastcodon = coding_patch[-5:-2]
     else:
         raise ValueError()
 
@@ -428,7 +456,7 @@ def _domesticate_rec_site(rec_site, patch):
     if lastcodon == 'ATG':
         if rec_site == 'GCGATG':
             baseindex_to_change = -4
-            lastcodon = patch[-6:-3]
+            lastcodon = coding_patch[-6:-3]
 
     # get alternative codons (same aminoacid) for the lastcodon
     alt_codons = []
