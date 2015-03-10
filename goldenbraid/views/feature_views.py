@@ -216,7 +216,7 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                 is_public=False):
     'it adds a feature to the database'
     feature = None
-    #transaction.set_autocommit(False)
+    # transaction.set_autocommit(False)
     try:
         with transaction.atomic():
             seq = SeqIO.read(genbank, 'gb')
