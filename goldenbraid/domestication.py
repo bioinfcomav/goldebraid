@@ -30,6 +30,7 @@ from goldenbraid.settings import (REBASE_FILE,
                                   OLIGO_UNIVERSAL, DOMESTICATED_SEQ,
                                   MINIMUN_PCR_LENGTH)
 from goldenbraid.models import Feature, Count
+from Bio.SeqFeature import FeatureLocation, CompoundLocation, SeqFeature
 
 
 def get_ret_sites(enzymes):
@@ -56,9 +57,12 @@ def get_codontable():
     return codon_table
 
 
-def domesticate_for_synthesis(seqrec, category, prefix, suffix):
+def domesticate_for_synthesis(seqrec, category, prefix, suffix,
+                              with_intron=False):
     kind = category
     seq = seqrec.seq
+    if not with_intron:
+        seq = seq.upper()
     new_seq = _remove_rec_sites(seq)[0]
     seqs_for_sintesis, prefix, suffix = _add_tags_to_pcrproducts([new_seq],
                                                                  prefix,
@@ -79,9 +83,11 @@ def domesticate_for_synthesis(seqrec, category, prefix, suffix):
     return seq_for_synthesis, prepared_seq
 
 
-def domesticate(seqrec, category, prefix, suffix):
+def domesticate(seqrec, category, prefix, suffix, with_intron=False):
     kind = category
     seq = seqrec.seq
+    if not with_intron:
+        seq = seq.upper()
     min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
     new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq)
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
@@ -103,9 +109,6 @@ def domesticate(seqrec, category, prefix, suffix):
                                                             prefix, suffix,
                                                             kind)
 
-    vector_seq = _get_stripped_vector_seq()
-    prepared_new_seq = prefix + new_seq + suffix + vector_seq
-
     oligo_pcrs = []
     for pcr, oligo in zip(pcr_products, oligos):
         oligo_pcrs.append({'pcr_product': pcr, 'oligo_forward': oligo[0],
@@ -116,8 +119,30 @@ def domesticate(seqrec, category, prefix, suffix):
     except Count.DoesNotExist:
         count = Count.objects.create(name=DOMESTICATED_SEQ, value=1)
     next_value = count.next
+
+    vector_seq = _get_stripped_vector_seq()
+    prepared_new_seq = prefix + new_seq + suffix + vector_seq
     seq_name = DOMESTICATED_SEQ + '_' + next_value
-    return oligo_pcrs, SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
+    new_seq_record = SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
+
+    if with_intron:
+        cds = _get_cds_from_seq(seq, prefix)
+        new_seq_record.features.append(cds)
+
+    return oligo_pcrs, new_seq_record
+
+
+def _get_cds_from_seq(seq, prefix):
+
+    cds_locs = []
+    for match in re.finditer('[A-Z]+', str(seq)):
+        cds_locs.append(FeatureLocation(match.start() + len(prefix),
+                                        match.end() + len(prefix), strand=1))
+
+    qualifiers = {'translation': Seq(_get_upper_nucls(seq)).translate()}
+    cds = SeqFeature(CompoundLocation(cds_locs), type='CDS', strand=1,
+                     qualifiers=qualifiers)
+    return cds
 
 
 def _get_oligos(seq, segments, min_melting_temp):

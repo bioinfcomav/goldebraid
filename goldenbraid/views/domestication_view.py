@@ -15,6 +15,7 @@
 
 from tempfile import NamedTemporaryFile
 from textwrap import fill
+
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
@@ -63,28 +64,35 @@ def _domestication_view(request, kind):
             else:
                 prefix = CATEGORIES[category][1]
                 suffix = CATEGORIES[category][2]
+            with_intron = form.cleaned_data['with_intron']
+            with_intron_str = '1' if with_intron else '0'
             if kind == 'domestication':
-                pcr = domesticate(seq, category, prefix, suffix)[0]
+                pcr = domesticate(seq, category, prefix, suffix,
+                                  with_intron)[0]
+
                 return render_to_response('domestication_result.html',
                                           {'category': category,
                                            'prefix': prefix,
                                            'suffix': suffix,
                                            'pcrs': pcr,
                                            'seq': str(seq.seq),
-                                           'seq_name': seq.name},
+                                           'seq_name': seq.name,
+                                           'with_intron': with_intron_str},
                                       context_instance=RequestContext(request))
             elif kind == 'synthesis':
                 seq_for_syn, prepared_seq = domesticate_for_synthesis(seq,
-                                                                    category,
-                                                                    prefix,
-                                                                    suffix)
+                                                                   category,
+                                                                   prefix,
+                                                                   suffix,
+                                                                   with_intron)
                 return render_to_response('synthesis_result.html',
                                           {'category': category,
                                            'prefix': prefix,
                                            'suffix': suffix,
                                            'seq_syn': seq_for_syn,
                                            'seq': str(prepared_seq.seq),
-                                           'seq_name': prepared_seq.name},
+                                           'seq_name': prepared_seq.name,
+                                           'with_intron': with_intron_str},
                                       context_instance=RequestContext(request))
     else:
         form = DomesticationForm()
@@ -97,8 +105,9 @@ def _domestication_view(request, kind):
 
 
 def synthesis_view_genbank(request):
-    def function(seq, category, prefix, suffix):
-        seq = domesticate_for_synthesis(seq, category, prefix, suffix)[1]
+    def function(seq, category, prefix, suffix, with_intron):
+        seq = domesticate_for_synthesis(seq, category, prefix, suffix,
+                                        with_intron)[1]
         response = HttpResponse(seq.format('genbank'),
                                 content_type='text/plain')
         response['Content-Disposition'] = 'attachment; '
@@ -108,8 +117,8 @@ def synthesis_view_genbank(request):
 
 
 def domestication_view_genbank(request):
-    def function(seq, category, prefix, suffix):
-        seq = domesticate(seq, category, prefix, suffix)[1]
+    def function(seq, category, prefix, suffix, with_intron):
+        seq = domesticate(seq, category, prefix, suffix, with_intron)[1]
         response = HttpResponse(seq.format('genbank'),
                                 content_type='text/plain')
         response['Content-Disposition'] = 'attachment; '
@@ -186,12 +195,13 @@ def domestication_view_add(request):
     suffix = request_data['suffix']
     seq_name = request_data['seq_name']
     name = request_data['name']
+    with_intron = bool(int(request_data['with_intron']))
     if category == 'None':
         category_name = 'Other'
     else:
         category_name = CATEGORIES[category][0]
     seq = SeqRecord(Seq(seq), id=seq_name, name=seq_name)
-    seq = domesticate(seq, category, prefix, suffix)[1]
+    seq = domesticate(seq, category, prefix, suffix, with_intron)[1]
     temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(seq.id),
                                     suffix='.gb')
     temp_fhand.write(seq.format('gb'))
@@ -221,8 +231,9 @@ def domestication_view_add(request):
 
 
 def synthesis_view_protocol(request):
-    def function(seq, category, prefix, suffix):
-        seq = domesticate_for_synthesis(seq, category, prefix, suffix)[0]
+    def function(seq, category, prefix, suffix, with_intron):
+        seq = domesticate_for_synthesis(seq, category, prefix, suffix,
+                                        with_intron)[0]
         protocol = write_synthesis_protocol(seq)
         response = HttpResponse(protocol, content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
@@ -232,8 +243,8 @@ def synthesis_view_protocol(request):
 
 
 def domestication_view_protocol(request):
-    def function(seq, category, prefix, suffix):
-        pcrs, seq = domesticate(seq, category, prefix, suffix)
+    def function(seq, category, prefix, suffix, with_intron):
+        pcrs, seq = domesticate(seq, category, prefix, suffix, with_intron)
         protocol = write_domestication_protocol(pcrs)
         response = HttpResponse(protocol, content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
@@ -253,6 +264,8 @@ def _domestication_view_no_template(request, function):
     category = request_data['category']
     prefix = request_data['prefix']
     suffix = request_data['suffix']
+    with_intron = request_data['with_intron']
+    with_intron = bool(int(with_intron))
     seq_name = request_data['seq_name']
     seq = SeqRecord(Seq(seq), id=seq_name, name=seq_name)
-    return function(seq, category, prefix, suffix)
+    return function(seq, category, prefix, suffix, with_intron)

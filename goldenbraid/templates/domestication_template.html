@@ -22,13 +22,16 @@
 	  	</li>
 		<li>
 	        {{ form.seq.errors }}<label for="name">Add a genbank or a fasta file:</label>{{ form.seq }}
-	    	</li>
+	    </li>
 		<li>
 	        {{ form.prefix.errors }}<label for="name">Custom prefix:</label>{{ form.prefix }}
-	    	</li>
+	    </li>
 		<li>
 	        {{ form.suffix.errors }}<label for="name">Custom suffix:</label>{{ form.suffix }}
-	    	</li>
+	    </li>
+	    <li>
+            {{ form.category.errors }}<label for="name">{{ form.with_intron.label}}:</label>{{ form.with_intron }}
+        </li>
 	</ul>
 	<input type="submit" value="Submit" />
 {% endif %}

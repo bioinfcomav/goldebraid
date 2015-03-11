@@ -43,7 +43,7 @@ class DomesticationTest(TestCase):
         seq = 'aggctgactatgtcagctagctgacgatcgatgctagctagctgactagctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
-        seq = SeqRecord(Seq(seq.upper()))
+        seq = SeqRecord(Seq(seq))
         category = '13-14-15-16 (CDS)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC',
@@ -69,9 +69,9 @@ class DomesticationTest(TestCase):
         seq = 'aggctgactatgtcagctaGAGACCgctgacgatcgatgctagctagctgactagctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
-        seq = SeqRecord(Seq(seq.upper()))
+        seq = SeqRecord(Seq(seq))
         category = '13-14-15-16 (CDS)'
-        oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
+        oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG', with_intron=False)[0]
         assert oligo_pcrs[0]['pcr_product'] == 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC'
         assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA'
         assert oligo_pcrs[0]['oligo_forward'] == 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGAT'
@@ -116,7 +116,7 @@ class DomesticationTest(TestCase):
     def test_domestication_with_intron(self):
         seq = SeqIO.read(os.path.join(TEST_DATA, 'seq_with_intron.fasta'),
                          'fasta')
-        oligo_pcrs = domesticate(seq, None, 'CCAT', 'AATG')
+        oligo_pcrs = domesticate(seq, None, 'CCAT', 'AATG', with_intron=True)
         assert len(oligo_pcrs[0]) == 4
 
     def test_domestication_multiple_sites(self):
@@ -129,9 +129,10 @@ class DomesticationTest(TestCase):
         frag3 = 'TTATATATAT'
         rec_site = {'original': 'CGTCTC', 'modified': 'CGTATC'}
         prev_seq_len = 0
-        end, start, overhangs = _get_segments_from_rec_site(frag5, frag3, rec_site,
-                                                  prev_seq_len,
-                                                  overhangs=[])
+        end, start, overhangs = _get_segments_from_rec_site(frag5, frag3,
+                                                            rec_site,
+                                                            prev_seq_len,
+                                                            overhangs=[])
         assert (51, 54) == (end, start)
 
     def test_get_pcr_segments(self):

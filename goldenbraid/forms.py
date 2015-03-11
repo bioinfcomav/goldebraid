@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from Bio.SeqRecord import SeqRecord
-
 try:
     from collections import OrderedDict
 except ImportError:
@@ -350,7 +349,7 @@ def get_bipart_vector_choices(part_uniquename, user):
                              featureprop__value=part_enzyme_out)
     if user.is_authenticated():
         vectors = vectors.filter(Q(featureperm__owner__username=user) |
-                             Q(featureperm__is_public=True))
+                                 Q(featureperm__is_public=True))
     else:
         vectors = vectors.filter(featureperm__is_public=True)
 
@@ -362,6 +361,8 @@ class DomesticationForm(forms.Form):
     choices = [('', '')]
     for category_name in CATEGORIES.keys():
         choices.append((category_name, category_name))
+    intron_label = 'The secuence has introns in lowercase'
+    with_intron = forms.BooleanField(label=intron_label, required=False)
     category = forms.CharField(max_length=100,
                                label='Choose a category to domesticate to',
                                widget=Select(choices=choices), required=False)
@@ -383,6 +384,7 @@ class DomesticationForm(forms.Form):
         return category_name
 
     def _seq_validation(self, seq):
+        with_intron = self.cleaned_data['with_intron']
         if not _seq_is_dna(seq.seq):
             msg = 'The given file contains seqs with not allowed nucleotides'
             msg += ' ATGC'
@@ -394,18 +396,18 @@ class DomesticationForm(forms.Form):
             category = self.cleaned_data['category']
             if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',
                              '13-14-15 (CDS)'):
-                if not _seq_has_codon_start(seq.seq):
+                if not _seq_has_codon_start(seq.seq, with_intron):
                     msg = 'The provided seq must start with start codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
             if category in ('13-14-15-16 (CDS)', '14-15-16 (CDS)', '16 (CT)'):
-                if not _seq_has_codon_end(seq.seq):
+                if not _seq_has_codon_end(seq.seq, with_intron):
                     msg = 'The provided seq must end with a end codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
             if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',
                             '13-14-15 (CDS)', '14-15-16 (CDS)', '16 (CT)'):
-                if not _is_seq_3_multiple(seq.seq):
+                if not _is_seq_3_multiple(seq.seq, with_intron):
                     msg = 'The provided seq must be multiple of three in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
@@ -415,7 +417,7 @@ class DomesticationForm(forms.Form):
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
             if category in ('13-14-15 (CDS)', '12 (NT)', '13 (SP)'):
-                if _seq_has_codon_end(seq.seq):
+                if _seq_has_codon_end(seq.seq, with_intron):
                     msg = 'The provided seq must not end with a stop codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
@@ -492,7 +494,7 @@ class DomesticationForm(forms.Form):
 
     def _multi_field_validation(self):
         cleaned_data = self.cleaned_data
-        if not 'seq' in self._errors and not 'residues' in self._errors:
+        if 'seq' not in self._errors and 'residues' not in self._errors:
             try:
                 if (not self._data_in(cleaned_data, 'seq') and
                     not self._data_in(cleaned_data, 'residues')):
@@ -565,17 +567,29 @@ def _seq_is_dna(string):
     return False if len_sum != len(string) else True
 
 
-def _seq_has_codon_start(seq):
+# this function is repeated in domestication module. But it can not be imported
+# because cross imports. I copied here as it is very simple
+def get_upper_nucls(seq):
+    return ''.join([nucl for nucl in seq if nucl.isupper()])
+
+
+def _seq_has_codon_start(seq, with_intron):
+    if with_intron:
+        seq = get_upper_nucls(seq)
     start = str(seq[:3].upper())
     return True if start == 'ATG' else False
 
 
-def _seq_has_codon_end(seq):
+def _seq_has_codon_end(seq, with_intron):
+    if with_intron:
+        seq = get_upper_nucls(seq)
     end = str(seq[-3:].upper())
     return True if end in ('TAG', 'TAA', 'TGA') else False
 
 
-def _is_seq_3_multiple(seq):
+def _is_seq_3_multiple(seq, with_intron):
+    if with_intron:
+        seq = get_upper_nucls(seq)
     return True if divmod(len(seq), 3)[1] == 0 else False
 
 
