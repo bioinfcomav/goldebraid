@@ -596,7 +596,8 @@ class DomesticationViewTest(TestCase):
                                      'prefix': 'ggag',
                                      'suffix': 'aatg',
                                      'category': '01-02-03-11-12 (PROM+UTR+ATG)',
-                                     'seq_name': 'test'})
+                                     'seq_name': 'test',
+                                     'with_intron': '0'})
         assert 'LOCUS' in str(response)
 
     # check bipartite_view_protocol
@@ -610,5 +611,6 @@ class DomesticationViewTest(TestCase):
                                      'prefix': 'ggag',
                                      'suffix': 'aatg',
                                      'category': '01-02-03-11-12 (PROM+UTR+ATG)',
-                                     'seq_name': 'test'})
+                                     'seq_name': 'test',
+                                     'with_intron': '0'})
         assert "Oligo forward: GCGCCGTCTCGCTCGGGAGGAGAGGGGGGGGAGAGAGAT" in str(response)
