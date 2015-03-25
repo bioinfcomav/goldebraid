@@ -45,6 +45,9 @@ class Cv(models.Model):
     class Meta:
         db_table = u'cv'
 
+    def __unicode__(self):
+        return u'{}'.format(self.name)
+
 
 class Dbxref(models.Model):
     dbxref_id = models.AutoField(primary_key=True)
@@ -68,8 +71,12 @@ class Cvterm(models.Model):
     class Meta:
         db_table = u'cvterm'
 
+    def __unicode__(self):
+        return u'{}'.format(self.name)
+
 
 class Count(models.Model):
+    "This clase is used to count how many entrys of type name has been created"
     count_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     value = models.IntegerField()
@@ -145,6 +152,9 @@ class Feature(models.Model):
 
     class Meta:
         db_table = u'feature'
+
+    def __unicode__(self):
+        return u'{}'.format(self.uniquename)
 
     @property
     def url(self):
@@ -322,3 +332,132 @@ class FeatureRelationship(models.Model):
 
     class Meta:
         db_table = u'feature_relationship'
+
+
+class Experiment(models.Model):
+    'Store the experiments asociated to features'
+    experiment_id = models.AutoField(primary_key=True)
+    uniquename = models.CharField(max_length=255, unique=True)
+    chasis_1 = models.CharField(max_length=255)
+    chasis_2 = models.CharField(max_length=255)
+    description = models.TextField(max_length=255)
+    type = models.ForeignKey(Cvterm)
+    timecreation = models.DateTimeField(auto_now_add=True)
+    dbxref = models.ForeignKey(Dbxref)
+
+    class Meta:
+        db_table = 'experiment'
+
+    @property
+    def owner(self):
+        'owner of the feat'
+        return ExperimentPerm.objects.get(experiment=self).owner
+        # return self.featureperm.owner
+
+    @property
+    def is_public(self):
+        'owner of the feat'
+        return ExperimentPerm.objects.get(experiment=self).is_public
+
+    @property
+    def url(self):
+        urlprefix = self.dbxref.db.urlprefix
+        feat_dir = 'experiment'
+        accession = self.dbxref.accession
+        return '{0}{1}/{2}'.format(urlprefix, feat_dir, accession)
+
+    @property
+    def numeric_props(self):
+        prop_dict = {}
+        props = ExperimentPropNumeric.objects.filter(experiment=self)
+        for prop in props:
+            type_ = prop.type.name
+            value = prop.value
+            if type_ not in prop_dict:
+                prop_dict[type_] = []
+            prop_dict[type_].append(value)
+
+        return ReadOnlyDict(prop_dict)
+
+    @property
+    def text_props(self):
+        prop_dict = {}
+        props = ExperimentPropText.objects.filter(experiment=self)
+        for prop in props:
+            title = prop.title
+            value = prop.value
+            if title not in prop_dict:
+                prop_dict[title] = []
+            prop_dict[title].append(value)
+
+        return ReadOnlyDict(prop_dict)
+
+
+class ExperimentPerm(models.Model):
+    experiment = models.OneToOneField(Experiment, primary_key=True)
+    owner = models.ForeignKey(User)
+    is_public = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = u'experimentperm'
+
+
+class ExperimentFeature(models.Model):
+    experiment_feature_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    feature = models.ForeignKey(Feature)
+    role = models.ForeignKey(Cvterm)  # Main, acesory, key
+
+    class Meta:
+        db_table = u'experimentfeature'
+
+
+class ExperimentKeySubFeature(models.Model):
+    experiment_key_subfeature_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    feature = models.ForeignKey(Feature)
+
+    class Meta:
+        db_table = u'experimentkeysubfeature'
+
+
+class ExperimentPropNumeric(models.Model):
+    experiment_prop_numeric_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    type = models.ForeignKey(Cvterm)
+    value = models.FloatField()
+
+    class Meta:
+        db_table = u'experimentpropnumeric'
+
+
+class ExperimentPropText(models.Model):
+    experiment_prop_text_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    title = models.CharField(max_length=255)
+    value = models.TextField(max_length=255)
+
+    class Meta:
+        db_table = u'experimentproptext'
+
+
+# TODO: File name must be unique
+class ExperimentPropImage(models.Model):
+    experiment_prop_image_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    image = models.ImageField(upload_to=settings.RESULTS_DIR)
+    description = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = u'experimentpropimage'
+
+
+class ExperimentPropExcel(models.Model):
+    experiment_prop_excel_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    image = models.FileField(upload_to=settings.RESULTS_DIR)
+    description = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = u'experimentpropexcel'
+

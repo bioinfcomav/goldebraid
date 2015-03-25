@@ -27,6 +27,8 @@ from goldenbraid.tags import MODULE_TYPE_NAME, TU_TYPE_NAME
 
 
 GENBANK_DIR = getattr(settings, 'GOLDENBRAID_GENBANK_DIR', 'genbank_files')
+RESULTS_DIR = getattr(settings, 'GOLDENBRAID_RESULTS_DIR', 'result_files')
+
 REBASE = os.path.join(goldenbraid.__path__[0], 'rebase', 'withrefm.301')
 REBASE_FILE = getattr(settings, 'GOLDENBRAID_REBASE_FILE', REBASE)
 SEARCH_MENU_TYPE_CHOICES = getattr(settings,
@@ -126,3 +128,4 @@ PUPD_PREFIX = 'CTCG'
 OLIGO_UNIVERSAL = 'GCGCCGTCTCG'
 ASSEMBLED_SEQ = 'GB_UA'
 DOMESTICATED_SEQ = 'GB_UD'
+EXPERIMENT_ID_PREFIX = 'GB_EXP'

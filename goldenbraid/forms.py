@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from Bio.SeqRecord import SeqRecord
+from django.forms.models import ModelForm
 try:
     from collections import OrderedDict
 except ImportError:
@@ -27,8 +28,10 @@ from django.db.models import Q
 from Bio.Seq import Seq
 from Bio import SeqIO
 
-from goldenbraid.models import Cvterm, Feature
-from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME
+from goldenbraid.models import Cvterm, Feature, Experiment, \
+    ExperimentPropNumeric, ExperimentPropText, Cv
+from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME, \
+    EXPERIMENT_TYPES, NUMERIC_TYPES
 from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
                                   UT_PREFIX, SITE_B, SITE_A, SITE_C,
                                   BIPARTITE_ALLOWED_PARTS, CATEGORIES,
@@ -615,5 +618,58 @@ class FeatureManagementForm(forms.Form):
         uniquename = self.cleaned_data['feature']
         return create_feature_validator('feature')(self)
 
+# experiments
 
 
+class ExperimentForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ExperimentForm, self).__init__(*args, **kwargs)
+        cv = Cv.objects.get(name=EXPERIMENT_TYPES)
+        exp_type_choices = [('', '')]
+        for cvterm in Cvterm.objects.filter(cv=cv):
+            exp_type_choices.append((cvterm.cvterm_id, cvterm.name))
+        self.fields['type'] = forms.ChoiceField(choices=exp_type_choices)
+
+    class Meta:
+        model = Experiment
+        fields = ['chasis_1', 'chasis_2', 'description', 'type']
+
+    def clean_type(self):
+        cvterm_id = self.cleaned_data['type']
+        try:
+            cvterm = Cvterm.objects.get(cvterm_id=cvterm_id)
+        except Cvterm.DoesNotExist:
+            raise ValidationError('This experiment type does not exist!')
+        if cvterm.cv.name != EXPERIMENT_TYPES:
+            raise ValidationError('This type is not an experiment type')
+        return cvterm
+
+
+class ExperimentNumForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ExperimentNumForm, self).__init__(*args, **kwargs)
+        cv = Cv.objects.get(name=NUMERIC_TYPES)
+        exp_type_choices = [('', '')]
+        for cvterm in Cvterm.objects.filter(cv=cv):
+            exp_type_choices.append((cvterm.cvterm_id, cvterm.name))
+        self.fields['type'] = forms.ChoiceField(choices=exp_type_choices)
+
+    class Meta:
+        model = ExperimentPropNumeric
+        exclude = ['experiment']
+
+    def clean_type(self):
+        cvterm_id = self.cleaned_data['type']
+        try:
+            cvterm = Cvterm.objects.get(cvterm_id=cvterm_id)
+        except Cvterm.DoesNotExist:
+            raise ValidationError('This experiment type does not exist!')
+        if cvterm.cv.name != NUMERIC_TYPES:
+            raise ValidationError('This type is not an experiment type')
+        return cvterm
+
+
+class ExperimentTextForm(ModelForm):
+    class Meta:
+        model = ExperimentPropText
+        exclude = ['experiment']

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Add feature {% endblock title %}
+
+{% block extra_js %}
+<script src="/static/jquery-1.3.2.min.js"></script>
+<script src="/static/jquery.formset.js"></script>
+<script type="text/javascript">
+    $(function() {
+        $('#id_numeric_table tbody tr').formset({
+              prefix: '{{ numeric_formset.prefix }}'
+        });
+    })
+    $(function() {
+        $('#id_text_table tbody tr').formset({
+              prefix: '{{ text_formset.prefix }}'
+        });
+    })
+</script>
+<style type="text/css">
+    .add-row {
+        padding-left:18px;
+        background:url(/static/style/images/add.png) no-repeat left center;
+    }
+    .delete-row {
+        float:right;
+        display:block;
+        margin:5px 0 0 5px;
+        text-indent:-6000px;
+        background:url(/static/style/images/delete.png) no-repeat left center;
+        width:16px;
+        height:16px;
+    }
+
+</style>
+{% endblock %}
+{% block content %}
+<p><span class='emphasis'>Note: User-added GBdatabase entries are private and only accessible to the user who created them.</span></p>
+<p>To add a construct to the database fill out the following form:</p>
+<form action=""  enctype="multipart/form-data" method="post">{% csrf_token %}
+<fieldset>
+<legend>Experiment information:</legend>
+{{form.as_table }}
+</fieldset>
+<br>
+<fieldset>
+<legend>Numeric informaction:</legend>
+<table id='id_numeric_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+    {% for numeric_form in numeric_formset %}
+        <tr>
+            <td>{{numeric_form.type}}</td>
+            <td>{{numeric_form.value}}</td>
+        </tr>{{numeric_form.errors}}
+    {% endfor %}
+    </tbody>
+</table>
+{{ numeric_formset.management_form }}
+</fieldset>
+<fieldset>
+<legend>Text informaction:</legend>
+<table id='id_text_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+    {% for text_form in text_formset %}
+        <tr>
+            <td>{{text_form.title}}</td>
+            <td>{{text_form.value}}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{{ text_formset.management_form }}
+</fieldset>
+
+     
+<input type="submit" value="Add" />
+</form>
+
+{% endblock content %}

@@ -28,3 +28,7 @@ GOLDEN_CV = 'goldenbraid'
 FORWARD = 'forward'
 REVERSE = 'reverse'
 DERIVES_FROM = 'derives_from'
+
+# Cvs that a user has to save in DB
+EXPERIMENT_TYPES = 'experiment_types'
+NUMERIC_TYPES = 'numeric_types'

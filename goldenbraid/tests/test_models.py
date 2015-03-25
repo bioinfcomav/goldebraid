@@ -12,9 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.db.transaction import Transaction
-from django.db import transaction
-
 '''
 tests the goldenbraid models
 '''
@@ -23,14 +20,15 @@ from django.test import TestCase
 from django.db.utils import IntegrityError
 from django.core.files import File
 from django.conf import settings as proj_settings
+from django.db import transaction
 
 import goldenbraid
 from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
                                 Contact, Stock, Stockcollection, Count,
-                                FeaturePerm, FeatureRelationship)
+                                FeaturePerm, FeatureRelationship, Experiment)
 from goldenbraid.tags import (ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME,
-    DERIVES_FROM)
+                              DERIVES_FROM)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
@@ -205,3 +203,12 @@ class FeatureTestModels(TestCase):
                                                      subject=f2)
         assert fet_rel.type.name == DERIVES_FROM
         assert f1.children[0].uniquename == "GB0365"
+
+
+class ExperimentTests(TestCase):
+    fixtures = FIXTURES_TO_LOAD
+
+    def test_feature_relationship(self):
+        feature = Feature.objects.get(feature_id=47)
+        exp = Experiment.objects.create(feature=feature)
+        print feature.name
