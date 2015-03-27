@@ -25,7 +25,7 @@ from django.core.files import File
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http.response import HttpResponseBadRequest
+from django.http.response import HttpResponseBadRequest, HttpResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import MultipleObjectsReturned
 
@@ -41,6 +41,7 @@ from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, DERIVES_FROM)
 from goldenbraid.forms import (FeatureForm, FeatureManagementForm,
                                get_all_vectors_as_choices, VectorForm)
+import json
 
 
 def parse_rebase_file(fpath):
@@ -490,3 +491,25 @@ def feature_view(request, uniquename):
             else:
                 return HttpResponseBadRequest()
 
+
+def feature_acc_json_view(request):
+    query = Feature.objects.all()
+
+    if request.method == 'GET':
+        if u'uniquename' in request.GET:
+            # get all children for feat
+            pass
+        if u'term' in request.GET:
+            term = request.GET['term']
+            query = query.filter(uniquename__contains=term)
+        if u'limit' in request.GET:
+            try:
+                limit = int(request.GET[u'limit'])
+                query = query[:limit]
+            except ValueError:
+                pass
+
+    uniquenames = query.values('uniquename')
+    uniquenames = [uniqna['uniquename'] for uniqna in uniquenames]
+    return HttpResponse(json.dumps(uniquenames),
+                        content_type='application/json')

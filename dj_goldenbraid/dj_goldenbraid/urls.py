@@ -26,12 +26,12 @@ urlpatterns = patterns('',
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
+    (r'^media/(?P<path>.*)$', 'django.contrib.staticfiles.views.serve'),
     (r'^accounts/login/$', 'django.contrib.auth.views.login'),
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
     (r'^genome_domestication/search/', include('restcmd_client.urls')),
     (r'^genome_domestication/', include('gb_genome_domestication.urls')),
-    #(r'^cmd_client/', include('restcmd_client.urls')),
+    # (r'^cmd_client/', include('restcmd_client.urls')),
     (r'', include('goldenbraid.urls')),
 )

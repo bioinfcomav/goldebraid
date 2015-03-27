@@ -15,7 +15,8 @@
 
 from django.conf.urls import patterns, url
 from goldenbraid.views.feature_views import (add_feature_view, feature_view,
-                                             add_vector_view)
+                                             add_vector_view,
+                                             feature_acc_json_view)
 from goldenbraid.views.feature_search_view import search_features_view
 from goldenbraid.views.multipartite_views import (multipartite_view,
                                                   multipartite_protocol_view,
@@ -47,6 +48,8 @@ urlpatterns = patterns('',
             name='experiment_view'),
         url(r'^search/features/$', search_features_view,
             name='search_features'),
+        url('feature/uniquenames/$', feature_acc_json_view,
+            name='feature_acc_json'),
         url(r'^feature/(?P<uniquename>.+)/$', feature_view,
             name='feature_view'),
         url(r'^do/multipartite/add/?$',

@@ -12,8 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from Bio.SeqRecord import SeqRecord
-from django.forms.models import ModelForm
+from django.http.response import HttpResponse
+import json
+
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -25,25 +27,30 @@ from django.core.exceptions import ValidationError
 from django.forms.widgets import Select
 from django.forms.util import ErrorDict
 from django.db.models import Q
+from django.forms.models import ModelForm
+from django.core.urlresolvers import reverse
+
+from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from Bio import SeqIO
 
-from goldenbraid.models import Cvterm, Feature, Experiment, \
-    ExperimentPropNumeric, ExperimentPropText, Cv
-from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME, \
-    EXPERIMENT_TYPES, NUMERIC_TYPES
+from goldenbraid.models import (Cvterm, Feature, Experiment,
+                                ExperimentPropNumeric, ExperimentPropText, Cv,
+                                ExperimentPropImage, ExperimentFeature)
+from goldenbraid.tags import (VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME,
+                              EXPERIMENT_TYPES, NUMERIC_TYPES)
 from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
                                   UT_PREFIX, SITE_B, SITE_A, SITE_C,
                                   BIPARTITE_ALLOWED_PARTS, CATEGORIES,
                                   SEARCH_MENU_TYPE_CHOICES,
                                   MINIMUN_PCR_LENGTH)
-
+from goldenbraid.widgets import AutocompleteTextInput
 
 def get_vector_choices(user):
     vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
     if user.is_authenticated():
         vectors = vectors.filter(Q(featureperm__owner__username=user) |
-                             Q(featureperm__is_public=True))
+                                 Q(featureperm__is_public=True))
     else:
         vectors = vectors.filter(featureperm__is_public=True)
 
@@ -669,7 +676,21 @@ class ExperimentNumForm(ModelForm):
         return cvterm
 
 
+class ExperimentFeatureForm(ModelForm):
+    class Meta:
+        model = ExperimentFeature
+        exclude = ['experiment']
+        widgets = {'feature': AutocompleteTextInput(source='/feature/uniquenames/',
+                                                    min_length=1)}
+
+
 class ExperimentTextForm(ModelForm):
     class Meta:
         model = ExperimentPropText
+        exclude = ['experiment']
+
+
+class ExperimentImageForm(ModelForm):
+    class Meta:
+        model = ExperimentPropImage
         exclude = ['experiment']

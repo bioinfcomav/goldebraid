@@ -15,10 +15,10 @@ from django.contrib.auth.decorators import login_required
 
 
 from goldenbraid.forms import (ExperimentForm, ExperimentNumForm,
-                               ExperimentTextForm)
+                               ExperimentTextForm, ExperimentFeatureForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
-    Cvterm, Cv)
+    Cvterm, Cv, ExperimentPropImage, ExperimentFeature)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB
 from django.forms.models import modelformset_factory
@@ -50,8 +50,8 @@ def experiment_view(request, uniquename):
                                       context_instance=RequestContext(request))
 
 
-def _add_experiment(form, numeric_formset, text_formset, user,
-                    is_public=False):
+def _add_experiment(form, numeric_formset, text_formset, image_formset,
+                    feat_formset, user, is_public=False):
     try:
         with transaction.atomic():
             experiment = form.save(commit=False)
@@ -78,8 +78,9 @@ def _add_experiment(form, numeric_formset, text_formset, user,
             ExperimentPerm.objects.create(experiment=experiment, owner=user,
                                           is_public=is_public)
 
-            print type(numeric_formset)
             for numeric_prop in numeric_formset.cleaned_data:
+                if not numeric_prop:
+                    continue
                 type_ = numeric_prop['type']
                 value = numeric_prop['value']
                 ExperimentPropNumeric.objects.create(experiment=experiment,
@@ -89,6 +90,12 @@ def _add_experiment(form, numeric_formset, text_formset, user,
             for text_prop in text_props:
                 text_prop.experiment = experiment
                 text_prop.save()
+
+            image_props = image_formset.save(commit=False)
+            for image_prop in image_props:
+                image_prop.experiment = experiment
+                image_prop.save()
+
     except (IntegrityError, RuntimeError):
         transaction.rollback()
         raise
@@ -101,23 +108,28 @@ def add_experiment_view(request):
     context = RequestContext(request)
     context.update(csrf(request))
     request_data = request.POST if request.method == 'POST' else None
+    FeatFormset = formset_factory(ExperimentFeatureForm)
     NumericFormset = formset_factory(ExperimentNumForm)
-#     NumericFormset = modelformset_factory(ExperimentPropNumeric,
-#                                           exclude=('experiment',))
     TextFormset = modelformset_factory(ExperimentPropText,
                                        exclude=('experiment',))
+    ImageFormset = modelformset_factory(ExperimentPropImage,
+                                        exclude=('experiment',))
     if request_data:
         form = ExperimentForm(request_data, instance=Experiment())
+        feat_formset = FeatFormset(request_data, prefix='feature')
         numeric_formset = NumericFormset(request_data, prefix='numeric')
         text_formset = TextFormset(request_data, prefix='text')
+        image_formset = ImageFormset(request_data, request.FILES,
+                                     prefix='image')
         print request_data
         if (form.is_valid() and numeric_formset.is_valid()
            and text_formset.is_valid()):
             print "valid"
-
             try:
                 experiment = _add_experiment(form, numeric_formset,
-                                             text_formset, user=request.user)
+                                             text_formset, image_formset,
+                                             feat_formset,
+                                             user=request.user)
             except IntegrityError as error:
                 print error
             return redirect(experiment.url)
@@ -126,13 +138,17 @@ def add_experiment_view(request):
             print numeric_formset
     else:
         form = ExperimentForm(instance=Experiment())
-        print form.fields['type'].initial
+        feat_formset = FeatFormset(prefix='feature')
         numeric_formset = NumericFormset(prefix='numeric')
         text_formset = TextFormset(prefix='text',
                                    queryset=ExperimentPropText.objects.none())
+        image_formset = ImageFormset(prefix='image',
+                                     queryset=ExperimentPropImage.objects.none())
 
     context['form'] = form
+    context['feature_formset'] = feat_formset
     context['numeric_formset'] = numeric_formset
     context['text_formset'] = text_formset
+    context['image_formset'] = image_formset
     template = 'experiment_add_template.html'
     return render_to_response(template, context)

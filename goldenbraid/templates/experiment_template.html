@@ -42,5 +42,11 @@
             {% endif %}
         {% endfor %}
     {%endif%}
+    {% if experiment.image_props%}
+        <h2>Result images</h2>
+        {% for title, image in experiment.image_props %}
+             <p><span class='key'>{{ title|capfirst|replaceunderscore }}:</span> <img src={{image.url}} alt={{title}}></p>
+        {% endfor %}
+    {% endif %}
 {% endif %}
 {% endblock content %}

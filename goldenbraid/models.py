@@ -23,7 +23,7 @@ from goldenbraid import settings
 from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
-                              FORWARD, REVERSE, DERIVES_FROM)
+                              FORWARD, REVERSE, DERIVES_FROM, MAIN_ROLE)
 
 
 class Db(models.Model):
@@ -349,6 +349,17 @@ class Experiment(models.Model):
         db_table = 'experiment'
 
     @property
+    def features_used_in_experiment(self):
+
+        try:
+            feats = ExperimentFeature.objects.filter(experiment=self)
+        except ExperimentFeature.DoesNotExist:
+            feats = None
+
+        if feats:
+            return feats
+
+    @property
     def owner(self):
         'owner of the feat'
         return ExperimentPerm.objects.get(experiment=self).owner
@@ -392,6 +403,10 @@ class Experiment(models.Model):
 
         return ReadOnlyDict(prop_dict)
 
+    @property
+    def image_props(self):
+        return [(image_prop.description, image_prop.image) for image_prop in ExperimentPropImage.objects.filter(experiment=self)]
+
 
 class ExperimentPerm(models.Model):
     experiment = models.OneToOneField(Experiment, primary_key=True)
@@ -406,19 +421,20 @@ class ExperimentFeature(models.Model):
     experiment_feature_id = models.AutoField(primary_key=True)
     experiment = models.ForeignKey(Experiment)
     feature = models.ForeignKey(Feature)
-    role = models.ForeignKey(Cvterm)  # Main, acesory, key
 
     class Meta:
         db_table = u'experimentfeature'
+        unique_together = ('experiment', 'feature')
 
 
-class ExperimentKeySubFeature(models.Model):
+class ExperimentSubFeature(models.Model):
     experiment_key_subfeature_id = models.AutoField(primary_key=True)
     experiment = models.ForeignKey(Experiment)
     feature = models.ForeignKey(Feature)
 
     class Meta:
         db_table = u'experimentkeysubfeature'
+        unique_together = ('experiment', 'feature')
 
 
 class ExperimentPropNumeric(models.Model):
