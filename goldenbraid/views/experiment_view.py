@@ -18,7 +18,7 @@ from goldenbraid.forms import (ExperimentForm, ExperimentNumForm,
                                ExperimentTextForm, ExperimentFeatureForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
-    Cvterm, Cv, ExperimentPropImage, ExperimentFeature)
+    Cvterm, Cv, ExperimentPropImage, ExperimentFeature, Feature)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB
 from django.forms.models import modelformset_factory
@@ -77,6 +77,15 @@ def _add_experiment(form, numeric_formset, text_formset, image_formset,
                 raise RuntimeError('the given user does not exist')
             ExperimentPerm.objects.create(experiment=experiment, owner=user,
                                           is_public=is_public)
+            for feat_id_in_exp in feat_formset.cleaned_data:
+                try:
+                    feat_id = feat_id_in_exp['feature']
+                    feat = Feature.objects.get(feature_id=feat_id)
+                except Feature.DoesNotExist:
+                    feat = None
+                if feat:
+                    ExperimentFeature.objects.create(experiment=experiment,
+                                                     feature=feat)
 
             for numeric_prop in numeric_formset.cleaned_data:
                 if not numeric_prop:
@@ -123,7 +132,7 @@ def add_experiment_view(request):
                                      prefix='image')
         print request_data
         if (form.is_valid() and numeric_formset.is_valid()
-           and text_formset.is_valid()):
+           and text_formset.is_valid() and feat_formset.is_valid()):
             print "valid"
             try:
                 experiment = _add_experiment(form, numeric_formset,
@@ -132,10 +141,10 @@ def add_experiment_view(request):
                                              user=request.user)
             except IntegrityError as error:
                 print error
+                raise
             return redirect(experiment.url)
         else:
             print "no valid"
-            print numeric_formset
     else:
         form = ExperimentForm(instance=Experiment())
         feat_formset = FeatFormset(prefix='feature')

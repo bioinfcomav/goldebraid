@@ -350,14 +350,12 @@ class Experiment(models.Model):
 
     @property
     def features_used_in_experiment(self):
-
         try:
-            feats = ExperimentFeature.objects.filter(experiment=self)
+            exp_feats = ExperimentFeature.objects.filter(experiment=self)
         except ExperimentFeature.DoesNotExist:
-            feats = None
-
-        if feats:
-            return feats
+            exp_feats = None
+        if exp_feats:
+            return [exp_feat.feature for exp_feat in exp_feats]
 
     @property
     def owner(self):

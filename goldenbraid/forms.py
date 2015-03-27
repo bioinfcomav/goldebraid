@@ -676,12 +676,47 @@ class ExperimentNumForm(ModelForm):
         return cvterm
 
 
-class ExperimentFeatureForm(ModelForm):
-    class Meta:
-        model = ExperimentFeature
-        exclude = ['experiment']
-        widgets = {'feature': AutocompleteTextInput(source='/feature/uniquenames/',
-                                                    min_length=1)}
+class FeatureField(forms.CharField):
+    '''A specialized Field that validates the feature type given'''
+
+    def to_python(self, value):
+        'It transforms the value into a cvterm'
+
+        if not value:
+            return ''
+        elif value.isdigit():
+            return self._search_item_id(value, 'id')
+        else:
+            return self._search_item_id(value, 'uniquename')
+
+    def _search_item_id(self, value, kind):
+        'It returns the featureSrc given the name or id'
+        try:
+            if kind == 'id':
+                feature = Feature.objects.get(feature_id=value)
+            else:
+                feature = Feature.objects.get(uniquename=value)
+        except Feature.DoesNotExist:
+            raise ValidationError('feature does not exists: {}'.format(value))
+        return str(feature.feature_id)
+
+
+class ExperimentFeatureForm(forms.Form):
+    feature = FeatureField(max_length=100, widget=AutocompleteTextInput(source='/feature/uniquenames/',
+                                                                        min_length=1))
+
+
+
+#
+#     class Meta:
+#         model = ExperimentFeature
+#         exclude = ['experiment']
+#         widgets = {'feature': AutocompleteTextInput(source='/feature/uniquenames/',
+#                                                     min_length=1)}
+#
+#     def clean_feature(self):
+#         print "aa"
+#         return create_feature_validator('feature')(self)
 
 
 class ExperimentTextForm(ModelForm):
