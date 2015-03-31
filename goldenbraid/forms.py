@@ -185,7 +185,7 @@ def get_multipartite_form(multi_type, user):
     for parts in part_defs:
         features = Feature.objects.filter(type__name=parts[0],
                                           prefix=parts[1], suffix=parts[2])
-        if user.is_staff():
+        if user.is_staff:
             pass
         else:
             if user.is_authenticated():
