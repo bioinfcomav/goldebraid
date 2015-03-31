@@ -14,7 +14,8 @@
 # limitations under the License.
 from django.http.response import HttpResponse
 import json
-
+import autocomplete_light
+autocomplete_light.autodiscover()
 
 try:
     from collections import OrderedDict
@@ -702,21 +703,17 @@ class FeatureField(forms.CharField):
 
 
 class ExperimentFeatureForm(forms.Form):
-    feature = FeatureField(max_length=100, widget=AutocompleteTextInput(source='/feature/uniquenames/',
-                                                                        min_length=1))
+    feature = FeatureField(max_length=100,
+                           widget=AutocompleteTextInput(source='/feature/uniquenames/',
+                                                        min_length=1))
 
 
-
+# class ExperimentFeatureForm_old(autocomplete_light.ModelForm):
+#     feature = autocomplete_light.ModelChoiceField('FeatureAutocomplete')
 #
 #     class Meta:
 #         model = ExperimentFeature
-#         exclude = ['experiment']
-#         widgets = {'feature': AutocompleteTextInput(source='/feature/uniquenames/',
-#                                                     min_length=1)}
-#
-#     def clean_feature(self):
-#         print "aa"
-#         return create_feature_validator('feature')(self)
+#         exclude = ('experiment')
 
 
 class ExperimentTextForm(ModelForm):
