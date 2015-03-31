@@ -40,7 +40,7 @@ def get_vector_choices(user):
     vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
     if user.is_authenticated():
         vectors = vectors.filter(Q(featureperm__owner__username=user) |
-                             Q(featureperm__is_public=True))
+                                 Q(featureperm__is_public=True))
     else:
         vectors = vectors.filter(featureperm__is_public=True)
 
@@ -184,14 +184,15 @@ def get_multipartite_form(multi_type, user):
     part_defs = PARTS_TO_ASSEMBLE[multi_type]
     for parts in part_defs:
         features = Feature.objects.filter(type__name=parts[0],
-                                                    prefix=parts[1],
-                                                    suffix=parts[2])
-        if user.is_authenticated():
-            features = features.filter(Q(featureperm__owner__username=user) |
-                               Q(featureperm__is_public=True))
-
+                                          prefix=parts[1], suffix=parts[2])
+        if user.is_staff():
+            pass
         else:
-            features = features.filter(featureperm__is_public=True)
+            if user.is_authenticated():
+                features = features.filter(Q(featureperm__owner__username=user) |
+                                           Q(featureperm__is_public=True))
+            else:
+                features = features.filter(featureperm__is_public=True)
 
         choices = features_to_choices(features)
         name = parts[0]
