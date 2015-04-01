@@ -12,8 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.http.response import HttpResponse
-import json
+
 import autocomplete_light
 autocomplete_light.autodiscover()
 
@@ -704,7 +703,7 @@ class FeatureField(forms.CharField):
 
 class ExperimentFeatureForm(forms.Form):
     feature = FeatureField(max_length=100,
-                           widget=AutocompleteTextInput(source='/feature/uniquenames/',
+                           widget=AutocompleteTextInput(source='/api/feature_uniquenames/',
                                                         min_length=1))
 
 

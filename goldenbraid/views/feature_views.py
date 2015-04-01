@@ -490,26 +490,3 @@ def feature_view(request, uniquename):
 
             else:
                 return HttpResponseBadRequest()
-
-
-def feature_acc_json_view(request):
-    query = Feature.objects.all()
-
-    if request.method == 'GET':
-        if u'uniquename' in request.GET:
-            # get all children for feat
-            pass
-        if u'term' in request.GET:
-            term = request.GET['term']
-            query = query.filter(uniquename__contains=term)
-        if u'limit' in request.GET:
-            try:
-                limit = int(request.GET[u'limit'])
-                query = query[:limit]
-            except ValueError:
-                pass
-
-    uniquenames = query.values('uniquename')
-    uniquenames = [uniqna['uniquename'] for uniqna in uniquenames]
-    return HttpResponse(json.dumps(uniquenames),
-                        content_type='application/json')
