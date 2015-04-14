@@ -7,10 +7,12 @@ Created on 2015 mar. 26
 from os.path import join
 
 from django.forms.util import flatatt
-from django.forms.widgets import TextInput
+from django.forms.widgets import TextInput, SelectMultiple
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
 from django.conf import settings
+from django.utils.html import format_html
+
 
 
 class AutocompleteTextInput(TextInput):
@@ -86,3 +88,40 @@ $(function() {
                        'min_length': self.min_length,
                        'limit': self.result_limit}
         return javascript
+
+
+class DinamicSelectMultiple(SelectMultiple):
+    '''A multiple choice widgte that populates dinamically'''
+    def __init__(self, attrs=None, source=None, parent_class=None, choices=()):
+        '''It inits the widget.
+
+        A source url for the json list should be given.
+        '''
+        super(SelectMultiple, self).__init__(attrs,)
+        if source is None:
+            raise ValueError('A source url should be given')
+        self.source = source
+        self._parent_class = parent_class
+        self.choices = list(choices)
+
+    def render(self, name, value, attrs=None, choices=()):
+        if value is None:
+            value = []
+        final_attrs = self.build_attrs(attrs, name=name)
+        output = [format_html('<select multiple="multiple"{0}>',
+                              flatatt(final_attrs))]
+        options = self.render_options(choices, value)
+        if options:
+            output.append(options)
+        output.append('</select>')
+        javascript = self.render_js(attrs['id'])
+        return mark_safe('\n'.join(output) + javascript)
+
+    def render_js(self, field_id):
+        'The javascript that does the select options'
+
+        return ''
+#         '''<script>
+# $({parent_class}).on(blur)
+#         </script>
+#         '''.format()

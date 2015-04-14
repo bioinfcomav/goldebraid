@@ -36,7 +36,8 @@ from Bio import SeqIO
 
 from goldenbraid.models import (Cvterm, Feature, Experiment,
                                 ExperimentPropNumeric, ExperimentPropText, Cv,
-                                ExperimentPropImage, ExperimentFeature)
+                                ExperimentPropImage, ExperimentFeature,
+    ExperimentSubFeature)
 from goldenbraid.tags import (VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               EXPERIMENT_TYPES, NUMERIC_TYPES)
 from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
@@ -44,7 +45,7 @@ from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
                                   BIPARTITE_ALLOWED_PARTS, CATEGORIES,
                                   SEARCH_MENU_TYPE_CHOICES,
                                   MINIMUN_PCR_LENGTH)
-from goldenbraid.widgets import AutocompleteTextInput
+from goldenbraid.widgets import AutocompleteTextInput, DinamicSelectMultiple
 
 def get_vector_choices(user):
     vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
@@ -707,12 +708,15 @@ class ExperimentFeatureForm(forms.Form):
                                                         min_length=1))
 
 
-# class ExperimentFeatureForm_old(autocomplete_light.ModelForm):
-#     feature = autocomplete_light.ModelChoiceField('FeatureAutocomplete')
-#
-#     class Meta:
-#         model = ExperimentFeature
-#         exclude = ('experiment')
+class ExperimentSubFeatureForm(forms.Form):
+    features = forms.MultipleChoiceField(widget=DinamicSelectMultiple(source='/api/features_children/',
+                                                         choices=(('b', 'b'),
+                                                                 ('1', '1'),
+                                                                 ('1', '1'),
+                                                                 ('1', '1'),
+                                                                 ('1', '1'),
+                                                                 ('a', 'a')),
+                                                        attrs={'parent_class':'.autocomplete-ui'}))
 
 
 class ExperimentTextForm(ModelForm):

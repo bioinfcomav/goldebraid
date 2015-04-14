@@ -15,14 +15,14 @@ from django.contrib.auth.decorators import login_required
 
 
 from goldenbraid.forms import (ExperimentForm, ExperimentNumForm,
-                               ExperimentTextForm, ExperimentFeatureForm)
+                               ExperimentFeatureForm, ExperimentSubFeatureForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
-    Cvterm, Cv, ExperimentPropImage, ExperimentFeature, Feature)
+                                Feature, ExperimentFeature,
+                                ExperimentPropImage, ExperimentSubFeature)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB
 from django.forms.models import modelformset_factory
-from django.contrib.admin.filters import ChoicesFieldListFilter
 
 
 def experiment_view(request, uniquename):
@@ -126,6 +126,7 @@ def add_experiment_view(request):
     if request_data:
         form = ExperimentForm(request_data, instance=Experiment())
         feat_formset = FeatFormset(request_data, prefix='feature')
+        subfeat_form = ExperimentSubFeatureForm(request_data)
         numeric_formset = NumericFormset(request_data, prefix='numeric')
         text_formset = TextFormset(request_data, prefix='text')
         image_formset = ImageFormset(request_data, request.FILES,
@@ -148,6 +149,7 @@ def add_experiment_view(request):
     else:
         form = ExperimentForm(instance=Experiment())
         feat_formset = FeatFormset(prefix='feature')
+        subfeat_form = ExperimentSubFeatureForm()
         numeric_formset = NumericFormset(prefix='numeric')
         text_formset = TextFormset(prefix='text',
                                    queryset=ExperimentPropText.objects.none())
@@ -156,6 +158,7 @@ def add_experiment_view(request):
 
     context['form'] = form
     context['feature_formset'] = feat_formset
+    context['subfeat_form'] = subfeat_form
     context['numeric_formset'] = numeric_formset
     context['text_formset'] = text_formset
     context['image_formset'] = image_formset

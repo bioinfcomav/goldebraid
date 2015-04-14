@@ -7,7 +7,9 @@
 <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/smoothness/jquery-ui.css" />
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>
 <script src="/static/autocomplete-init.js"></script>
+
 <script src="/static/jquery.formset.js"></script>
+<script src="/static/dynamic_mutiple_select.js"></script>
 
 
 <script type="text/javascript">
@@ -73,7 +75,10 @@
 </table>
 {{ feature_formset.management_form }}
 </fieldset>
-<br>
+<fieldset>
+<legend>Key features:</legend>
+{{subfeat_form}}
+</fieldset>
 <fieldset>
 <legend>Numeric informaction:</legend>
 <table id='id_numeric_table' border="0" cellpadding="0" cellspacing="0">

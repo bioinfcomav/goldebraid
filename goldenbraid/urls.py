@@ -40,6 +40,7 @@ from goldenbraid.views.domestication_view import (domestication_view,
                                                   synthesis_view_protocol)
 from goldenbraid.views.experiment_view import (add_experiment_view,
                                                experiment_view)
+from goldenbraid.views.api_views import api_features_children
 
 
 urlpatterns = patterns('',
@@ -105,4 +106,7 @@ urlpatterns = patterns('',
                        url('api/feature_uniquenames/$',
                            api_feature_uniquenames_view,
                            name='feature_json'),
+                       url('api/features_children/$',
+                           api_features_children,
+                           name='feature_children_json'),
                        )

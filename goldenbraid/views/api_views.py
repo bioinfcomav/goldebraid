@@ -27,3 +27,33 @@ def api_feature_uniquenames_view(request):
     uniquenames = [uniqna['uniquename'] for uniqna in uniquenames]
     return HttpResponse(json.dumps(uniquenames),
                         content_type='application/json')
+
+
+def get_all_children(feature):
+    children = set()
+    for child in feature.children:
+        if child:
+            children.add(child)
+            children.update(get_all_children(child))
+    return children
+
+
+def api_features_children(request):
+
+    request_data = request.GET
+    request_dict = dict(request_data)
+    features = []
+    if 'features[]' in request_dict:
+        for feat_uniquename in request_dict['features[]']:
+            try:
+                feat = Feature.objects.get(uniquename=feat_uniquename)
+            except Feature.DoesNotExist:
+                feat = None
+            if feat is not None:
+                features.append(feat)
+    children = set()
+    for feature in features:
+        children.update(get_all_children(feature))
+
+    return HttpResponse(json.dumps([c.uniquename for c in children]),
+                        content_type='application/json')

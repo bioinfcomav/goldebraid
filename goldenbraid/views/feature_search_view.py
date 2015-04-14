@@ -25,12 +25,13 @@ from django.db.models import Q
 from goldenbraid.models import Cvterm, Feature
 from goldenbraid.views.feature_views import feature_view
 from goldenbraid import settings
-from goldenbraid.tags import (DESCRIPTION_TYPE_NAME,VECTOR_TYPE_NAME,
+from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, VECTOR_TYPE_NAME,
                               TU_TYPE_NAME, MODULE_TYPE_NAME, OTHER_TYPE_NAME)
 from goldenbraid.settings import CATEGORIES
 
 SPECIAL_SEARCH_CATEGORIES = (VECTOR_TYPE_NAME, TU_TYPE_NAME, MODULE_TYPE_NAME,
                              OTHER_TYPE_NAME)
+
 
 def _get_category_name(category):
     if category[0] in SPECIAL_SEARCH_CATEGORIES:
@@ -48,7 +49,7 @@ def _prepare_feature_kind():
         feature_categories = [(kind, kind) for kind in settings.SEARCH_MENU_TYPE_CHOICES]
     else:
         categories = Feature.objects.distinct('type', 'suffix', 'prefix').values('type__name', 'prefix', 'suffix')
-        #VECTOR, other is special. manually added
+        # VECTOR, other is special. manually added
         feature_categories = []
         for special_category in SPECIAL_SEARCH_CATEGORIES:
             feature_categories.append(('{0},None,None'.format(special_category),
