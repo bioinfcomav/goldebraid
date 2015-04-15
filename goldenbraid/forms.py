@@ -708,10 +708,27 @@ class ExperimentFeatureForm(forms.Form):
                                                         min_length=1))
 
 
+class DynamicMultipleChoiceField(forms.MultipleChoiceField):
+    def valid_value(self, value):
+        return True
+
+
 class ExperimentSubFeatureForm(forms.Form):
     _widget = DinamicSelectMultiple(source='/api/features_children/',
                                     parent_class='ui-autocomplete-input')
-    features = forms.MultipleChoiceField(widget=_widget)
+    features = DynamicMultipleChoiceField(widget=_widget)
+
+    def clean_features(self):
+        feature_uniquenames = self.cleaned_data['features']
+        feats = []
+        for feature_uniquename in feature_uniquenames:
+            try:
+                feat = Feature.objects.get(uniquename=feature_uniquename)
+                feats.append(feat)
+            except Feature.DoesNotExist:
+                msg = 'feature does not exists: {}'.format(feature_uniquename)
+                raise ValidationError(msg)
+        return feats
 
 
 class ExperimentTextForm(ModelForm):

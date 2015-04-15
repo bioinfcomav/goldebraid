@@ -51,7 +51,7 @@ def experiment_view(request, uniquename):
 
 
 def _add_experiment(form, numeric_formset, text_formset, image_formset,
-                    feat_formset, user, is_public=False):
+                    feat_formset, subfeat_form, user, is_public=False):
     try:
         with transaction.atomic():
             experiment = form.save(commit=False)
@@ -86,6 +86,15 @@ def _add_experiment(form, numeric_formset, text_formset, image_formset,
                 if feat:
                     ExperimentFeature.objects.create(experiment=experiment,
                                                      feature=feat)
+
+            for subfeat_uniquename in subfeat_form.cleaned_data['features']:
+                try:
+                    feat = Feature.objects.get(uniquename=subfeat_uniquename)
+                except Feature.DoesNotExist:
+                    feat = None
+                if feat:
+                    ExperimentSubFeature.objects.create(experiment=experiment,
+                                                        feature=feat)
 
             for numeric_prop in numeric_formset.cleaned_data:
                 if not numeric_prop:
@@ -133,12 +142,16 @@ def add_experiment_view(request):
                                      prefix='image')
         print request_data
         if (form.is_valid() and numeric_formset.is_valid()
-           and text_formset.is_valid() and feat_formset.is_valid()):
+           and text_formset.is_valid() and feat_formset.is_valid() and
+           subfeat_form.is_valid()):
             print "valid"
             try:
-                experiment = _add_experiment(form, numeric_formset,
-                                             text_formset, image_formset,
-                                             feat_formset,
+                experiment = _add_experiment(form=form,
+                                             numeric_formset=numeric_formset,
+                                             text_formset=text_formset,
+                                             image_formset=image_formset,
+                                             feat_formset=feat_formset,
+                                             subfeat_form=subfeat_form,
                                              user=request.user)
             except IntegrityError as error:
                 print error

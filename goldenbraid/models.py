@@ -358,6 +358,15 @@ class Experiment(models.Model):
             return [exp_feat.feature for exp_feat in exp_feats]
 
     @property
+    def key_features(self):
+        try:
+            exp_subfeats = ExperimentSubFeature.objects.filter(experiment=self)
+        except ExperimentSubFeature.DoesNotExist:
+            exp_subfeats = None
+        if exp_subfeats:
+            return [exp_subfeat.feature for exp_subfeat in exp_subfeats]
+
+    @property
     def owner(self):
         'owner of the feat'
         return ExperimentPerm.objects.get(experiment=self).owner

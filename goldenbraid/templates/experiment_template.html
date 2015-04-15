@@ -17,6 +17,12 @@
             {% include "feature_table.html" %}
       {% endwith %}
     {% endif %}
+    {% if experiment.key_features %}
+        <h2>Key Features in the experiment</h2>
+        {% with features=experiment.key_features %}
+            {% include "feature_table.html" %}
+      {% endwith %}
+    {% endif %}
     {% if experiment.numeric_props %}
         <h2>Numeric values</h2>
         {% for key, values in experiment.numeric_props.items %}
