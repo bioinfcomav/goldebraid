@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import autocomplete_light
-autocomplete_light.autodiscover()
-
 try:
     from collections import OrderedDict
 except ImportError:
@@ -35,8 +32,7 @@ from Bio import SeqIO
 
 from goldenbraid.models import (Cvterm, Feature, Experiment,
                                 ExperimentPropNumeric, ExperimentPropText, Cv,
-                                ExperimentPropImage, ExperimentFeature,
-                                ExperimentSubFeature)
+                                ExperimentPropImage)
 from goldenbraid.tags import (VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               EXPERIMENT_TYPES, NUMERIC_TYPES)
 from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
