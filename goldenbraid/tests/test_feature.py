@@ -66,6 +66,16 @@ class FeatureTest(TestCase):
         dom_seq = domesticate(seqrec, None, 'CCAT', 'AATG')[1]
         assert ('CCAT', 'AATG') == get_prefix_and_suffix(dom_seq.seq, 'BsaI')
 
+    def test_daniels_promoter(self):
+        fasta_path = os.path.join(TEST_DATA, 'prVvbHLH35v2.fa')
+        seqrec = SeqIO.read(fasta_path, 'fasta')
+
+        dom_seq = domesticate(seqrec, '01-02-03-11-12 (PROM+UTR+ATG)',
+                              'GGAG', 'AATG')[1]
+        print len(dom_seq), seqrec.seq.upper()
+        print len(dom_seq), dom_seq.seq
+        assert ('GGAG', 'AATG') == get_prefix_and_suffix(dom_seq.seq, 'BsaI')
+
     def test_choose_rec_sites(self):
         'it tests choose rec_sites func'
         forw_sites = [4083]
