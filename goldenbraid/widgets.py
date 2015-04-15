@@ -14,7 +14,6 @@ from django.conf import settings
 from django.utils.html import format_html
 
 
-
 class AutocompleteTextInput(TextInput):
     '''A text input that autocompletes getting a json list'''
     class Media:
@@ -24,8 +23,6 @@ class AutocompleteTextInput(TextInput):
         css = {'all': (join(base_url, 'style/base/jquery.ui.all.css'),
                        join(base_url, 'style/autocomplete_ui/autocomplete.css')
                        ,)}
-#         js = (os.path.join(base_url, 'js/jquery-1.4.4.min.js'),
-#               os.path.join(base_url + 'js/jquery-ui-1.8.10.custom.min.js'))
 
     def __init__(self, attrs=None, source=None, min_length=3,
                  result_limit=100):
@@ -120,8 +117,28 @@ class DinamicSelectMultiple(SelectMultiple):
     def render_js(self, field_id):
         'The javascript that does the select options'
 
-        return ''
-#         '''<script>
-# $({parent_class}).on(blur)
-#         </script>
-#         '''.format()
+        javascript = u'''<script type="text/javascript">
+$(document).ready(function() {
+    $("input").focusout(function(){
+        if ($(this).hasClass('%(parent_class)s')) {
+            //buscar todos los input con esa classe y mirar que no vacio
+            var values = [];
+            $('.ui-autocomplete-input').each(function(){
+                var value = $(this).val();
+                if(value != ''){ values.push(value);}
+            })
+            $.getJSON("%(source)s", {'features':values}, function(result){
+                 var toAppend = '';
+                $.each(result, function(i, val){
+                    toAppend += '<option>'+val+'</option>';
+                });
+                $('#%(field_id)s').empty().append(toAppend);
+            })
+        }
+
+    });
+});
+</script>'''
+        javascript %= {'field_id': field_id, 'source': self.source,
+                       'parent_class': self._parent_class}
+        return javascript

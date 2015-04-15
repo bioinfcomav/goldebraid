@@ -28,7 +28,6 @@ from django.forms.widgets import Select
 from django.forms.util import ErrorDict
 from django.db.models import Q
 from django.forms.models import ModelForm
-from django.core.urlresolvers import reverse
 
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
@@ -37,7 +36,7 @@ from Bio import SeqIO
 from goldenbraid.models import (Cvterm, Feature, Experiment,
                                 ExperimentPropNumeric, ExperimentPropText, Cv,
                                 ExperimentPropImage, ExperimentFeature,
-    ExperimentSubFeature)
+                                ExperimentSubFeature)
 from goldenbraid.tags import (VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               EXPERIMENT_TYPES, NUMERIC_TYPES)
 from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
@@ -46,6 +45,7 @@ from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
                                   SEARCH_MENU_TYPE_CHOICES,
                                   MINIMUN_PCR_LENGTH)
 from goldenbraid.widgets import AutocompleteTextInput, DinamicSelectMultiple
+
 
 def get_vector_choices(user):
     vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
@@ -709,14 +709,9 @@ class ExperimentFeatureForm(forms.Form):
 
 
 class ExperimentSubFeatureForm(forms.Form):
-    features = forms.MultipleChoiceField(widget=DinamicSelectMultiple(source='/api/features_children/',
-                                                         choices=(('b', 'b'),
-                                                                 ('1', '1'),
-                                                                 ('1', '1'),
-                                                                 ('1', '1'),
-                                                                 ('1', '1'),
-                                                                 ('a', 'a')),
-                                                        attrs={'parent_class':'.autocomplete-ui'}))
+    _widget = DinamicSelectMultiple(source='/api/features_children/',
+                                    parent_class='ui-autocomplete-input')
+    features = forms.MultipleChoiceField(widget=_widget)
 
 
 class ExperimentTextForm(ModelForm):
