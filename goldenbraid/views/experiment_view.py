@@ -125,6 +125,7 @@ def add_experiment_view(request):
     'The add feature view'
     context = RequestContext(request)
     context.update(csrf(request))
+
     request_data = request.POST if request.method == 'POST' else None
     FeatFormset = formset_factory(ExperimentFeatureForm)
     NumericFormset = formset_factory(ExperimentNumForm)
@@ -161,7 +162,15 @@ def add_experiment_view(request):
             print "no valid"
     else:
         form = ExperimentForm(instance=Experiment())
-        feat_formset = FeatFormset(prefix='feature')
+        get_request_data = request.GET if request.method == 'GET' else None
+        if get_request_data:
+            initial = [{'feature': get_request_data.get('feature')}]
+        else:
+            initial = None
+
+        feat_formset = FeatFormset(initial=initial, prefix='feature')
+        print feat_formset
+#         feat_formset = FeatFormset(prefix='feature')
         subfeat_form = ExperimentSubFeatureForm()
         numeric_formset = NumericFormset(prefix='numeric')
         text_formset = TextFormset(prefix='text',

@@ -68,16 +68,8 @@ $(function() {
          $(this).val('');
       }
     },
-  }).on('keydown', function (e) {
-    var keyCode = e.keyCode || e.which;
-    // if TAB or RETURN is pressed and the text in the textbox
-    // does not match a suggestion clear the value of the pk and
-    // the textbox
-    if((keyCode == 9 || keyCode == 13) &&
-       ($(".ui-autocomplete li:textEquals('" + $(this).val() + "')").size() == 0)) {
-      $(this).val('');
-    }
-  });
+  })
+
 });
 </script>
 '''
@@ -114,11 +106,15 @@ class DinamicSelectMultiple(SelectMultiple):
         javascript = self.render_js(attrs['id'])
         return mark_safe('\n'.join(output) + javascript)
 
-    def render_js(self, field_id):
+    def render_js_old(self, field_id):
         'The javascript that does the select options'
 
         javascript = u'''<script type="text/javascript">
 $(document).ready(function() {
+inputs = ssacar ldlde fdom inputys
+for input in finputs:
+    fillalnfsdlk(input)
+
     $("input").focusout(function(){
         if ($(this).hasClass('%(parent_class)s')) {
             //buscar todos los input con esa classe y mirar que no vacio
@@ -142,3 +138,51 @@ $(document).ready(function() {
         javascript %= {'field_id': field_id, 'source': self.source,
                        'parent_class': self._parent_class}
         return javascript
+
+    def render_js(self, field_id):
+        'The javascript that does the select options'
+
+        javascript = u'''<script type="text/javascript">
+(function( $ ){
+    $.fn.fill_children = function (index, input_element){
+        if ($(input_element).hasClass('%(parent_class)s')) {
+            //buscar todos los input con esa classe y mirar que no vacio
+            var values = [];
+            $('.ui-autocomplete-input').each(function(){
+                var value = $(this).val();
+                if(value != ''){ values.push(value);}
+            })
+            $.getJSON("%(source)s", {'features':values}, function(result){
+                 var toAppend = '';
+                $.each(result, function(i, val){
+                    toAppend += '<option>'+val+'</option>';
+                });
+                $('#%(field_id)s').empty().append(toAppend);
+            })
+        }
+    }
+})( jQuery );
+
+$(document).ready(function() {
+    var inputs = $(this).find("input");
+    $.each(inputs, function(index, val){
+        $.fn.fill_children(index, val)});
+    $("input").focusout(function(){
+                    $.fn.fill_children('0', $(this))});
+});
+</script>'''
+        javascript %= {'field_id': field_id, 'source': self.source,
+                       'parent_class': self._parent_class}
+        return javascript
+
+
+#  .on('keydown', function (e) {
+#     var keyCode = e.keyCode || e.which;
+#     // if TAB or RETURN is pressed and the text in the textbox
+#     // does not match a suggestion clear the value of the pk and
+#     // the textbox
+#     if((keyCode == 9 || keyCode == 13) &&
+#        ($(".ui-autocomplete li:textEquals('" + $(this).val() + "')").size() == 0)) {
+#       $(this).val('');
+#     }
+#   });
