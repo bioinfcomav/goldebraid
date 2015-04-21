@@ -17,7 +17,8 @@ from django.conf.urls import patterns, url
 from goldenbraid.views.feature_views import (add_feature_view, feature_view,
                                              add_vector_view)
 
-from goldenbraid.views.api_views import(api_feature_uniquenames_view)
+from goldenbraid.views.api import(feature_uniquenames, features_children,
+                                  features_key_elements)
 
 from goldenbraid.views.feature_search_view import search_features_view
 from goldenbraid.views.multipartite_views import (multipartite_view,
@@ -40,7 +41,6 @@ from goldenbraid.views.domestication_view import (domestication_view,
                                                   synthesis_view_protocol)
 from goldenbraid.views.experiment_view import (add_experiment_view,
                                                experiment_view)
-from goldenbraid.views.api_views import api_features_children
 
 
 urlpatterns = patterns('',
@@ -104,9 +104,12 @@ urlpatterns = patterns('',
                            synthesis_view_protocol,
                            name='synthesis_view_protocol'),
                        url('api/feature_uniquenames/$',
-                           api_feature_uniquenames_view,
-                           name='feature_json'),
+                           feature_uniquenames,
+                           name='api_feature'),
                        url('api/features_children/$',
-                           api_features_children,
-                           name='feature_children_json'),
+                           features_children,
+                           name='api_feature_children'),
+                       url('api/features_key_elements/$',
+                           features_key_elements,
+                           name='feature_key_elements'),
                        )

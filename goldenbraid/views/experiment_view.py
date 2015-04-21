@@ -169,7 +169,6 @@ def add_experiment_view(request):
             initial = None
 
         feat_formset = FeatFormset(initial=initial, prefix='feature')
-        print feat_formset
 #         feat_formset = FeatFormset(prefix='feature')
         subfeat_form = ExperimentSubFeatureForm()
         numeric_formset = NumericFormset(prefix='numeric')

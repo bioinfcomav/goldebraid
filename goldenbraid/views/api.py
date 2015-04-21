@@ -9,7 +9,7 @@ from django.http.response import HttpResponse
 from goldenbraid.models import Feature
 
 
-def api_feature_uniquenames_view(request):
+def feature_uniquenames(request):
     query = Feature.objects.all()
 
     if request.method == 'GET':
@@ -29,17 +29,16 @@ def api_feature_uniquenames_view(request):
                         content_type='application/json')
 
 
-def get_all_children(feature):
+def _get_all_children(feature):
     children = set()
     for child in feature.children:
         if child:
             children.add(child)
-            children.update(get_all_children(child))
+            children.update(_get_all_children(child))
     return children
 
 
-def api_features_children(request):
-
+def _feature_children(request):
     request_data = request.GET
     request_dict = dict(request_data)
     features = []
@@ -53,7 +52,19 @@ def api_features_children(request):
                 features.append(feat)
     children = set()
     for feature in features:
-        children.update(get_all_children(feature))
+        children.update(_get_all_children(feature))
 
+    return children, features
+
+
+def features_children(request):
+    children = _feature_children(request)[0]
     return HttpResponse(json.dumps([c.uniquename for c in children]),
+                        content_type='application/json')
+
+
+def features_key_elements(request):
+    children, features = _feature_children(request)
+    all_feats = list(children) + features
+    return HttpResponse(json.dumps([c.uniquename for c in all_feats]),
                         content_type='application/json')
