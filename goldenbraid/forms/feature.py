@@ -6,8 +6,13 @@ from django.forms.widgets import Select
 from django.core.exceptions import ValidationError
 
 from goldenbraid.models import Feature, Cvterm
-from goldenbraid.tags import VECTOR_TYPE_NAME
-from goldenbraid.settings import SEARCH_MENU_TYPE_CHOICES
+from goldenbraid.settings import SEARCH_MENU_TYPE_CHOICES, CATEGORIES
+
+from goldenbraid.tags import (TU_TYPE_NAME, MODULE_TYPE_NAME, OTHER_TYPE_NAME,
+                              VECTOR_TYPE_NAME)
+from goldenbraid import settings
+SPECIAL_SEARCH_CATEGORIES = (VECTOR_TYPE_NAME, TU_TYPE_NAME, MODULE_TYPE_NAME,
+                             OTHER_TYPE_NAME)
 
 
 def features_to_choices(features, blank_line=True):
@@ -22,22 +27,6 @@ def features_to_choices(features, blank_line=True):
         choices.append((uniquename, show))
     choices = sorted(choices, key=itemgetter(0))
     return choices
-
-
-def _prepare_feature_kind():
-    'It prepares the feature kind select choices to put in the type widget'
-    if SEARCH_MENU_TYPE_CHOICES:
-        kinds = SEARCH_MENU_TYPE_CHOICES
-    else:
-        kinds = Feature.objects.distinct('type').values('type__name')
-        kinds = [kind['type__name'] for kind in kinds]
-    if VECTOR_TYPE_NAME in kinds:
-        kinds.pop(kinds.index(VECTOR_TYPE_NAME))
-
-    feature_kinds = [(kind, kind.replace('_', ' ')) for kind in kinds]
-
-    feature_kinds.insert(0, ('', ''))  # no kind
-    return feature_kinds
 
 
 def get_all_vectors_as_choices(user):
@@ -60,6 +49,54 @@ class VectorForm(forms.Form):
     resistance = forms.CharField(max_length=255)
     gbfile_label = 'Select a GenBank-formatted local file on your computer'
     gbfile = forms.FileField(label=gbfile_label, required=True)
+
+
+# def _prepare_feature_kind():
+#     'It prepares the feature kind select choices to put in the type widget'
+#     if SEARCH_MENU_TYPE_CHOICES:
+#         kinds = SEARCH_MENU_TYPE_CHOICES
+#     else:
+#         kinds = Feature.objects.distinct('type').values('type__name')
+#         kinds = [kind['type__name'] for kind in kinds]
+#     if VECTOR_TYPE_NAME in kinds:
+#         kinds.pop(kinds.index(VECTOR_TYPE_NAME))
+#
+#     feature_kinds = [(kind, kind.replace('_', ' ')) for kind in kinds]
+#
+#     feature_kinds.insert(0, ('', ''))  # no kind
+#     return feature_kinds
+
+def _get_category_name(category):
+    if category[0] in SPECIAL_SEARCH_CATEGORIES:
+        return category[0]
+    for name, category_def in CATEGORIES.items():
+        if category == category_def:
+            return name
+    return '{0}: {1}'.format(category[0], ','.join(category))
+    raise ValueError('The given category not in the CATEGORY dictionary')
+
+
+def _prepare_feature_kind():
+    'It prepares the feature kind select choices to put in the type widget'
+    if settings.SEARCH_MENU_TYPE_CHOICES:
+        feature_categories = [(kind, kind) for kind in settings.SEARCH_MENU_TYPE_CHOICES]
+    else:
+        categories = Feature.objects.distinct('type', 'suffix', 'prefix').values('type__name', 'prefix', 'suffix')
+        # VECTOR, other is special. manually added
+        feature_categories = []
+        for special_category in SPECIAL_SEARCH_CATEGORIES:
+            feature_categories.append(('{0},None,None'.format(special_category),
+                                                              special_category))
+        for dict_category in categories:
+            if dict_category['type__name'] in SPECIAL_SEARCH_CATEGORIES:
+                continue
+            category = (dict_category['type__name'], dict_category['prefix'],
+                        dict_category['suffix'])
+            category_name = _get_category_name(category)
+            feature_categories.append((','.join(category), category_name))
+
+    feature_categories.insert(0, ('', ''))  # no kind
+    return feature_categories
 
 
 class FeatureForm(forms.Form):
@@ -137,3 +174,24 @@ class FeatureManagementForm(forms.Form):
 
     def clean_feature(self):
         return create_feature_validator('feature')(self)
+
+
+class SearchFeatureForm(forms.Form):
+
+    help_name = 'Accession or name or description'
+    name_or_description = forms.CharField(max_length=100, required=False,
+                                          label=help_name)
+    choices = _prepare_feature_kind()
+    help_kind = 'Type of feature'
+    category = forms.CharField(max_length=200, label=help_kind, required=False,
+                               widget=Select(choices=choices))
+
+    def xclean_kind(self):
+        type_str = self.cleaned_data['kind']
+        if not type_str:
+            return type_str
+        try:
+            Cvterm.objects.get(name=type_str)
+        except Cvterm.DoesNotExist:
+            raise ValidationError('This type does not exist in the database')
+        return type_str

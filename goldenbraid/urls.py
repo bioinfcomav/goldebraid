@@ -15,12 +15,11 @@
 
 from django.conf.urls import patterns, url
 from goldenbraid.views.feature import (add_feature_view, feature_view,
-                                       add_vector_view)
+                                       add_vector_view, search_features_view)
 
 from goldenbraid.views.api import(feature_uniquenames, features_children,
                                   features_key_elements)
 
-from goldenbraid.views.feature_search import search_features_view
 from goldenbraid.views.multipartite import (multipartite_view,
                                             multipartite_protocol_view,
                                             multipartite_view_genbank,
