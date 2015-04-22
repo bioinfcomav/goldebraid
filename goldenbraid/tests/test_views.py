@@ -24,7 +24,7 @@ from django.conf import settings as proj_settings
 from Bio import SeqIO
 
 import goldenbraid
-from goldenbraid.views.feature_views import FeatureForm
+from goldenbraid.views.feature import FeatureForm
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from goldenbraid.models import Feature
 from goldenbraid.tags import VECTOR_TYPE_NAME, MODULE_TYPE_NAME

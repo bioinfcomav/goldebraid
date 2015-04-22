@@ -43,8 +43,8 @@ from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX, UT_PREFIX,
                                   ASSEMBLED_SEQ)
 from goldenbraid.tags import (VECTOR_TYPE_NAME, REVERSE, TU_TYPE_NAME,
                               MODULE_TYPE_NAME)
-from goldenbraid.views.feature_views import (get_prefix_and_suffix_index,
-                                             add_feature)
+from goldenbraid.views.feature import (get_prefix_and_suffix_index,
+                                       add_feature)
 from goldenbraid.forms.assemblers import (get_multipartite_form,
                                           get_multipartite_free_form,
                                           MultipartiteFormFreeInitial,

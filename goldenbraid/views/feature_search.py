@@ -23,7 +23,7 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.db.models import Q
 
 from goldenbraid.models import Cvterm, Feature
-from goldenbraid.views.feature_views import feature_view
+from goldenbraid.views.feature import feature_view
 from goldenbraid import settings
 from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, VECTOR_TYPE_NAME,
                               TU_TYPE_NAME, MODULE_TYPE_NAME, OTHER_TYPE_NAME)

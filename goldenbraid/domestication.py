@@ -21,8 +21,8 @@ from Bio.Alphabet import generic_dna
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
-from goldenbraid.views.feature_views import (parse_rebase_file,
-                                             get_prefix_and_suffix_index)
+from goldenbraid.views.feature import (parse_rebase_file,
+                                       get_prefix_and_suffix_index)
 from goldenbraid.settings import (REBASE_FILE,
                                   DOMESTICATION_DEFAULT_MELTING_TEMP,
                                   DOMESTICATION_MIN_OLIGO_LENGTH,

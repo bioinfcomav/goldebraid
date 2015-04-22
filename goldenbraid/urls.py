@@ -14,31 +14,31 @@
 # limitations under the License.
 
 from django.conf.urls import patterns, url
-from goldenbraid.views.feature_views import (add_feature_view, feature_view,
-                                             add_vector_view)
+from goldenbraid.views.feature import (add_feature_view, feature_view,
+                                       add_vector_view)
 
 from goldenbraid.views.api import(feature_uniquenames, features_children,
                                   features_key_elements)
 
-from goldenbraid.views.feature_search_view import search_features_view
-from goldenbraid.views.multipartite_views import (multipartite_view,
-                                                  multipartite_protocol_view,
-                                                  multipartite_view_genbank,
-                                                  multipartite_view_free,
-                                                multipartite_view_free_genbank,
-                                               multipartite_view_free_protocol,
-                                               multipartite_view_add)
-from goldenbraid.views.bipartite_views import (bipartite_view,
-                                               bipartite_view_genbank,
-                                               bipartite_view_protocol,
-                                               bipartite_view_add)
-from goldenbraid.views.domestication_view import (domestication_view,
-                                                  domestication_view_genbank,
-                                                  domestication_view_protocol,
-                                                  domestication_view_add,
-                                                  synthesis_view,
-                                                  synthesis_view_genbank,
-                                                  synthesis_view_protocol)
+from goldenbraid.views.feature_search import search_features_view
+from goldenbraid.views.multipartite import (multipartite_view,
+                                            multipartite_protocol_view,
+                                            multipartite_view_genbank,
+                                            multipartite_view_free,
+                                            multipartite_view_free_genbank,
+                                            multipartite_view_free_protocol,
+                                            multipartite_view_add)
+from goldenbraid.views.bipartite import (bipartite_view,
+                                         bipartite_view_genbank,
+                                         bipartite_view_protocol,
+                                         bipartite_view_add)
+from goldenbraid.views.domestication import (domestication_view,
+                                             domestication_view_genbank,
+                                             domestication_view_protocol,
+                                             domestication_view_add,
+                                             synthesis_view,
+                                             synthesis_view_genbank,
+                                             synthesis_view_protocol)
 from goldenbraid.views.experiment import (search_experiment,
                                           add_experiment_view, experiment_view)
 

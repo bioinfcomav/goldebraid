@@ -24,8 +24,8 @@ from django.core.context_processors import csrf
 from django.shortcuts import render_to_response, redirect
 from django.http import HttpResponse, HttpResponseBadRequest
 
-from goldenbraid.views.feature_views import add_feature
-from goldenbraid.views.multipartite_views import assemble_parts, write_protocol
+from goldenbraid.views.feature import add_feature
+from goldenbraid.views.multipartite import assemble_parts, write_protocol
 from goldenbraid.tags import VECTOR_TYPE_NAME, MODULE_TYPE_NAME
 from goldenbraid.forms.assemblers import (BipartiteForm1, BipartiteForm2,
                                           get_part2_choices, BipartiteForm3,
