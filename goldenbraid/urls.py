@@ -39,8 +39,8 @@ from goldenbraid.views.domestication_view import (domestication_view,
                                                   synthesis_view,
                                                   synthesis_view_genbank,
                                                   synthesis_view_protocol)
-from goldenbraid.views.experiment_view import (add_experiment_view,
-                                               experiment_view)
+from goldenbraid.views.experiment import (search_experiment,
+                                          add_experiment_view, experiment_view)
 
 
 urlpatterns = patterns('',
@@ -52,6 +52,8 @@ urlpatterns = patterns('',
                            name='add_experiment'),
                        url(r'^experiment/(?P<uniquename>.+)/$',
                            experiment_view, name='experiment_view'),
+                       url(r'^search/experiment/$', search_experiment,
+                           name='search_experiments'),
                        url(r'^search/features/$', search_features_view,
                            name='search_features'),
                        url(r'^feature/(?P<uniquename>.+)/$', feature_view,

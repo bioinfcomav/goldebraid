@@ -1,8 +1,18 @@
-'''
-Created on 2015 mar. 13
+# Copyright 2013 Diego Orzaez, Univ.Politecnica Valencia, Consejo Superior de
+# Investigaciones Cientificas
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-@author: peio
-'''
 
 from django.shortcuts import render_to_response, redirect
 from django.template.context import RequestContext
@@ -12,17 +22,23 @@ from django.db import transaction
 from django.db.utils import IntegrityError
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django import forms
+from django.forms.widgets import Select
+from django.db.models import Q
+from django.core.paginator import Paginator, EmptyPage, InvalidPage
+from django.forms.models import modelformset_factory
 
-
+from goldenbraid.tags import EXPERIMENT_TYPES
+from goldenbraid.forms import FeatureField
+from goldenbraid.widgets import AutocompleteTextInput
 from goldenbraid.forms import (ExperimentForm, ExperimentNumForm,
                                ExperimentFeatureForm, ExperimentSubFeatureForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
-                                Feature, ExperimentFeature,
+                                Feature, ExperimentFeature, Cvterm,
                                 ExperimentPropImage, ExperimentSubFeature)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB
-from django.forms.models import modelformset_factory
 
 
 def experiment_view(request, uniquename):
@@ -185,3 +201,94 @@ def add_experiment_view(request):
     context['image_formset'] = image_formset
     template = 'experiment_add_template.html'
     return render_to_response(template, context)
+
+
+class ExperimentSearchForm(forms.Form):
+    help_name = 'Accession or description'
+    name_or_description = forms.CharField(max_length=100, required=False,
+                                          label=help_name)
+    chasis_1 = forms.CharField(max_length=100, required=False)
+    chassis_2 = forms.CharField(max_length=100, required=False)
+
+    _choices = [('', '')] + [(cvterm.name, cvterm.name) for cvterm in Cvterm.objects.filter(cv__name=EXPERIMENT_TYPES)]
+    help_kind = 'Choose the type of the experiment'
+    experiment_type = forms.CharField(max_length=200, label=help_kind,
+                                      required=False,
+                                      widget=Select(choices=_choices))
+    feature = FeatureField(max_length=100, required=False,
+                           widget=AutocompleteTextInput(source='/api/feature_uniquenames/',
+                                                        min_length=1))
+
+
+def _build_experiment_query(criteria, user=None):
+    query = Experiment.objects
+    if 'name_or_description' in criteria and criteria['name_or_description']:
+        text = criteria['name_or_description']
+        name_criteria = Q(uniquename__icontains=text) | Q(description__icontains=text)
+        query = query.filter(name_criteria)
+    if 'chasis_1' in criteria and criteria['chasis_1']:
+        query = query.filter(chasis_1__icontains=criteria['chasis_1'])
+    if 'chasis_2' in criteria and criteria['chasis_2']:
+        query = query.filter(chasis_2__icontains=criteria['chasis_2'])
+    if 'experiment_type' in criteria and criteria['experiment_type']:
+        query = query.filter(type_cvterm_id=criteria['experiment_type'])
+    if 'feature' in criteria and criteria['feature']:
+        query = query.filter(experimentfeature__feature__feature_id=criteria['feature'])
+    query = query.distinct()
+    return query
+
+
+def search_experiment(request):
+    'The feature search view'
+
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    elif request.method == 'GET':
+        request_data = request.GET
+    else:
+        request_data = None
+
+    template = 'search_experiment.html'
+    content_type = None  # default
+    if request_data:
+        form = ExperimentSearchForm(request_data)
+        if request.user.is_authenticated():
+            _label = "Search only in my parts?"
+            form.fields['only_user'] = forms.BooleanField(label=_label,
+                                                          initial=False,
+                                                          required=False)
+        if form.is_valid():
+            search_criteria = form.cleaned_data
+            search_criteria = dict([(key, value) for key, value in search_criteria.items() if value])
+            context['search_criteria'] = search_criteria
+            experiment_queryset = _build_experiment_query(search_criteria,
+                                                          user=request.user)
+            if experiment_queryset:
+                if experiment_queryset.count() == 1:
+                    experiment_uniquename = experiment_queryset[0].uniquename
+                    return redirect(experiment_view,
+                                    uniquename=experiment_uniquename)
+                paginator = Paginator(experiment_queryset, 25)
+                # Make sure page request is an int. If not, deliver first page.
+                try:
+                    page_number = int(request.POST.get('page', '1'))
+                except ValueError:
+                    page_number = 1
+                # If page request (9999) is out of range, deliver last page of
+                # results.
+                try:
+                    page_object = paginator.page(page_number)
+                except (EmptyPage, InvalidPage):
+                    page_object = paginator.page(paginator.num_pages)
+                context['experiments_page'] = page_object
+            else:
+                context['experiments_page'] = None
+
+    else:
+        form = ExperimentSearchForm()
+
+    context['form'] = form
+
+    return render_to_response(template, context, content_type=content_type)

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load goldenbraid_extras %}
+{% block title %}Experiment search {% endblock title %}
+
+{% block extra_js %}
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.js" type="text/javascript"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/smoothness/jquery-ui.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>
+<script src="/static/autocomplete-init.js"></script>
+{% endblock %}
+
+{% block content %}
+	{% if not search_criteria %}
+		<div class='tools'>
+		<h2>Search Database</h2>
+		<p><span class='tools'>The 'Search DB' is a tool for searching GB2.0 elements in GoldenBraid database.</span></p>
+		<p><span class='tools'>Use the first option for searching the database for GB2.0 elements with a GoldenBraid ID_number/name/description containing what you typed in.</span></p>
+		<p><span class='tools'>You can use the second option for limiting your search results to a type of GB2.0 element. In the drop-down menu you will see a list of the common elements that make up the GB collection. </span></p>
+		</div>
+	{% endif %}
+	{% if search_criteria and not experiments_page.paginator.count %}
+	   <p>No experiments found</p>
+	{% endif %}
+	{% if experiments_page.object_list %}
+	  <p>
+	  {% if 'kind' in search_criteria %}
+	      {{ features_page.object_list.0.type.name|replaceunderscore|capfirst }}{{ features_page.paginator.count|pluralize }} found: {{ features_page.paginator.count }} </p>
+	  {% else %}
+	    Experiments found: {{ experiments_page.paginator.count }} </p>
+	  {% endif%}
+	
+	  {% with experiments=experiments_page.object_list %}
+	    {% include "experiment_table.html" %}
+	  {% endwith %}
+	  {% with search_criteria=search_criteria page=experiments_page %}
+	    {% include "pagination.html" %}
+	  {% endwith %}
+	{% else %}
+	   <form action="{% url 'search_experiments' %}" method="post">{% csrf_token %}
+	    {{ form.as_p }}
+	    <input type="submit" value="Search" />
+	   </form>
+	   {{ form.kind.errors }}
+	
+	{% endif %}
+{% endblock content %}

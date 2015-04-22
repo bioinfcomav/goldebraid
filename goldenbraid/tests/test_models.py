@@ -208,7 +208,7 @@ class FeatureTestModels(TestCase):
 class ExperimentTests(TestCase):
     fixtures = FIXTURES_TO_LOAD
 
-    def test_feature_relationship(self):
+    def xtest_feature_relationship(self):
         feature = Feature.objects.get(feature_id=47)
         exp = Experiment.objects.create(feature=feature)
         print feature.name
