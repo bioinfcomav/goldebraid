@@ -6,7 +6,7 @@ from django.forms.widgets import Select
 from django.core.exceptions import ValidationError
 
 from goldenbraid.models import Feature, Cvterm
-from goldenbraid.settings import SEARCH_MENU_TYPE_CHOICES, CATEGORIES
+from goldenbraid.settings import CATEGORIES
 
 from goldenbraid.tags import (TU_TYPE_NAME, MODULE_TYPE_NAME, OTHER_TYPE_NAME,
                               VECTOR_TYPE_NAME)
@@ -79,14 +79,16 @@ def _get_category_name(category):
 def _prepare_feature_kind():
     'It prepares the feature kind select choices to put in the type widget'
     if settings.SEARCH_MENU_TYPE_CHOICES:
-        feature_categories = [(kind, kind) for kind in settings.SEARCH_MENU_TYPE_CHOICES]
+        feature_categories = [(kind, kind)
+                              for kind in settings.SEARCH_MENU_TYPE_CHOICES]
     else:
-        categories = Feature.objects.distinct('type', 'suffix', 'prefix').values('type__name', 'prefix', 'suffix')
+        query = Feature.objects.distinct('type', 'suffix', 'prefix')
+        categories = query.values('type__name', 'prefix', 'suffix')
         # VECTOR, other is special. manually added
         feature_categories = []
         for special_category in SPECIAL_SEARCH_CATEGORIES:
-            feature_categories.append(('{0},None,None'.format(special_category),
-                                                              special_category))
+            special_string = '{0},None,None'.format(special_category)
+            feature_categories.append((special_string, special_category))
         for dict_category in categories:
             if dict_category['type__name'] in SPECIAL_SEARCH_CATEGORIES:
                 continue
