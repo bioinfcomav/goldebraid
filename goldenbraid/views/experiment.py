@@ -23,19 +23,17 @@ from django.db.utils import IntegrityError
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django import forms
-from django.forms.widgets import Select
 from django.db.models import Q
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.forms.models import modelformset_factory
 
-from goldenbraid.tags import EXPERIMENT_TYPES
-from goldenbraid.forms import FeatureField
-from goldenbraid.widgets import AutocompleteTextInput
-from goldenbraid.forms import (ExperimentForm, ExperimentNumForm,
-                               ExperimentFeatureForm, ExperimentSubFeatureForm)
+from goldenbraid.forms.experiment import (ExperimentForm, ExperimentNumForm,
+                                          ExperimentFeatureForm,
+                                          ExperimentSubFeatureForm,
+                                          ExperimentSearchForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
-                                Feature, ExperimentFeature, Cvterm,
+                                Feature, ExperimentFeature,
                                 ExperimentPropImage, ExperimentSubFeature)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB
@@ -201,23 +199,6 @@ def add_experiment_view(request):
     context['image_formset'] = image_formset
     template = 'experiment_add_template.html'
     return render_to_response(template, context)
-
-
-class ExperimentSearchForm(forms.Form):
-    help_name = 'Accession or description'
-    name_or_description = forms.CharField(max_length=100, required=False,
-                                          label=help_name)
-    chasis_1 = forms.CharField(max_length=100, required=False)
-    chassis_2 = forms.CharField(max_length=100, required=False)
-
-    _choices = [('', '')] + [(cvterm.name, cvterm.name) for cvterm in Cvterm.objects.filter(cv__name=EXPERIMENT_TYPES)]
-    help_kind = 'Choose the type of the experiment'
-    experiment_type = forms.CharField(max_length=200, label=help_kind,
-                                      required=False,
-                                      widget=Select(choices=_choices))
-    feature = FeatureField(max_length=100, required=False,
-                           widget=AutocompleteTextInput(source='/api/feature_uniquenames/',
-                                                        min_length=1))
 
 
 def _build_experiment_query(criteria, user=None):

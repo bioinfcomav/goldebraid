@@ -13,28 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import OrderedDict
+
 from django.contrib.auth.decorators import login_required
 from django.core.files.temp import NamedTemporaryFile
-from goldenbraid.views.feature_views import add_feature
 from django.db.utils import IntegrityError
 from django.http.response import HttpResponseServerError
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
-
 from django.template.context import RequestContext
 from django.core.context_processors import csrf
 from django.shortcuts import render_to_response, redirect
 from django.http import HttpResponse, HttpResponseBadRequest
-from django.db.models import Q
 
+from goldenbraid.views.feature_views import add_feature
 from goldenbraid.views.multipartite_views import assemble_parts, write_protocol
 from goldenbraid.tags import VECTOR_TYPE_NAME, MODULE_TYPE_NAME
-from goldenbraid.forms import (BipartiteForm1, BipartiteForm2,
-                               get_part2_choices, BipartiteForm3,
-                               get_bipart_vector_choices, get_part1_choice)
+from goldenbraid.forms.assemblers import (BipartiteForm1, BipartiteForm2,
+                                          get_part2_choices, BipartiteForm3,
+                                          get_bipart_vector_choices,
+                                          get_part1_choice)
 
 
 def bipartite_view(request, form_num):

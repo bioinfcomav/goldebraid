@@ -28,7 +28,7 @@ from django.http.response import HttpResponseServerError
 from django.db.utils import IntegrityError
 
 from goldenbraid.domestication import domesticate, domesticate_for_synthesis
-from goldenbraid.forms import DomesticationForm
+from goldenbraid.forms.domestication import DomesticationForm
 from goldenbraid.settings import CATEGORIES
 from goldenbraid.views.feature_views import add_feature
 

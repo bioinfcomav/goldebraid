@@ -45,10 +45,11 @@ from goldenbraid.tags import (VECTOR_TYPE_NAME, REVERSE, TU_TYPE_NAME,
                               MODULE_TYPE_NAME)
 from goldenbraid.views.feature_views import (get_prefix_and_suffix_index,
                                              add_feature)
-from goldenbraid.forms import (get_multipartite_form,
-                               get_multipartite_free_form,
-                               MultipartiteFormFreeInitial,
-                               features_to_choices, get_vector_choices)
+from goldenbraid.forms.assemblers import (get_multipartite_form,
+                                          get_multipartite_free_form,
+                                          MultipartiteFormFreeInitial,
+                                          features_to_choices,
+                                          get_vector_choices)
 
 
 def assemble_parts(parts, part_types):

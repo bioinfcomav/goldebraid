@@ -74,7 +74,7 @@ class SearchFeatureForm(forms.Form):
     choices = _prepare_feature_kind()
     help_kind = 'Type of feature'
     category = forms.CharField(max_length=200, label=help_kind, required=False,
-                           widget=Select(choices=choices))
+                               widget=Select(choices=choices))
 
     def xclean_kind(self):
         type_str = self.cleaned_data['kind']

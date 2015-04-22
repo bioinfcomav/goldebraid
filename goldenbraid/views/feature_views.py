@@ -25,7 +25,7 @@ from django.core.files import File
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http.response import HttpResponseBadRequest, HttpResponse
+from django.http.response import HttpResponseBadRequest
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import MultipleObjectsReturned
 
@@ -39,9 +39,8 @@ from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, DERIVES_FROM)
-from goldenbraid.forms import (FeatureForm, FeatureManagementForm,
-                               get_all_vectors_as_choices, VectorForm)
-import json
+from goldenbraid.forms.feature import (FeatureForm, FeatureManagementForm,
+                                       get_all_vectors_as_choices, VectorForm)
 
 
 def parse_rebase_file(fpath):
