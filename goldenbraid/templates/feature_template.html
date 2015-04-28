@@ -45,6 +45,9 @@
       {% endwith %}
 
    {%endif%}
+   
+   <a href= "{%url 'add_experiment' %}?feature={{feature}}">Add Experiment</a>
+   
    <h2> Feature Management Tools (only if permission granted)</h2>
    {% if feature.owner == user or user.is_staff %}
         <form action='' method='POST' onsubmit="return confirm('Are you sure you want to delete the feature?')">{% csrf_token %}
