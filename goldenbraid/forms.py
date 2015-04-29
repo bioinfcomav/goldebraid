@@ -28,12 +28,14 @@ from Bio.Seq import Seq
 from Bio import SeqIO
 
 from goldenbraid.models import Cvterm, Feature
-from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME
+from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME, \
+    MODULE_TYPE_NAME, OTHER_TYPE_NAME, TU_TYPE_NAME, TER_CRYSPER, PROM_MONOCOT, \
+    PROM_DICOT
 from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
                                   UT_PREFIX, SITE_B, SITE_A, SITE_C,
                                   BIPARTITE_ALLOWED_PARTS, CATEGORIES,
                                   SEARCH_MENU_TYPE_CHOICES,
-                                  MINIMUN_PCR_LENGTH)
+                                  MINIMUN_PCR_LENGTH, CRYSPER_CATEGORIES)
 
 
 def get_vector_choices(user):
@@ -77,6 +79,18 @@ def features_to_choices(features, blank_line=True):
 
 
 def _prepare_feature_kind():
+    'It prepares the feature kind select choices to put in the type widget'
+    kinds = [cat[0] for cat in CATEGORIES.values()]
+    kinds.extend([TU_TYPE_NAME, OTHER_TYPE_NAME, MODULE_TYPE_NAME,
+                  PROM_DICOT, PROM_MONOCOT, TER_CRYSPER])
+
+    feature_kinds = [(kind, kind.replace('_', ' ')) for kind in kinds]
+
+    feature_kinds.insert(0, ('', ''))  # no kind
+    return feature_kinds
+
+
+def _prepare_feature_kind_old():
     'It prepares the feature kind select choices to put in the type widget'
     if SEARCH_MENU_TYPE_CHOICES:
         kinds = SEARCH_MENU_TYPE_CHOICES
@@ -357,7 +371,21 @@ def get_bipart_vector_choices(part_uniquename, user):
     return _vectors_to_choice(vectors)
 
 
-# # Domesticator #
+class DomesticationCrysperForm(forms.Form):
+    choices = [('', '')]
+    for category_name in CRYSPER_CATEGORIES.keys():
+        choices.append((category_name, category_name))
+    category = forms.CharField(max_length=100,
+                               label='Choose a category to domesticate to',
+                               widget=Select(choices=choices), required=False)
+    seq = forms.CharField(max_length=20, label='Add your sequence',
+                          required=True)
+    prefix = forms.CharField(max_length=4,
+                             label='custom prefix', required=False)
+    suffix = forms.CharField(max_length=4,
+                             label='custom prefix', required=False)
+
+# Domesticator #
 class DomesticationForm(forms.Form):
     choices = [('', '')]
     for category_name in CATEGORIES.keys():

@@ -27,10 +27,13 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponseServerError
 from django.db.utils import IntegrityError
 
-from goldenbraid.domestication import domesticate, domesticate_for_synthesis
-from goldenbraid.forms import DomesticationForm
-from goldenbraid.settings import CATEGORIES
+from goldenbraid.domestication import domesticate, domesticate_for_synthesis, \
+    domestication_crysper
+from goldenbraid.forms import DomesticationForm, DomesticationCrysperForm
+from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES
 from goldenbraid.views.feature_views import add_feature
+from goldenbraid.tags import TARGET_DICOT, TARGET_MONOCOT
+from Bio.Alphabet import DNAAlphabet
 
 
 def synthesis_view(request):
@@ -39,6 +42,49 @@ def synthesis_view(request):
 
 def domestication_view(request):
     return _domestication_view(request, kind='domestication')
+
+
+def crysper_view(request):
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    elif request.method == 'GET':
+        request_data = request.GET
+    else:
+        request_data = None
+    if request_data:
+        form = DomesticationCrysperForm(request_data, request.FILES)
+        if form.is_valid():
+            seq = form.cleaned_data['seq']
+            category = form.cleaned_data.get('category', None)
+            if category is None:
+                prefix = form.cleaned_data.get('prefix')
+                suffix = form.cleaned_data.get('suffix')
+            else:
+                prefix = CRYSPER_CATEGORIES[category][1]
+                suffix = CRYSPER_CATEGORIES[category][2]
+            new_seq = domestication_crysper(seq, category, prefix, suffix)
+            forw_dim = new_seq[:-4]
+            rev_dim = new_seq[4:].reverse_complement()
+
+            return render_to_response('crysper_result.html',
+                                      {'category': category,
+                                       'prefix': prefix,
+                                       'suffix': suffix,
+                                       'seq': str(new_seq.seq),
+                                       'seq_name': new_seq.name,
+                                       'forw_dim': str(forw_dim.seq),
+                                       'rev_dim': str(rev_dim.seq)},
+                                  context_instance=RequestContext(request))
+    else:
+        form = DomesticationCrysperForm()
+
+    context['form'] = form
+
+    template = 'domestication_template.html'
+    content_type = None
+    return render_to_response(template, context, content_type=content_type)
 
 
 def _domestication_view(request, kind):
@@ -52,8 +98,8 @@ def _domestication_view(request, kind):
         request_data = None
     if request_data:
         form = DomesticationForm(request_data, request.FILES)
+        # do domestication
         if form.is_valid():
-            # do domestication
             seq = form.cleaned_data['seq']
             if seq is None:
                 seq = form.cleaned_data['residues']
@@ -94,8 +140,13 @@ def _domestication_view(request, kind):
                                            'seq_name': prepared_seq.name,
                                            'with_intron': with_intron_str},
                                       context_instance=RequestContext(request))
+
     else:
-        form = DomesticationForm()
+        if kind == 'crysper':
+            form = DomesticationCrysperForm()
+        else:
+            form = DomesticationForm()
+
     context['form'] = form
     context['kind'] = kind
 
@@ -184,6 +235,55 @@ One microlitre of the reaction is enough to be transform E.coli electrocompetent
 
 
 @login_required
+def crysper_view_add(request):
+    context = RequestContext(request)
+    context.update(csrf(request))
+    request_data = request.POST
+    # request_data
+    seq = request_data['seq']
+    category = request_data['category']
+    prefix = request_data['prefix']
+    suffix = request_data['suffix']
+    seq_name = request_data['seq_name']
+    name = request_data['name']
+    if category == 'None':
+        category_name = 'Other'
+    else:
+        category_name = CRYSPER_CATEGORIES[category][0]
+    print 'seq', seq
+    seq = SeqRecord(Seq(seq, DNAAlphabet()), id=seq_name, name=seq_name)
+    print 'seq', seq
+    temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(seq.id),
+                                    suffix='.gb')
+    temp_fhand.write(seq.format('gb'))
+    temp_fhand.flush()
+    temp_fhand.seek(0)
+    props = {'Description': [request_data['description']],
+             'Reference': [request_data['reference']]}
+    try:
+        feature = add_feature(name=name, type_name=category_name,
+                              vector=None, genbank=temp_fhand, props=props,
+                              owner=request.user, is_public=False,
+                              prefix=prefix, suffix=suffix)
+
+    except IntegrityError as error:
+        print error
+        if 'feature already in db' in str(error):
+            # TODO choose a template
+            return render_to_response('feature_exists.html',
+                                      {},
+                                      context_instance=RequestContext(request))
+        else:
+            return HttpResponseServerError()
+    except Exception as error:
+        raise
+        print error
+        return HttpResponseServerError(error)
+    # if everithing os fine we show the just added feature
+    return redirect(feature.url)
+
+
+@login_required
 def domestication_view_add(request):
     context = RequestContext(request)
     context.update(csrf(request))
@@ -228,6 +328,30 @@ def domestication_view_add(request):
         return HttpResponseServerError()
     # if everithing os fine we show the just added feature
     return redirect(feature.url)
+
+
+CRYSPER_PROTOCOL = '''In order to use this sequence as a target in a guide RNA you have to order these primers:
+Forward primer: {forw_primer}
+Reverse primer: {rev_primer}
+Dilute them to a final concentration of 2ng/ul, mix 5ul of each primer and let them anneal for at least 2 hours at room temperature before setting up the multipartite reaction.
+
+'''
+
+
+def crysper_view_protocol(request):
+    if not request.POST:
+        msg = "To show the protocol you need first to assemble parts"
+        return HttpResponseBadRequest(msg)
+    context = RequestContext(request)
+    context.update(csrf(request))
+    request_data = request.POST
+    forw_primer = request_data['forw_primer']
+    rev_primer = request_data['rev_primer']
+    protocol = CRYSPER_PROTOCOL.format(forw_primer=forw_primer,
+                                       rev_primer=rev_primer)
+    response = HttpResponse(protocol, content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
+    return response
 
 
 def synthesis_view_protocol(request):

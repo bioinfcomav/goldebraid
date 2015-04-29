@@ -28,9 +28,10 @@ from goldenbraid.settings import (REBASE_FILE,
                                   DOMESTICATION_MIN_OLIGO_LENGTH,
                                   ENZYMES_USED_IN_GOLDENBRAID, PUPD_PREFIX,
                                   OLIGO_UNIVERSAL, DOMESTICATED_SEQ,
-                                  MINIMUN_PCR_LENGTH)
+                                  MINIMUN_PCR_LENGTH, CRYSPER_SEQ)
 from goldenbraid.models import Feature, Count
 from Bio.SeqFeature import FeatureLocation, CompoundLocation, SeqFeature
+from goldenbraid.tags import TARGET_MONOCOT, TARGET_DICOT
 
 
 def get_ret_sites(enzymes):
@@ -505,3 +506,36 @@ def _domesticate_rec_site(rec_site, patch, rec_sites_regex):
 
     # if we reach this is because no allowed domesticated site has been found
     raise ValueError('No domestication possible for ORF site ' + rec_site)
+
+
+# cryspers
+def domestication_crysper(seq, category=None, prefix=None, suffix=None):
+    if len(seq) != 20:
+        raise ValueError('Seq length different 20')
+    if category == TARGET_DICOT and str(seq[0]) != 'G':
+        raise ValueError('First nucleotide must be G for target dicot category')
+    if category == TARGET_MONOCOT and str(seq[0]) != 'A':
+        raise ValueError('First nucleotide must be G for target monocot category')
+
+    rec_sites = get_ret_sites(ENZYMES_USED_IN_GOLDENBRAID)
+    # regex with the sites to domesticate
+    rec_sites_regex = '(' + '|'.join(rec_sites) + ')'
+    rec_sites_regex = re.compile(rec_sites_regex, flags=re.IGNORECASE)
+    match = rec_sites_regex.search(seq)
+    if match:
+        msg = 'This secuence can not be domesticated. It has internat restriction sites'
+        raise ValueError(msg)
+
+    if category:
+        prefix = prefix[:3]
+
+    try:
+        count = Count.objects.get(name=CRYSPER_SEQ)
+    except Count.DoesNotExist:
+        count = Count.objects.create(name=CRYSPER_SEQ, value=1)
+    next_value = count.next
+
+    prepared_seq = Seq(prefix + seq + suffix)
+    seq_name = CRYSPER_SEQ + '_' + next_value
+    new_seq_record = SeqRecord(prepared_seq, name=seq_name, id=seq_name)
+    return new_seq_record

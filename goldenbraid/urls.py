@@ -34,7 +34,9 @@ from goldenbraid.views.domestication_view import (domestication_view,
                                                   domestication_view_add,
                                                   synthesis_view,
                                                   synthesis_view_genbank,
-                                                  synthesis_view_protocol)
+                                                  synthesis_view_protocol,
+                                                  crysper_view,
+    crysper_view_protocol, crysper_view_add)
 
 
 urlpatterns = patterns('',
@@ -85,5 +87,12 @@ urlpatterns = patterns('',
             name='shinthesis_view_genbank'),
         url(r'^do/synthesis/protocol/$', synthesis_view_protocol,
             name='synthesis_view_protocol'),
+
+        url(r'^do/crysper/$', crysper_view,
+            name='crysper_view'),
+        url(r'^do/crysper/protocol/$', crysper_view_protocol,
+            name='crysper_view_add'),
+        url(r'^do/crysper/add/$', crysper_view_add,
+            name='crysper_view_add'),
         )
 

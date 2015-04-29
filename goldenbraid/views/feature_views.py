@@ -213,7 +213,7 @@ def _parse_children_relations_from_gb(seq):
 
 
 def add_feature(name, type_name, vector, genbank, props, owner,
-                is_public=False):
+                is_public=False, prefix=None, suffix=None):
     'it adds a feature to the database'
     feature = None
     # transaction.set_autocommit(False)
@@ -278,14 +278,15 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                     Featureprop.objects.create(feature=feature, type=prop_type,
                                                value=value, rank=rank)
                     rank += 1
-            if type_ == vector_type:
-                enzyme = props[ENZYME_IN_TYPE_NAME][0]
-            else:
-                enzyme = vector.enzyme_out[0]
-            prefix, suffix = get_prefix_and_suffix(residues, enzyme)
-            if prefix is None or suffix is None:
-                raise RuntimeError('The given vector is not compatible with this part')
-
+            if suffix is None or prefix is None:
+                if type_ == vector_type:
+                    enzyme = props[ENZYME_IN_TYPE_NAME][0]
+                else:
+                    enzyme = vector.enzyme_out[0]
+                prefix, suffix = get_prefix_and_suffix(residues, enzyme)
+                if prefix is None or suffix is None:
+                    raise RuntimeError('The given vector is not compatible with this part')
+            print prefix, suffix
             feature.prefix = prefix
             feature.suffix = suffix
             feature.save()

@@ -63,14 +63,22 @@ def assemble_parts(parts, part_types):
                                part.genbank_file.name)
         part_record = SeqIO.read(gb_path, 'gb')
         seq = Seq(part.residues)
-        if part.type.name == VECTOR_TYPE_NAME:
-            enzyme = part.enzyme_in[0]
-            names['vector'] = part.uniquename
-        else:
-            names['parts'].append(part.uniquename)
-            enzyme = part.enzyme_out[0]
 
-        pref_idx, suf_idx = get_prefix_and_suffix_index(seq, enzyme)[:2]
+        # crysper targets are the unique parts that are not vectors
+        # and does not have a verctor
+        if part.vector is None and part.type.name != VECTOR_TYPE_NAME:
+            pref_idx = 0
+            suf_idx = len(seq) - len(part.suffix)
+            names['parts'].append(part.uniquename)
+        else:
+            if part.type.name == VECTOR_TYPE_NAME:
+                enzyme = part.enzyme_in[0]
+                names['vector'] = part.uniquename
+            else:
+                names['parts'].append(part.uniquename)
+                enzyme = part.enzyme_out[0]
+
+            pref_idx, suf_idx = get_prefix_and_suffix_index(seq, enzyme)[:2]
         # VECTOR must be always the last part to add
         if part.type.name == VECTOR_TYPE_NAME and part.direction == REVERSE:
             if suf_idx >= pref_idx and suf_idx + 4 < len(seq):
@@ -197,7 +205,6 @@ def multipartite_view(request, multi_type=None):
                                   context_instance=RequestContext(request))
     elif multi_type not in PARTS_TO_ASSEMBLE.keys():
         return Http404
-
     context = RequestContext(request)
     context.update(csrf(request))
     if request.method == 'POST':
@@ -248,7 +255,6 @@ def write_protocol(protocol_data, assembly_type, part_order):
     for part_type in part_order:
         part_name = protocol_data[part_type]
         protocol.append("\t75 ng of {0}".format(part_name))
-
     for enzyme in get_enzymes_for_protocol(protocol_data, part_order):
 	    protocol.append("\t5-10u of {0}".format(enzyme))
     protocol.append("")
@@ -293,10 +299,13 @@ def get_enzymes_for_protocol(protocol_data, part_order):
     for part_type in part_order:
         part_name = protocol_data[part_type]
         part = Feature.objects.get(uniquename=part_name)
+        # this conditions are only met by crysper targets
+        if part.type.name != VECTOR_TYPE_NAME and part.vector is None:
+            continue
         enzyme_outs = part.enzyme_out
         if vec_enzyme_in not in enzyme_outs:
             for enzyme_out in enzyme_outs:
-                if enzyme_out not in  vec_enzyme_out:
+                if enzyme_out not in vec_enzyme_out:
                     enzymes.add(enzyme_out)
                     break
     return list(enzymes)

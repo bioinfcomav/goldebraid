@@ -23,7 +23,9 @@ except ImportError:
 from django.conf import settings
 
 import goldenbraid
-from goldenbraid.tags import MODULE_TYPE_NAME, TU_TYPE_NAME
+from goldenbraid.tags import (MODULE_TYPE_NAME, TU_TYPE_NAME, TARGET_DICOT,
+                              TARGET_MONOCOT, PROM_DICOT, PROM_MONOCOT,
+                              TER_CRYSPER)
 
 
 GENBANK_DIR = getattr(settings, 'GOLDENBRAID_GENBANK_DIR', 'genbank_files')
@@ -40,9 +42,9 @@ PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
                                ('CDS', 'AATG', 'GCTT'),
                                ('TER', 'GCTT', 'CGCT')],
                      'secreted': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
-                                 ('SP', 'AATG', 'AGCC'),
-                                 ('CDS', 'AGCC', 'GCTT'),
-                                 ('TER', 'GCTT', 'CGCT')],
+                                  ('SP', 'AATG', 'AGCC'),
+                                  ('CDS', 'AGCC', 'GCTT'),
+                                  ('TER', 'GCTT', 'CGCT')],
                      'ct-fusion': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
                                    ('CDS', 'AATG', 'GCAG'),
                                    ('CT', 'GCAG', 'GCTT'),
@@ -57,14 +59,14 @@ PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
                                       ('CT', 'GCAG', 'GCTT'),
                                       ('TER', 'GCTT', 'CGCT')],
                      'operated-promoter-a': [('OP', 'GGAG', 'TCCC'),
-                                           ('MinPROM', 'TCCC', 'AATG'),
-                                           ('CDS', 'AATG', 'GCTT'),
-                                           ('TER', 'GCTT', 'CGCT')],
+                                             ('MinPROM', 'TCCC', 'AATG'),
+                                             ('CDS', 'AATG', 'GCTT'),
+                                             ('TER', 'GCTT', 'CGCT')],
                      'operated-promoter-b': [('PROM', 'GGAG', 'TGAC'),
-                                           ('OP', 'TGAC', 'TCCC'),
-                                           ('MinPROM', 'TCCC', 'AATG'),
-                                           ('CDS', 'AATG', 'GCTT'),
-                                           ('TER', 'GCTT', 'CGCT')],
+                                             ('OP', 'TGAC', 'TCCC'),
+                                             ('MinPROM', 'TCCC', 'AATG'),
+                                             ('CDS', 'AATG', 'GCTT'),
+                                             ('TER', 'GCTT', 'CGCT')],
                      'protein-interaction': [('INTERACTION ADAPTOR', 'GGAG',
                                               'AATG'),
                                              ('CDS', 'AATG', 'GCTT'),
@@ -81,7 +83,14 @@ PARTS_TO_ASSEMBLE = {'basic': [('PROM+UTR+ATG', 'GGAG', 'AATG'),
                                 ('TER', 'GCTT', 'CGCT')],
                      'tasiRNA':  [('PROM+UTR+mir173', 'GGAG', 'CCAT'),
                                   ('goi', 'CCAT', 'GCTT'),
-                                  ('TER', 'GCTT', 'CGCT')]
+                                  ('TER', 'GCTT', 'CGCT')],
+
+                     'gRNA_monocot': [(PROM_MONOCOT, 'GGAG', 'GGCA'),
+                                      (TARGET_MONOCOT, 'GGCA', 'GTTT'),
+                                      (TER_CRYSPER, 'GTTT', 'CGCT')],
+                     'gRNA_dicot': [(PROM_DICOT, 'GGAG', 'ATTG'),
+                                    (TARGET_DICOT, 'ATTG', 'GTTT'),
+                                    (TER_CRYSPER, 'GTTT', 'CGCT')],
                      }
 UT_PREFIX = PARTS_TO_ASSEMBLE['basic'][0][1]
 UT_SUFFIX = PARTS_TO_ASSEMBLE['basic'][-1][2]
@@ -118,6 +127,12 @@ CATEGORIES['16 (IOG)'] = ('iog', 'GCAG', 'GCTT')
 CATEGORIES['12-13-14-15-16 (GOI)'] = ('goi', 'CCAT', 'GCTT')
 CATEGORIES['17-21 (TER)'] = ('TER', 'GCTT', 'CGCT')
 
+CRYSPER_CATEGORIES = OrderedDict()
+CRYSPER_CATEGORIES[PROM_DICOT] = (PROM_DICOT, 'GGAG', 'ATTG')
+CRYSPER_CATEGORIES[PROM_MONOCOT] = (PROM_MONOCOT, 'GGAG', 'GGCA')
+CRYSPER_CATEGORIES[TARGET_DICOT] = (TARGET_DICOT, 'ATTG', 'GTTT')
+CRYSPER_CATEGORIES[TARGET_MONOCOT] = (TARGET_MONOCOT, 'GGCA', 'GTTT')
+CRYSPER_CATEGORIES[TER_CRYSPER] = (TER_CRYSPER, 'GTTT', 'CGCT')
 ENZYMES_USED_IN_GOLDENBRAID = ('BsmBI', 'BsaI', 'BtgZI')
 
 PUPD_PREFIX = 'CTCG'
@@ -126,3 +141,4 @@ PUPD_PREFIX = 'CTCG'
 OLIGO_UNIVERSAL = 'GCGCCGTCTCG'
 ASSEMBLED_SEQ = 'GB_UA'
 DOMESTICATED_SEQ = 'GB_UD'
+CRYSPER_SEQ = 'GB_UC'
