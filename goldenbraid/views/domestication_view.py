@@ -136,7 +136,7 @@ def _domestication_view(request, kind):
                                            'prefix': prefix,
                                            'suffix': suffix,
                                            'seq_syn': seq_for_syn,
-                                           'seq': str(prepared_seq.seq),
+                                           'seq': str(seq.seq),
                                            'seq_name': prepared_seq.name,
                                            'with_intron': with_intron_str},
                                       context_instance=RequestContext(request))
