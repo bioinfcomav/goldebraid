@@ -23,7 +23,7 @@ from goldenbraid import settings
 from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
-                              FORWARD, REVERSE, DERIVES_FROM, MAIN_ROLE)
+                              FORWARD, REVERSE, DERIVES_FROM)
 
 
 class Db(models.Model):
@@ -278,6 +278,32 @@ class Feature(models.Model):
                 continue
             _get_or_create_feature_relationship(object_=self, subject=child)
 
+    @property
+    def ordered_experiments(self):
+        experiments = []
+        for featsubexpe in ExperimentSubFeature.objects.filter(feature=self):
+            exp = featsubexpe.experiment
+            print exp, experiments
+            if exp not in experiments:
+                experiments.append(exp)
+        for featexpe in ExperimentSubFeature.objects.filter(feature=self):
+            exp = featexpe.experiment
+            if exp not in experiments:
+                experiments.append(exp)
+        return experiments
+
+    @property
+    def experiment_images(self):
+        experiments = self.ordered_experiments
+        images = []
+        for experiment in experiments:
+            image = experiment.most_repr_image
+            if image:
+                images.append(image)
+            if len(images) >= 2:
+                break
+        return images
+
 
 def _parse_children_relations_from_gb(seq):
     definition = seq.description
@@ -412,7 +438,14 @@ class Experiment(models.Model):
 
     @property
     def image_props(self):
-        return [(image_prop.description, image_prop.image) for image_prop in ExperimentPropImage.objects.filter(experiment=self)]
+        return [(image_prop.description, image_prop.image)
+                for image_prop in ExperimentPropImage.objects.filter(experiment=self)]
+
+    @property
+    def most_repr_image(self):
+        # if excel with format: get image
+        # else get image from props image
+        pass
 
 
 class ExperimentPerm(models.Model):
