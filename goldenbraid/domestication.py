@@ -21,10 +21,8 @@ from Bio.Alphabet import generic_dna
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
-from goldenbraid.views.feature_views import (parse_rebase_file,
-                                             get_prefix_and_suffix_index)
-from goldenbraid.settings import (REBASE_FILE,
-                                  DOMESTICATION_DEFAULT_MELTING_TEMP,
+from goldenbraid.views.feature_views import get_prefix_and_suffix_index
+from goldenbraid.settings import (DOMESTICATION_DEFAULT_MELTING_TEMP,
                                   DOMESTICATION_MIN_OLIGO_LENGTH,
                                   ENZYMES_USED_IN_GOLDENBRAID, PUPD_PREFIX,
                                   OLIGO_UNIVERSAL, DOMESTICATED_SEQ,
@@ -32,20 +30,7 @@ from goldenbraid.settings import (REBASE_FILE,
 from goldenbraid.models import Feature, Count
 from Bio.SeqFeature import FeatureLocation, CompoundLocation, SeqFeature
 from goldenbraid.tags import TARGET_MONOCOT, TARGET_DICOT
-
-
-def get_ret_sites(enzymes):
-    'It returns the restriction site of the given enzymes'
-    sites = []
-    existing_enzymes = parse_rebase_file(REBASE_FILE)
-    for enzyme in enzymes:
-        site = existing_enzymes[enzyme]
-        if '^' in site:
-            raise ValueError('We only use type IIS enzymes')
-        site = site.split('(')[0]
-        rev_site = str(Seq(site).reverse_complement())
-        sites.extend([site, rev_site])
-    return sites
+from goldenbraid.utils import get_ret_sites, has_rec_sites
 
 
 def get_codontable():
@@ -517,13 +502,8 @@ def domestication_crysper(seq, category=None, prefix=None, suffix=None):
     if category == TARGET_MONOCOT and str(seq[0]) != 'A':
         raise ValueError('First nucleotide must be G for target monocot category')
 
-    rec_sites = get_ret_sites(ENZYMES_USED_IN_GOLDENBRAID)
-    # regex with the sites to domesticate
-    rec_sites_regex = '(' + '|'.join(rec_sites) + ')'
-    rec_sites_regex = re.compile(rec_sites_regex, flags=re.IGNORECASE)
-    match = rec_sites_regex.search(seq)
-    if match:
-        msg = 'This secuence can not be domesticated. It has internat restriction sites'
+    if has_rec_sites(seq):
+        msg = 'This secuence can not be domesticated. It has internal restriction sites'
         raise ValueError(msg)
 
     if category:

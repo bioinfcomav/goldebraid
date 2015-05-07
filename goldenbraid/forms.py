@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from Bio.SeqRecord import SeqRecord
+from gb_genome_domestication.settings import ENZYMES_USED_IN_GOLDENBRAID
+import re
+from goldenbraid.utils import parse_rebase_file, has_rec_sites
 try:
     from collections import OrderedDict
 except ImportError:
@@ -30,12 +33,13 @@ from Bio import SeqIO
 from goldenbraid.models import Cvterm, Feature
 from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME, \
     MODULE_TYPE_NAME, OTHER_TYPE_NAME, TU_TYPE_NAME, TER_CRYSPER, PROM_MONOCOT, \
-    PROM_DICOT
+    PROM_DICOT, TARGET_DICOT, TARGET_MONOCOT
 from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
                                   UT_PREFIX, SITE_B, SITE_A, SITE_C,
                                   BIPARTITE_ALLOWED_PARTS, CATEGORIES,
                                   SEARCH_MENU_TYPE_CHOICES,
-                                  MINIMUN_PCR_LENGTH, CRYSPER_CATEGORIES)
+                                  MINIMUN_PCR_LENGTH, CRYSPER_CATEGORIES,
+    REBASE_FILE)
 
 
 def get_vector_choices(user):
@@ -349,9 +353,8 @@ def get_part2_choices(part1_uniquename, user):
     part_forw_choices = sorted(part_forw_choices, key=itemgetter(0))
     part_rev_choices = sorted(part_rev_choices, key=itemgetter(0))
 
-    part_choices = (('', ''),
-                      ('Forward parts', part_forw_choices),
-                      ('Reverse parts', part_rev_choices))
+    part_choices = (('', ''), ('Forward parts', part_forw_choices),
+                    ('Reverse parts', part_rev_choices))
     return part_choices
 
 
@@ -370,20 +373,6 @@ def get_bipart_vector_choices(part_uniquename, user):
 
     return _vectors_to_choice(vectors)
 
-
-class DomesticationCrysperForm(forms.Form):
-    choices = [('', '')]
-    for category_name in CRYSPER_CATEGORIES.keys():
-        choices.append((category_name, category_name))
-    category = forms.CharField(max_length=100,
-                               label='Choose a category to domesticate to',
-                               widget=Select(choices=choices), required=False)
-    seq = forms.CharField(max_length=20, label='Add your sequence',
-                          required=True)
-    prefix = forms.CharField(max_length=4,
-                             label='custom prefix', required=False)
-    suffix = forms.CharField(max_length=4,
-                             label='custom prefix', required=False)
 
 # Domesticator #
 class DomesticationForm(forms.Form):
@@ -424,7 +413,7 @@ class DomesticationForm(forms.Form):
         if self._data_in(self.cleaned_data, 'category'):
             category = self.cleaned_data['category']
             if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',
-                             '13-14-15 (CDS)'):
+                            '13-14-15 (CDS)'):
                 if not _seq_has_codon_start(seq.seq, with_intron):
                     msg = 'The provided seq must start with start codon in '
                     msg += 'order to use as choosen category'
@@ -513,7 +502,8 @@ class DomesticationForm(forms.Form):
         self._clean_form()
         self._post_clean()
         # custom validations
-        self._multi_field_validation()
+        self._seqform_validation()
+        self._prefix_sufix_category_validation()
         if self._errors:
             del self.cleaned_data
 
@@ -521,12 +511,12 @@ class DomesticationForm(forms.Form):
     def _data_in(dictionary, key):
         return True if key in dictionary and dictionary[key] else False
 
-    def _multi_field_validation(self):
+    def _seqform_validation(self):
         cleaned_data = self.cleaned_data
         if 'seq' not in self._errors and 'residues' not in self._errors:
             try:
                 if (not self._data_in(cleaned_data, 'seq') and
-                    not self._data_in(cleaned_data, 'residues')):
+                        not self._data_in(cleaned_data, 'residues')):
                     raise ValidationError('Fasta or genbank File Required')
 
             except ValidationError, e:
@@ -538,7 +528,7 @@ class DomesticationForm(forms.Form):
 
             try:
                 if (self._data_in(cleaned_data, 'seq') and
-                    self._data_in(cleaned_data, 'residues')):
+                        self._data_in(cleaned_data, 'residues')):
                     raise ValidationError('Form can not accept File and residues')
 
             except ValidationError, e:
@@ -548,10 +538,12 @@ class DomesticationForm(forms.Form):
                         del self.cleaned_data[name]
                 return
 
+    def _prefix_sufix_category_validation(self):
+        cleaned_data = self.cleaned_data
         try:
             if (not self._data_in(cleaned_data, 'category') and
                 not self._data_in(cleaned_data, 'suffix') and
-                not self._data_in(cleaned_data, 'prefix')):
+                    not self._data_in(cleaned_data, 'prefix')):
                 msg = 'At least we need category or prefix/suffix pair'
                 raise ValidationError(msg)
         except ValidationError, e:
@@ -640,9 +632,58 @@ class FeatureManagementForm(forms.Form):
         raise ValidationError('action must be delete or make_public')
 
     def clean_feature(self):
-
         uniquename = self.cleaned_data['feature']
         return create_feature_validator('feature')(self)
 
+
+class DomesticationCrysperForm(DomesticationForm):
+    choices = [('', '')]
+    for category_name in CRYSPER_CATEGORIES.keys():
+        choices.append((category_name, category_name))
+    category = forms.CharField(max_length=100,
+                               label='Choose a category to domesticate to',
+                               widget=Select(choices=choices), required=False)
+    seq = forms.CharField(max_length=20, label='Add your sequence',
+                          required=True)
+    prefix = forms.CharField(max_length=4,
+                             label='custom prefix', required=False)
+    suffix = forms.CharField(max_length=4,
+                             label='custom prefix', required=False)
+
+    def clean_seq(self):
+        seq = self.cleaned_data['seq']
+        if len(seq) != 20:
+            raise ValidationError('Crysper seq len must be 20 nucleotides')
+
+        if has_rec_sites(seq):
+            msg = 'This secuence can not be domesticated.'
+            msg += 'It has internal restriction sites'
+            raise ValidationError(msg)
+        return seq
+
+    def clean_residues(self):
+        pass
+
+    def clean_category(self):
+        category_name = self.cleaned_data['category']
+        if not category_name:
+            del self.cleaned_data['category']
+            return
+        if category_name not in CRYSPER_CATEGORIES.keys():
+            raise ValidationError('You must choose a valid category')
+        return category_name
+
+    def _seqform_validation(self):
+        cleaned_data = self.cleaned_data
+        if 'seq' not in cleaned_data:
+            return
+        seq = cleaned_data['seq']
+        category = cleaned_data['category']
+        if category == TARGET_DICOT and str(seq[0]) != 'G':
+            msg = 'First nucleotide must be G for target dicot category'
+            self._errors['seq'] = self.error_class([msg])
+        if category == TARGET_MONOCOT and str(seq[0]) != 'A':
+            msg = 'First nucleotide must be A for target monocot category'
+            self._errors['seq'] = self.error_class([msg])
 
 

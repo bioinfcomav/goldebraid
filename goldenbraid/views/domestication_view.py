@@ -82,7 +82,7 @@ def crysper_view(request):
 
     context['form'] = form
 
-    template = 'domestication_template.html'
+    template = 'crysper_template.html'
     content_type = None
     return render_to_response(template, context, content_type=content_type)
 

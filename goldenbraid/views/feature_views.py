@@ -41,24 +41,7 @@ from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, DERIVES_FROM)
 from goldenbraid.forms import (FeatureForm, FeatureManagementForm,
                                get_all_vectors_as_choices, VectorForm)
-
-
-def parse_rebase_file(fpath):
-    'It parses the rebase enzyme file and return a list with all the enzymes'
-    enzymes = {}
-    enz_name = None
-    for line in open(fpath):
-        line = line.strip()
-        if not line:
-            continue
-        if line.startswith('<1>'):
-            enz_name = line[3:]
-        if line.startswith('<3>'):
-            if enz_name is None:
-                raise RuntimeError()
-            enzymes[enz_name] = line[3:]
-            enz_name = None
-    return enzymes
+from goldenbraid.utils import parse_rebase_file
 
 
 def _search_rec_sites(seq, rec_site):
