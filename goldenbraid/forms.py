@@ -12,34 +12,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from Bio.SeqRecord import SeqRecord
-from gb_genome_domestication.settings import ENZYMES_USED_IN_GOLDENBRAID
-import re
-from goldenbraid.utils import parse_rebase_file, has_rec_sites
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+
+from collections import OrderedDict
 from operator import itemgetter
 
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.widgets import Select
-from django.forms.util import ErrorDict
+from django.forms.utils import ErrorDict
 from django.db.models import Q
+
+from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from Bio import SeqIO
 
+from goldenbraid.utils import has_rec_sites
 from goldenbraid.models import Cvterm, Feature
-from goldenbraid.tags import VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME, \
-    MODULE_TYPE_NAME, OTHER_TYPE_NAME, TU_TYPE_NAME, TER_CRYSPER, PROM_MONOCOT, \
-    PROM_DICOT, TARGET_DICOT, TARGET_MONOCOT
+from goldenbraid.tags import (VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME,
+                              MODULE_TYPE_NAME, OTHER_TYPE_NAME, TU_TYPE_NAME,
+                              TER_CRYSPER, PROM_MONOCOT, PROM_DICOT,
+                              TARGET_DICOT, TARGET_MONOCOT)
 from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
                                   UT_PREFIX, SITE_B, SITE_A, SITE_C,
                                   BIPARTITE_ALLOWED_PARTS, CATEGORIES,
                                   SEARCH_MENU_TYPE_CHOICES,
-                                  MINIMUN_PCR_LENGTH, CRYSPER_CATEGORIES,
-    REBASE_FILE)
+                                  MINIMUN_PCR_LENGTH, CRYSPER_CATEGORIES)
 
 
 def get_vector_choices(user):
