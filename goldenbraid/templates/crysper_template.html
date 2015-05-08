@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Crysper formulary {% endblock title %}
+{% block content %}
+<div class='tools'>
+	<h2>Crysper Domesticator</h2>
+	<p><span class='tools'>The first step in the GoldenBraid assembly strategy is to adapt your DNA building block to the GB grammar and to remove  the internal restriction sites for the enzymes used in GoldenBraid.</span></p>
+	<p><span class='tools'>This process is referred to as domestication and is computer assisted by the GB Domesticator software tool. Here you can domesticate your  DNA sequence to convert it into a GBpart/superpart. For this,  you can either select one of the standard GBpart categories from the dropdown menu (e.g. 01-02-03-11-12 PROM+UTR+ATG; 16 CT) or you can introduce the prefix and suffix of your choice (4 nts barcodes).</span></p>
+</div>
+{% load goldenbraid_extras %}
+<form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
+{% if form.residues.errors %}
+	{{form.residues.errors}}
+{% else %}
+	<ul>
+		<li>
+	        {{ form.category.errors }}<label for="name">Choose a category to domesticate to:</label>{{ form.category }}<a href='/gbclasses'  target="blank"><span class='gbdom'>What's this?</span></a>
+	  	</li>
+		<li>
+	        {{ form.seq.errors }}<label for="name">Write your crsyper secuence here:</label>{{ form.seq }}
+	    </li>
+		<li>
+	        {{ form.prefix.errors }}<label for="name">Custom prefix:</label>{{ form.prefix }}
+	    </li>
+		<li>
+	        {{ form.suffix.errors }}<label for="name">Custom suffix:</label>{{ form.suffix }}
+	    </li>
+	    
+	</ul>
+	<input type="submit" value="Submit" />
+{% endif %}
+</form>
+{% endblock content %}
