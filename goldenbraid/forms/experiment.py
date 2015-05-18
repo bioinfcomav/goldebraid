@@ -5,7 +5,7 @@ from django.forms.models import ModelForm
 
 from goldenbraid.models import (Cvterm, Feature, Experiment,
                                 ExperimentPropNumeric, ExperimentPropText, Cv,
-                                ExperimentPropImage)
+                                ExperimentPropImage, ExperimentPropExcel)
 from goldenbraid.tags import (EXPERIMENT_TYPES, NUMERIC_TYPES)
 from goldenbraid.forms.widgets import (AutocompleteTextInput,
                                        DinamicSelectMultiple)
@@ -123,6 +123,12 @@ class ExperimentTextForm(ModelForm):
 class ExperimentImageForm(ModelForm):
     class Meta:
         model = ExperimentPropImage
+        exclude = ['experiment']
+
+
+class ExperimentExcelForm(ModelForm):
+    class Meta:
+        model = ExperimentPropExcel
         exclude = ['experiment']
 
 

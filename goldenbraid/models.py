@@ -442,6 +442,11 @@ class Experiment(models.Model):
                 for image_prop in ExperimentPropImage.objects.filter(experiment=self)]
 
     @property
+    def excel_props(self):
+        return [(excel_prop.description, excel_prop.excel)
+                for excel_prop in ExperimentPropExcel.objects.filter(experiment=self)]
+
+    @property
     def most_repr_image(self):
         # if excel with format: get image
         # else get image from props image
@@ -511,7 +516,7 @@ class ExperimentPropImage(models.Model):
 class ExperimentPropExcel(models.Model):
     experiment_prop_excel_id = models.AutoField(primary_key=True)
     experiment = models.ForeignKey(Experiment)
-    image = models.FileField(upload_to=settings.RESULTS_DIR)
+    excel = models.FileField(upload_to=settings.RESULTS_DIR)
     description = models.CharField(max_length=255)
 
     class Meta:

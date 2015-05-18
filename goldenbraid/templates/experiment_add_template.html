@@ -33,6 +33,11 @@
               prefix: '{{ image_formset.prefix }}'
         });
     })
+    $(function() {
+        $('#id_excel_table tbody tr').formset({
+              prefix: '{{ excel_formset.prefix }}'
+        });
+    })
 </script>
 <style type="text/css">
     .add-row {
@@ -120,6 +125,20 @@
 {{ image_formset.management_form }}
 </fieldset>
      
+<fieldset>
+<legend>Associated excel files:</legend>
+<table id='id_excel_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+    {% for excel_form in excel_formset %}
+        <tr>
+            <td>{{excel_form.description}}</td>
+            <td>{{excel_form.excel}}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{{ excel_formset.management_form }}
+</fieldset>
 <input type="submit" value="Add" />
 </form>
 

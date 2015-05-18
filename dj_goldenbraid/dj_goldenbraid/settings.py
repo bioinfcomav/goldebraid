@@ -164,7 +164,6 @@ INSTALLED_APPS = (
     'goldenbraid',
     'gb_genome_domestication',
     'restcmd_client',
-    'south',
 )
 
 # A sample logging configuration. The only tangible logging

@@ -34,7 +34,8 @@ from goldenbraid.forms.experiment import (ExperimentForm, ExperimentNumForm,
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
                                 Feature, ExperimentFeature,
-                                ExperimentPropImage, ExperimentSubFeature)
+                                ExperimentPropImage, ExperimentSubFeature,
+    ExperimentPropExcel)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB
 
@@ -65,7 +66,8 @@ def experiment_view(request, uniquename):
 
 
 def _add_experiment(form, numeric_formset, text_formset, image_formset,
-                    feat_formset, subfeat_form, user, is_public=False):
+                    excel_formset, feat_formset, subfeat_form, user,
+                    is_public=False):
     try:
         with transaction.atomic():
             experiment = form.save(commit=False)
@@ -128,6 +130,11 @@ def _add_experiment(form, numeric_formset, text_formset, image_formset,
                 image_prop.experiment = experiment
                 image_prop.save()
 
+            excel_props = excel_formset.save(commit=False)
+            for excel_prop in excel_props:
+                excel_prop.experiment = experiment
+                excel_prop.save()
+
     except (IntegrityError, RuntimeError):
         transaction.rollback()
         raise
@@ -147,6 +154,8 @@ def add_experiment_view(request):
                                        exclude=('experiment',))
     ImageFormset = modelformset_factory(ExperimentPropImage,
                                         exclude=('experiment',))
+    ExcelFormset = modelformset_factory(ExperimentPropExcel,
+                                        exclude=('experiment',))
     if request_data:
         form = ExperimentForm(request_data, instance=Experiment())
         feat_formset = FeatFormset(request_data, prefix='feature')
@@ -155,16 +164,19 @@ def add_experiment_view(request):
         text_formset = TextFormset(request_data, prefix='text')
         image_formset = ImageFormset(request_data, request.FILES,
                                      prefix='image')
+        excel_formset = ExcelFormset(request_data, request.FILES,
+                                     prefix='excel')
         print request_data
         if (form.is_valid() and numeric_formset.is_valid()
            and text_formset.is_valid() and feat_formset.is_valid() and
-           subfeat_form.is_valid()):
+           subfeat_form.is_valid() and excel_formset.is_valid()):
             print "valid"
             try:
                 experiment = _add_experiment(form=form,
                                              numeric_formset=numeric_formset,
                                              text_formset=text_formset,
                                              image_formset=image_formset,
+                                             excel_formset=excel_formset,
                                              feat_formset=feat_formset,
                                              subfeat_form=subfeat_form,
                                              user=request.user)
@@ -190,13 +202,16 @@ def add_experiment_view(request):
                                    queryset=ExperimentPropText.objects.none())
         image_formset = ImageFormset(prefix='image',
                                      queryset=ExperimentPropImage.objects.none())
-
+        excel_formset = ExcelFormset(prefix='excel',
+                                     queryset=ExperimentPropExcel.objects.none())
     context['form'] = form
     context['feature_formset'] = feat_formset
     context['subfeat_form'] = subfeat_form
     context['numeric_formset'] = numeric_formset
     context['text_formset'] = text_formset
     context['image_formset'] = image_formset
+    context['excel_formset'] = excel_formset
+
     template = 'experiment_add_template.html'
     return render_to_response(template, context)
 

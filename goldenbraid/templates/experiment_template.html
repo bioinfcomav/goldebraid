@@ -59,5 +59,11 @@
              <p><span class='key'>{{ title|capfirst|replaceunderscore }}:</span> <img src={{image.url}} alt={{title}}></p>
         {% endfor %}
     {% endif %}
+    {% if experiment.excel_props%}
+        <h2>Associated excel files</h2>
+        {% for description, excel_file in experiment.excel_props %}
+             <p><span class='key'>{{ Description|capfirst|replaceunderscore }}:</span> <a href={{excel.url}}>Excel File</a></p>
+        {% endfor %}
+    {% endif %}
 {% endif %}
 {% endblock content %}
