@@ -308,15 +308,15 @@ def _guess_prefix_suffix_tag(kind, prefix, suffix):
     '''It select the needed prefix and suffix to add  to oligos and
     pcr_products for especial category cases'''
 
-    if kind in ('13-14-15-16 (CDS)', '13-14-15 (CDS)'):
+    if kind in ('CDS (B3-B4-B5)', 'CDS (B3-B4)'):
         prefix = 'A'
-    elif kind == '13 (SP)':
+    elif kind == 'SP (B3)':
         prefix = 'A'
         suffix = 'GCAGCC'
-    elif kind == '12 (NT)':
+    elif kind == 'NTAG (B2)':
         prefix = 'CC'
         suffix = 'TCAATG'
-    elif kind == '16 (CT)':
+    elif kind == 'CTAG (B5)':
         prefix = 'GCAGGG'
     return prefix, suffix
 

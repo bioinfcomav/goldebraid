@@ -420,29 +420,29 @@ class DomesticationForm(forms.Form):
             raise ValidationError(msg)
         if self._data_in(self.cleaned_data, 'category'):
             category = self.cleaned_data['category']
-            if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',
-                            '13-14-15 (CDS)'):
+            if category in ('CDS (B3-B4-B5)', 'SP (B3)', 'NTAG (B2)',
+                            'CDS (B3-B4)'):
                 if not _seq_has_codon_start(seq.seq, with_intron):
                     msg = 'The provided seq must start with start codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-            if category in ('13-14-15-16 (CDS)', '14-15-16 (CDS)', '16 (CT)'):
+            if category in ('CDS (B3-B4-B5)', 'CDS (B4-B5)', 'CTAG (B5)'):
                 if not _seq_has_codon_end(seq.seq, with_intron):
                     msg = 'The provided seq must end with a end codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-            if category in ('13-14-15-16 (CDS)', '13 (SP)', '12 (NT)',
-                            '13-14-15 (CDS)', '14-15-16 (CDS)', '16 (CT)'):
+            if category in ('CDS (B3-B4-B5)', 'SP (B3)', 'NTAG (B2)',
+                            'CDS (B3-B4)', 'CDS (B4-B5)', 'CTAG (B5)'):
                 if not _is_seq_3_multiple(seq.seq, with_intron):
                     msg = 'The provided seq must be multiple of three in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-            if category in ('12-13 (GOI)'):
+            if category in ('goi (B2-B3)'):
                 if len(seq) > 500:
                     msg = 'The provided seq must have less than 500 nucleotides in'
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-            if category in ('13-14-15 (CDS)', '12 (NT)', '13 (SP)'):
+            if category in ('CDS (B3-B4)', 'NTAG (B2)', 'SP (B3)'):
                 if _seq_has_codon_end(seq.seq, with_intron):
                     msg = 'The provided seq must not end with a stop codon in '
                     msg += 'order to use as choosen category'
