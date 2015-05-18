@@ -36,7 +36,8 @@ from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
                                   UT_PREFIX, SITE_B, SITE_A, SITE_C,
                                   BIPARTITE_ALLOWED_PARTS, CATEGORIES,
                                   SEARCH_MENU_TYPE_CHOICES,
-                                  MINIMUN_PCR_LENGTH, CRYSPER_CATEGORIES)
+                                  MINIMUN_PCR_LENGTH, CRYSPER_CATEGORIES,
+                                  CRYSPER_TARGETS_TO_DOMESTICATE)
 
 
 def get_vector_choices(user):
@@ -373,14 +374,24 @@ def get_bipart_vector_choices(part_uniquename, user):
 
 # Domesticator #
 class DomesticationForm(forms.Form):
-    choices = [('', '')]
+    super_choice = [('', '')]
+    choices = []
     for category_name in CATEGORIES.keys():
         choices.append((category_name, category_name))
+    super_choice.append(('GB parts', choices))
+    # Add crysper Proms and TERM
+    choices = []
+    for category_name in CRYSPER_CATEGORIES.keys():
+        if category_name in CRYSPER_TARGETS_TO_DOMESTICATE:
+            continue
+        choices.append((category_name, category_name))
+    super_choice.append(('Crysper parts', choices))
+
     intron_label = 'The secuence has introns in lowercase'
     with_intron = forms.BooleanField(label=intron_label, required=False)
     category = forms.CharField(max_length=100,
                                label='Choose a category to domesticate to',
-                               widget=Select(choices=choices), required=False)
+                               widget=Select(choices=super_choice), required=False)
     seq = forms.FileField(max_length=100,
                           label='Add a genbank or a fast file', required=False)
     residues = forms.CharField(widget=forms.HiddenInput(), required=False)
@@ -635,7 +646,7 @@ class FeatureManagementForm(forms.Form):
 
 class DomesticationCrysperForm(DomesticationForm):
     choices = [('', '')]
-    for category_name in CRYSPER_CATEGORIES.keys():
+    for category_name in CRYSPER_TARGETS_TO_DOMESTICATE:
         choices.append((category_name, category_name))
     category = forms.CharField(max_length=100,
                                label='Choose a category to domesticate to',
