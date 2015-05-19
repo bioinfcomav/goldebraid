@@ -44,7 +44,7 @@ class DomesticationTest(TestCase):
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
         seq = SeqRecord(Seq(seq))
-        category = '13-14-15-16 (CDS)'
+        category = 'CDS (B3-B4-B5)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC',
                                 'oligo_reverse': 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA',
@@ -61,7 +61,7 @@ class DomesticationTest(TestCase):
         # prefix-suffix mod in tags
         seq = SeqIO.read(os.path.join(TEST_DATA, 'gfp.txt'), 'fasta')
 
-        new_seq = domesticate(seq, '16 (CT)', 'GCAG', 'GCTT')[1]
+        new_seq = domesticate(seq, 'CTAG (B5)', 'GCAG', 'GCTT')[1]
         result_seq = SeqIO.read(os.path.join(TEST_DATA, 'CTresult.gb'), 'gb')
         assert str(new_seq.seq).upper() == str(result_seq.seq).upper()
 
@@ -70,7 +70,7 @@ class DomesticationTest(TestCase):
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
         seq = SeqRecord(Seq(seq))
-        category = '13-14-15-16 (CDS)'
+        category = 'CDS (B3-B4-B5)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG', with_intron=False)[0]
         assert oligo_pcrs[0]['pcr_product'] == 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC'
         assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA'
@@ -83,7 +83,7 @@ class DomesticationTest(TestCase):
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgatgctagctagctgtacgtcatcttttcagtcgatcta'
         seq = SeqRecord(Seq(seq.upper()))
-        category = '13-14-15-16 (CDS)'
+        category = 'CDS (B3-B4-B5)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[1] == {'pcr_product': 'GCGCCGTCTCGCTTGCTAGCAGGTGCTAGGAGACAGGGTCATGCTAGCTTCAGCTAGCTGATCGATCGACTAGCTGATCGATCTGATCGATGCTAGCTAGCTGTACGGAGACAGGCGAGACGGCGC',
                                  'oligo_reverse': 'GCGCCGTCTCGCCTGTCTCCGTACAGCTAGC',
@@ -93,7 +93,7 @@ class DomesticationTest(TestCase):
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgctgcgtcgggcgtctgatgctagctagctCGTCTCgtacgtcatcttttcagtcgatcta'
         seq = SeqRecord(Seq(seq.upper()))
-        category = '13-14-15-16 (CDS)'
+        category = 'CDS (B3-B4-B5)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[2] == {'pcr_product': 'GCGCCGTCTCGCAGGGTCATGCTAGCTGATCTGATCGCTGCGTCGGGCGTCTGATGCTAGCTAGCTCGTATCGTACGTCATCTTTTCAGTCGATCTAAATGCGAGCGAGACGGCGC',
                                 'oligo_reverse': 'GCGCCGTCTCGCTCGCATTTAGATCGACTGAAAAGATGACGTACGATACGAGCTAG',
@@ -101,14 +101,14 @@ class DomesticationTest(TestCase):
 
         gb_path = os.path.join(TEST_DATA, 'GB_DOMEST_15.gb')
         seq = SeqIO.read(gb_path, 'gb')
-        category = '02 (OP)'
+        category = 'OP (A2)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[1]['oligo_reverse'] == 'GCGCCGTCTCGCTCGCATTCGCGACCACTCGTCGCCCATC'
         assert oligo_pcrs[1]['oligo_forward'] == 'GCGCCGTCTCGACAACTCATCGACCATCACTA'
 
         gb_path = os.path.join(TEST_DATA, 'CHS.gb')
         seq = SeqIO.read(gb_path, 'gb')
-        category = '13-14-15-16 (CDS)'
+        category = 'CDS (B3-B4-B5)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
         assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTCGCATTTCAAGCACCCACACTGTGAAGCACAACTGTCTCAACA'
         assert oligo_pcrs[0]['oligo_forward'] == 'GCGCCGTCTCGCTCGAATGGTGACCGTCGAAGAAGT'
@@ -121,7 +121,7 @@ class DomesticationTest(TestCase):
 
     def test_domestication_multiple_sites(self):
         seq = SeqIO.read(os.path.join(TEST_DATA, 'seq_with_rep_rec_sites.fasta'), 'fasta')
-        category = '13-14-15-16 (CDS)'
+        category = 'CDS (B3-B4-B5)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')
 
     def test_get_segments_from_rec_site(self):
@@ -217,7 +217,7 @@ class DomesticationTest(TestCase):
         seq += 'TCCCTCCTA'
 
         seqrec = SeqRecord(Seq(seq))
-        category = '13 (SP)'
+        category = 'SP (B3)'
         oligo_pcrs = domesticate(seqrec, category, 'AATG', 'AGCC')[0]
         assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTCGGGCTGCTAGGAGGGACGGGAGAAGGA'
 
@@ -226,7 +226,7 @@ class DomesticationTest(TestCase):
         seq += 'TCCCTCCTA'
 
         seqrec = SeqRecord(Seq(seq))
-        category = '13 (SP)'
+        category = 'SP (B3)'
         prefix = 'AATG'
         suffix = 'AGCC'
         seq_sin, prep_seq = domesticate_for_synthesis(seqrec, category, prefix,
@@ -241,7 +241,7 @@ class DomesticationTest(TestCase):
         seq += 'TCCCTCCTA'
 
         seqrec = SeqRecord(Seq(seq))
-        category = '13 (SP)'
+        category = 'SP (B3)'
         seq_sin = domesticate_for_synthesis(seqrec, category, 'AATG', 'AGCC')[0]
         result = 'GCGCCGTCTCGCTCGAATGATGATGGGCACTTCCTCTGTTTGGTCGCTATTCCTTCTTTC'
         result += 'TTTTCTTCTCCTTCTCCCGTCCCTCCTAGCAGCCCGAGCGAGACGGCGC'

@@ -20,6 +20,7 @@ from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings as proj_settings
+from django.contrib.auth.models import User
 
 from Bio import SeqIO
 
@@ -28,6 +29,7 @@ from goldenbraid.views.feature_views import FeatureForm
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from goldenbraid.models import Feature
 from goldenbraid.tags import VECTOR_TYPE_NAME, MODULE_TYPE_NAME
+
 
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                          'goldenbraid', 'tests', 'data')
@@ -91,6 +93,8 @@ class FeatureTestViews(TestCase):
     def test_add_feature_view(self):
         # test of the form page
         # test of the form
+        User.objects.create_user(username='admin', email='admin@upv.es',
+                                 password='password')
         gb_path = os.path.join(TEST_DATA, 'pAn11_uniq.gb')
         client = Client()
         url = reverse('add_feature')
@@ -158,7 +162,7 @@ class FeatureTestViews(TestCase):
         client.login(username='test', password='testpass')
         response = client.post(url, {'only_user': True})
         assert response.status_code == 200
-        assert 'pEGB 2A11:Myb12:Tnos' in str(response)
+        assert 'pDGB2_alpha2R' in str(response)
 
 
 class MultipartiteFreeTestViews(TestCase):
@@ -205,7 +209,7 @@ class MultipartiteFreeTestViews(TestCase):
         assert response.status_code == 200
 
         seqrec1 = SeqIO.read(StringIO(str(response)), 'gb')
-        assert seqrec1.name == 'GB_UA_8'
+        assert seqrec1.name == 'GB_UA_D'
         multipartite_free_seq1 = str(seqrec1.seq)
         gb_path = os.path.join(TEST_DATA, 'pEGBMybrev_uniq.gb')
         seqrec2 = SeqIO.read(gb_path, 'gb')
@@ -236,7 +240,7 @@ class MultipartiteFreeTestViews(TestCase):
                                      'part_1': 'pPE8',
                                      'part_2': 'pANT1',
                                      'part_3': 'pTnos'})
-        assert 'GB_UA_8' in str(response)
+        assert 'GB_UA_D' in str(response)
         assert 'LOCUS' in str(response)
 
         response = client.post(url, {'assembled_seq': 'aaa',
@@ -244,7 +248,7 @@ class MultipartiteFreeTestViews(TestCase):
                                      'part_1': 'pPE8',
                                      'part_2': 'pANT1',
                                      'part_3': 'pTnos'})
-        assert 'GB_UA_9' in str(response)
+        assert 'GB_UA_E' in str(response)
         assert 'LOCUS' in str(response)
 
         # with more than one part of the same type
@@ -428,7 +432,7 @@ class BipartiteViewTest(TestCase):
         # do page 1
         url = reverse('bipartite_view', kwargs={'form_num': '1'})
         response = client.post(url, {'part_1': 'GB0125'})
-        assert 'readonly="True"' in str(response)
+        assert 'readonly' in str(response)
         assert 'value="GB0125"' in str(response)
         assert """<p><label for="id_part_2">Part 2:</label>""" in str(response)
 
@@ -495,6 +499,8 @@ class BipartiteViewTest(TestCase):
     # check bipartite_view_add
     def test_add_view(self):
         'it test that the protocol file is generated'
+        User.objects.create_user(username='admin', email='admin@upv.es',
+                                 password='password')
         client = Client()
         client.login(username='admin', password='password')
         url = reverse('bipartite_view_add')
@@ -521,33 +527,33 @@ class DomesticationViewTest(TestCase):
         # do initial
         url = reverse('domestication_view')
         response = client.get(url)
-        assert ("""<option value="12 (NT)">12 (NT)</option>""") in str(response)
+        assert ("""<option value="NTAG (B2)">NTAG (B2)</option>""") in str(response)
 
         # send data to formulary to test validations
         gb_path = os.path.join(TEST_DATA, 'domseq.gb')
 
         # add seq and category
         response = client.post(url, {'seq': open(gb_path),
-                                     'category': '12 (NT)'})
+                                     'category': 'NTAG (B2)'})
         # print str(response)
         assert """<ul class="errorlist"><li>The provided s""" in str(response)
 
         # not add a sequence
         response = client.post(url, {'seq': '',
-                                     'category': '12 (NT)'})
+                                     'category': 'NTAG (B2)'})
         assert """<ul class="errorlist"><li>Fasta or genbank File Required</li></ul>""" in str(response)
 
         # add category, prefix and suffix
 
         response = client.post(url, {'seq': open(gb_path),
                                      'prefix': 'ggac', 'suffix': 'cgtc',
-                                     'category': '17-21 (TER)'})
+                                     'category': '3UTR+TERM (B6-C1)'})
         assert """<ul class="errorlist"><li>Can not use category and prefix/suffix simoultaneously</li></ul>"""in str(response)
 
         # add category and suffix
         response = client.post(url, {'seq': open(gb_path),
                                      'prefix': '', 'suffix': 'cgtc',
-                                     'category': '17-21 (TER)'})
+                                     'category': '3UTR+TERM (B6-C1)'})
         assert """<ul class="errorlist"><li>Can not use category and prefix/suffix simoultaneously</li></ul>"""in str(response)
 
         # add suffix
@@ -563,17 +569,17 @@ class DomesticationViewTest(TestCase):
 
         # check that uses validators
         response = client.post(url, {'seq': open(gb_path),
-                                     'category': '13-14-15-16 (CDS)'})
+                                     'category': 'CDS (B3-B4-B5)'})
         assert 'The provided seq must start with start' in str(response)
 
         response = client.post(url, {'seq': open(gb_path),
-                                     'category': '12-13 (GOI)'})
+                                     'category': 'goi (B2-B3)'})
         assert 'The provided seq must have less' in str(response)
 
         # sequence start with atg
         fasta_path = os.path.join(TEST_DATA, 'domseqatg.fasta')
         response = client.post(url, {'seq': open(fasta_path),
-                                     'category': '13 (SP)'})
+                                     'category': 'SP (B3)'})
         assert 'The provided seq must start with start' not in str(response)
 
         # domesticate with prefix and suffix
@@ -583,7 +589,7 @@ class DomesticationViewTest(TestCase):
 
         residues = str(SeqIO.read(open(gb_path), format='gb').seq)
         response = client.post(url, {'residues': residues,
-                                     'category': '13-14-15-16 (CDS)'})
+                                     'category': 'CDS (B3-B4-B5)'})
         assert 'The provided seq must start with start' in str(response)
 
     def test_genbank_view(self):
@@ -595,7 +601,7 @@ class DomesticationViewTest(TestCase):
         response = client.post(url, {'seq': 'gagaggggggggagagagattcccctctccccccccccccccccccccccccccccccccccccctttgacctcgaaacgccccc',
                                      'prefix': 'ggag',
                                      'suffix': 'aatg',
-                                     'category': '01-02-03-11-12 (PROM+UTR+ATG)',
+                                     'category': 'PROM+5UTR+NTAG (A1-A2-A3-B1-B2)',
                                      'seq_name': 'test',
                                      'with_intron': '0'})
         assert 'LOCUS' in str(response)
@@ -610,7 +616,7 @@ class DomesticationViewTest(TestCase):
         response = client.post(url, {'seq': 'gagaggggggggagagagattcccctctccccccccccccccccctccccccccccccccccccccccccccctttgacctcgaaacgccccc',
                                      'prefix': 'ggag',
                                      'suffix': 'aatg',
-                                     'category': '01-02-03-11-12 (PROM+UTR+ATG)',
+                                     'category': 'PROM+5UTR+NTAG (A1-A2-A3-B1-B2)',
                                      'seq_name': 'test',
                                      'with_intron': '0'})
         assert "Oligo forward: GCGCCGTCTCGCTCGGGAGGAGAGGGGGGGGAGAGAGAT" in str(response)
