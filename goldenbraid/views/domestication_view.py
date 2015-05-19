@@ -44,7 +44,7 @@ def domestication_view(request):
     return _domestication_view(request, kind='domestication')
 
 
-def crysper_view(request):
+def crispr_view(request):
     context = RequestContext(request)
     context.update(csrf(request))
     if request.method == 'POST':
@@ -68,7 +68,7 @@ def crysper_view(request):
             forw_dim = new_seq[:-4]
             rev_dim = new_seq[4:].reverse_complement()
 
-            return render_to_response('crysper_result.html',
+            return render_to_response('crispr_result.html',
                                       {'category': category,
                                        'prefix': prefix,
                                        'suffix': suffix,
@@ -82,7 +82,7 @@ def crysper_view(request):
 
     context['form'] = form
 
-    template = 'crysper_template.html'
+    template = 'crispr_template.html'
     content_type = None
     return render_to_response(template, context, content_type=content_type)
 
@@ -235,7 +235,7 @@ One microlitre of the reaction is enough to be transform E.coli electrocompetent
 
 
 @login_required
-def crysper_view_add(request):
+def crispr_view_add(request):
     context = RequestContext(request)
     context.update(csrf(request))
     request_data = request.POST
@@ -338,7 +338,7 @@ Dilute them to a final concentration of 2ng/ul, mix 5ul of each primer and let t
 '''
 
 
-def crysper_view_protocol(request):
+def crispr_view_protocol(request):
     if not request.POST:
         msg = "To show the protocol you need first to assemble parts"
         return HttpResponseBadRequest(msg)

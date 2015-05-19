@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}CRISPR formulary {% endblock title %}
+{% block content %}
+<div class='tools'>
+	<h2>CRISPR Domesticator</h2>
+	<p><span class='tools'>The first step for generating a CRISPR/Cas9 construct is the selection of the genomic target. A target must be a 20bp sequence followed by the PAM (NGG). To design your targets minimizin off-targeting you can use online tools such as<a href=https://benchling.com/ target='blank'>Benchling</a>.</span></p>
+	<p><span class='tools'>In order to generate your construct using GoldenBraid, next step is to design ...</span></p>
+	<p><span class='tools'>This process is computer assisted here. Here you can domesticate your target to adapt it to GoldenBraid.</span></p>
+</div>
+{% load goldenbraid_extras %}
+<form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
+{% if form.residues.errors %}
+	{{form.residues.errors}}
+{% else %}
+	<ul>
+		<li>
+	        {{ form.category.errors }}<label for="name">Choose a category to domesticate to:</label>{{ form.category }}<a href='/gbclasses'  target="blank"><span class='gbdom'>What's this?</span></a>
+	  	</li>
+		<li>
+	        {{ form.seq.errors }}<label for="name">Write your crsyper secuence here:</label>{{ form.seq }}
+	    </li>
+		<li>
+	        {{ form.prefix.errors }}<label for="name">Custom prefix:</label>{{ form.prefix }}
+	    </li>
+		<li>
+	        {{ form.suffix.errors }}<label for="name">Custom suffix:</label>{{ form.suffix }}
+	    </li>
+	    
+	</ul>
+	<input type="submit" value="Submit" />
+{% endif %}
+</form>
+{% endblock content %}
