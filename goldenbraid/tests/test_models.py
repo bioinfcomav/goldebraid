@@ -205,9 +205,3 @@ class FeatureTestModels(TestCase):
         assert fet_rel.type.name == DERIVES_FROM
         assert f1.children[0].uniquename == "GB0365"
 
-
-class ExperimentTestModels(TestCase):
-    fixtures = FIXTURES_TO_LOAD
-
-    def test_experiment(self):
-        pass
