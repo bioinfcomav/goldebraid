@@ -687,10 +687,10 @@ class DomesticationCrysperForm(DomesticationForm):
             return
         seq = cleaned_data['seq']
         category = cleaned_data['category']
-        if category == TARGET_DICOT and str(seq[0]) != 'G':
+        if category == TARGET_DICOT and str(seq[0]).upper() != 'G':
             msg = 'First nucleotide must be G for target dicot category'
             self._errors['seq'] = self.error_class([msg])
-        if category == TARGET_MONOCOT and str(seq[0]) != 'A':
+        if category == TARGET_MONOCOT and str(seq[0]).upper() != 'A':
             msg = 'First nucleotide must be A for target monocot category'
             self._errors['seq'] = self.error_class([msg])
 

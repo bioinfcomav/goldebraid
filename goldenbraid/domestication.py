@@ -497,9 +497,9 @@ def _domesticate_rec_site(rec_site, patch, rec_sites_regex):
 def domestication_crysper(seq, category=None, prefix=None, suffix=None):
     if len(seq) != 20:
         raise ValueError('Seq length different 20')
-    if category == TARGET_DICOT and str(seq[0]) != 'G':
+    if category == TARGET_DICOT and str(seq[0]).upper() != 'G':
         raise ValueError('First nucleotide must be G for target dicot category')
-    if category == TARGET_MONOCOT and str(seq[0]) != 'A':
+    if category == TARGET_MONOCOT and str(seq[0]).upper() != 'A':
         raise ValueError('First nucleotide must be G for target monocot category')
 
     if has_rec_sites(seq):
