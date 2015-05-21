@@ -61,8 +61,8 @@ class FeatureTestModels(TestCase):
         assert selected_vec_feat.name == 'vector1'
 
         # try to add again the same feat
-        with transaction.atomic():
-            try:
+        try:
+            with transaction.atomic():
                 vector_feat = Feature.objects.create(uniquename='vector1',
                                                      name='vector1',
                                                      type=vector_cvterm,
@@ -71,8 +71,8 @@ class FeatureTestModels(TestCase):
                                                      prefix='ATCT',
                                                      suffix='tttt')
                 self.fail()
-            except IntegrityError:
-                transaction.rollback()
+        except IntegrityError:
+            pass
 
         # add the properties to the feature
         enzyme_out_cvterm = Cvterm.objects.get(cv=cv,

@@ -234,7 +234,7 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                                                  genbank_file=genbank_file)
 
             except IntegrityError as error:
-                raise IntegrityError('feature already in db' + str(error))
+                raise IntegrityError('feature already in db: ' + str(error))
 
             FeaturePerm.objects.create(feature=feature, owner=user,
                                        is_public=is_public)
@@ -269,7 +269,6 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                 prefix, suffix = get_prefix_and_suffix(residues, enzyme)
                 if prefix is None or suffix is None:
                     raise RuntimeError('The given vector is not compatible with this part')
-            print prefix, suffix
             feature.prefix = prefix
             feature.suffix = suffix
             feature.save()
@@ -277,7 +276,7 @@ def add_feature(name, type_name, vector, genbank, props, owner,
     except (IntegrityError, RuntimeError):
         if feature:
             os.remove(feature.genbank_file.path)
-        transaction.rollback()
+        # transaction.rollback()
         raise
     return feature
 
