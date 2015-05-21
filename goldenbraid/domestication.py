@@ -493,8 +493,8 @@ def _domesticate_rec_site(rec_site, patch, rec_sites_regex):
     raise ValueError('No domestication possible for ORF site ' + rec_site)
 
 
-# cryspers
-def domestication_crysper(seq, category=None, prefix=None, suffix=None):
+# crisprs
+def domestication_crispr(seq, category=None, prefix=None, suffix=None):
     if len(seq) != 20:
         raise ValueError('Seq length different 20')
     if category == TARGET_DICOT and str(seq[0]).upper() != 'G':

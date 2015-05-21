@@ -27,9 +27,9 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponseServerError
 from django.db.utils import IntegrityError
 
-from goldenbraid.domestication import domesticate, domesticate_for_synthesis, \
-    domestication_crysper
-from goldenbraid.forms import DomesticationForm, DomesticationCrysperForm
+from goldenbraid.domestication import (domesticate, domesticate_for_synthesis, 
+				       domestication_crispr)
+from goldenbraid.forms import DomesticationForm, DomesticationCrisprForm
 from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES
 from goldenbraid.views.feature_views import add_feature
 from goldenbraid.tags import TARGET_DICOT, TARGET_MONOCOT
@@ -54,7 +54,7 @@ def crispr_view(request):
     else:
         request_data = None
     if request_data:
-        form = DomesticationCrysperForm(request_data, request.FILES)
+        form = DomesticationCrisprForm(request_data, request.FILES)
         if form.is_valid():
             seq = form.cleaned_data['seq']
             category = form.cleaned_data.get('category', None)
@@ -64,7 +64,7 @@ def crispr_view(request):
             else:
                 prefix = CRYSPER_CATEGORIES[category][1]
                 suffix = CRYSPER_CATEGORIES[category][2]
-            new_seq = domestication_crysper(seq, category, prefix, suffix)
+            new_seq = domestication_crispr(seq, category, prefix, suffix)
             forw_dim = new_seq[:-4]
             rev_dim = new_seq[4:].reverse_complement()
 
@@ -78,7 +78,7 @@ def crispr_view(request):
                                        'rev_dim': str(rev_dim.seq)},
                                   context_instance=RequestContext(request))
     else:
-        form = DomesticationCrysperForm()
+        form = DomesticationCrisprForm()
 
     context['form'] = form
 
@@ -142,10 +142,7 @@ def _domestication_view(request, kind):
                                       context_instance=RequestContext(request))
 
     else:
-        if kind == 'crysper':
-            form = DomesticationCrysperForm()
-        else:
-            form = DomesticationForm()
+        form = DomesticationForm()
 
     context['form'] = form
     context['kind'] = kind

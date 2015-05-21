@@ -379,13 +379,13 @@ class DomesticationForm(forms.Form):
     for category_name in CATEGORIES.keys():
         choices.append((category_name, category_name))
     super_choice.append(('GB parts', choices))
-    # Add crysper Proms and TERM
+    # Add crispr Proms and TERM
     choices = []
     for category_name in CRYSPER_CATEGORIES.keys():
         if category_name in CRYSPER_TARGETS_TO_DOMESTICATE:
             continue
         choices.append((category_name, category_name))
-    super_choice.append(('Crysper parts', choices))
+    super_choice.append(('Crispr parts', choices))
 
     intron_label = 'The secuence has introns in lowercase'
     with_intron = forms.BooleanField(label=intron_label, required=False)
@@ -644,7 +644,7 @@ class FeatureManagementForm(forms.Form):
         return create_feature_validator('feature')(self)
 
 
-class DomesticationCrysperForm(DomesticationForm):
+class DomesticationCrisprForm(DomesticationForm):
     choices = [('', '')]
     for category_name in CRYSPER_TARGETS_TO_DOMESTICATE:
         choices.append((category_name, category_name))
@@ -661,7 +661,7 @@ class DomesticationCrysperForm(DomesticationForm):
     def clean_seq(self):
         seq = self.cleaned_data['seq']
         if len(seq) != 20:
-            raise ValidationError('Crysper seq len must be 20 nucleotides')
+            raise ValidationError('Crispr target seq len must be 20 nucleotides')
 
         if has_rec_sites(seq):
             msg = 'This secuence can not be domesticated.'
