@@ -30,12 +30,13 @@ from django.forms.models import modelformset_factory
 from goldenbraid.forms.experiment import (ExperimentForm, ExperimentNumForm,
                                           ExperimentFeatureForm,
                                           ExperimentSubFeatureForm,
-                                          ExperimentSearchForm)
+                                          ExperimentSearchForm,
+    ExperimentExcelForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
                                 Feature, ExperimentFeature,
                                 ExperimentPropImage, ExperimentSubFeature,
-    ExperimentPropExcel)
+                                ExperimentPropExcel)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB
 
@@ -130,10 +131,14 @@ def _add_experiment(form, numeric_formset, text_formset, image_formset,
                 image_prop.experiment = experiment
                 image_prop.save()
 
-            excel_props = excel_formset.save(commit=False)
-            for excel_prop in excel_props:
-                excel_prop.experiment = experiment
-                excel_prop.save()
+            for excel_formdata in excel_formset.cleaned_data:
+                if not excel_formdata:
+                    continue
+                description = excel_formdata['description']
+                excel_file = excel_formdata['excel']
+                ExperimentPropExcel.objects.create(experiment=experiment,
+                                                   description=description,
+                                                   excel=excel_file)
 
     except (IntegrityError, RuntimeError):
         transaction.rollback()
@@ -154,8 +159,7 @@ def add_experiment_view(request):
                                        exclude=('experiment',))
     ImageFormset = modelformset_factory(ExperimentPropImage,
                                         exclude=('experiment',))
-    ExcelFormset = modelformset_factory(ExperimentPropExcel,
-                                        exclude=('experiment',))
+    ExcelFormset = formset_factory(ExperimentExcelForm)
     if request_data:
         form = ExperimentForm(request_data, instance=Experiment())
         feat_formset = FeatFormset(request_data, prefix='feature')
@@ -166,10 +170,10 @@ def add_experiment_view(request):
                                      prefix='image')
         excel_formset = ExcelFormset(request_data, request.FILES,
                                      prefix='excel')
-        print request_data
+        # print request_data, request.FILES
         if (form.is_valid() and numeric_formset.is_valid()
-           and text_formset.is_valid() and feat_formset.is_valid() and
-           subfeat_form.is_valid() and excel_formset.is_valid()):
+            and text_formset.is_valid() and feat_formset.is_valid()
+                and subfeat_form.is_valid() and excel_formset.is_valid()):
             print "valid"
             try:
                 experiment = _add_experiment(form=form,
@@ -202,8 +206,8 @@ def add_experiment_view(request):
                                    queryset=ExperimentPropText.objects.none())
         image_formset = ImageFormset(prefix='image',
                                      queryset=ExperimentPropImage.objects.none())
-        excel_formset = ExcelFormset(prefix='excel',
-                                     queryset=ExperimentPropExcel.objects.none())
+        excel_formset = ExcelFormset(prefix='excel')
+        print 'ss', excel_formset.auto_id
     context['form'] = form
     context['feature_formset'] = feat_formset
     context['subfeat_form'] = subfeat_form

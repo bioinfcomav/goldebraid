@@ -103,7 +103,7 @@
         <tr>
             <td>{{text_form.title}}</td>
             <td>{{text_form.value}}</td>
-        </tr>
+        </tr>{{text_form.errors}}
     {% endfor %}
     </tbody>
 </table>
@@ -118,7 +118,7 @@
         <tr>
             <td>{{image_form.description}}</td>
             <td>{{image_form.image}}</td>
-        </tr>
+        </tr>{{image_form.errors}}
     {% endfor %}
     </tbody>
 </table>
@@ -133,7 +133,7 @@
         <tr>
             <td>{{excel_form.description}}</td>
             <td>{{excel_form.excel}}</td>
-        </tr>
+        </tr>{{excel_form.errors}}
     {% endfor %}
     </tbody>
 </table>

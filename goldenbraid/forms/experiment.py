@@ -10,6 +10,8 @@ from goldenbraid.tags import (EXPERIMENT_TYPES, NUMERIC_TYPES)
 from goldenbraid.forms.widgets import (AutocompleteTextInput,
                                        DinamicSelectMultiple)
 from django.forms.widgets import Select
+from goldenbraid.experiments import parse_xlsx
+from zipfile import BadZipfile
 
 
 class ExperimentForm(ModelForm):
@@ -126,10 +128,29 @@ class ExperimentImageForm(ModelForm):
         exclude = ['experiment']
 
 
-class ExperimentExcelForm(ModelForm):
+class ExperimentExcelForm_old(ModelForm):
     class Meta:
         model = ExperimentPropExcel
         exclude = ['experiment']
+
+    def clean_excel(self):
+        excel = self.cleaned_data['excel']
+        print type(excel)
+
+
+class ExperimentExcelForm(forms.Form):
+    description = forms.CharField(max_length=100)
+    excel = forms.FileField()
+
+    def clean_excel(self):
+        excel = self.cleaned_data['excel']
+        try:
+            parse_xlsx(excel)
+        except RuntimeError:
+            raise ValidationError('excel file is malformed')
+        except BadZipfile:
+            raise ValidationError('excel file is not an excel(xlsx) file')
+        return excel
 
 
 class ExperimentSearchForm(forms.Form):

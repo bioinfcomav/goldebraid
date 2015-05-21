@@ -25,7 +25,8 @@ from django.db import transaction
 import goldenbraid
 from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
                                 Contact, Stock, Stockcollection, Count,
-                                FeaturePerm, FeatureRelationship, Experiment)
+                                FeaturePerm, FeatureRelationship, Experiment,
+                                ExperimentPropExcel)
 from goldenbraid.tags import (ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME,
                               DERIVES_FROM)
@@ -208,7 +209,11 @@ class FeatureTestModels(TestCase):
 class ExperimentTests(TestCase):
     fixtures = FIXTURES_TO_LOAD
 
-    def xtest_feature_relationship(self):
-        feature = Feature.objects.get(feature_id=47)
-        exp = Experiment.objects.create(feature=feature)
-        print feature.name
+    def test_experiment_excels(self):
+        exp = Experiment.objects.get(uniquename='GB_EXP_2B')
+        excelExp = ExperimentPropExcel.objects.get(experiment=exp)
+        excelExp.excel = File(os.path.join(TEST_DATA, 'scatter.xlsx'))
+        excelExp.save()
+
+        print open(excelExp.excel).read()
+

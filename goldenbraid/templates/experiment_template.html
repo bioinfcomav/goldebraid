@@ -62,7 +62,7 @@
     {% if experiment.excel_props%}
         <h2>Associated excel files</h2>
         {% for description, excel_file in experiment.excel_props %}
-             <p><span class='key'>{{ Description|capfirst|replaceunderscore }}:</span> <a href={{excel.url}}>Excel File</a></p>
+            <p><span class='key'>{{ Description|capfirst|replaceunderscore }}:</span> <a href={{excel_file.url}}>Excel File</a></p>
         {% endfor %}
     {% endif %}
 {% endif %}
