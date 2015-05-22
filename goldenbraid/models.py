@@ -445,22 +445,15 @@ class Experiment(models.Model):
 
     @property
     def excel_props(self):
-        return [(excel_prop.description, excel_prop.excel)
-                for excel_prop in ExperimentPropExcel.objects.filter(experiment=self)]
+        return ExperimentPropExcel.objects.filter(experiment=self)
 
     @property
     def image_urls(self):
         urls = []
-        try:
-            exp_excels = ExperimentPropExcel.objects.filter(experiment=self)
-        except ExperimentPropExcel.DoesNotExist:
-            exp_excels = None
-        if exp_excels:
-            for exp_excel in exp_excels:
-                url = reverse('api_excel_image',
-                              args=[exp_excel.experiment_prop_excel_id])
-                alt = exp_excel.description
-                urls.append((url, alt))
+        for exp_excel in self.excel_props:
+            url = exp_excel.image_url
+            alt = exp_excel.description
+            urls.append((url, alt))
         for image_desc, image in self.image_props:
             url = image.url
             alt = image_desc
@@ -543,3 +536,8 @@ class ExperimentPropExcel(models.Model):
         plot_from_excel(self.excel.path, temp_fhand)
         content_type = 'image/png'
         return open(temp_fhand.name).read(), content_type
+
+    @property
+    def image_url(self):
+        return reverse('api_excel_image', args=[self.experiment_prop_excel_id])
+

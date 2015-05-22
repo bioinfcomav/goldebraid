@@ -56,13 +56,18 @@
     {% if experiment.image_props%}
         <h2>Result images</h2>
         {% for title, image in experiment.image_props %}
-             <p><span class='key'>{{ title|capfirst|replaceunderscore }}:</span> <img src={{image.url}} alt={{title}}></p>
+             <p><span class='key'>{{ title|capfirst|replaceunderscore }}:</span> 
+                <img src={{image.url}} alt={{title}} heigth=800 width=600>
+             </p>
         {% endfor %}
     {% endif %}
     {% if experiment.excel_props%}
         <h2>Associated excel files</h2>
-        {% for description, excel_file in experiment.excel_props %}
-            <p><span class='key'>{{ Description|capfirst|replaceunderscore }}:</span> <a href={{excel_file.url}}>Excel File</a></p>
+        {% for exp_excel in experiment.excel_props %}
+            <p><span class='key'>{{ exp_excel.description|capfirst|replaceunderscore }}:</span> 
+                <a href={{exp_excel.excel.url}}>Excel File</a>
+                <img src={{exp_excel.image_url}} alt={{exp_excel.description}} heigth=800 width=600>
+            </p>
         {% endfor %}
     {% endif %}
 {% endif %}
