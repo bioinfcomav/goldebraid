@@ -10,7 +10,7 @@ from goldenbraid.tags import (EXPERIMENT_TYPES, NUMERIC_TYPES)
 from goldenbraid.forms.widgets import (AutocompleteTextInput,
                                        DinamicSelectMultiple)
 from django.forms.widgets import Select
-from goldenbraid.experiments import parse_xlsx
+from goldenbraid.excel import parse_xlsx
 from zipfile import BadZipfile
 
 

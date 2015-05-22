@@ -24,6 +24,9 @@ from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
                               FORWARD, REVERSE, DERIVES_FROM)
+from goldenbraid.excel import plot_from_excel
+from django.core.files.temp import NamedTemporaryFile
+from django.core.urlresolvers import reverse
 
 
 class Db(models.Model):
@@ -283,7 +286,6 @@ class Feature(models.Model):
         experiments = []
         for featsubexpe in ExperimentSubFeature.objects.filter(feature=self):
             exp = featsubexpe.experiment
-            print exp, experiments
             if exp not in experiments:
                 experiments.append(exp)
         for featexpe in ExperimentSubFeature.objects.filter(feature=self):
@@ -295,14 +297,14 @@ class Feature(models.Model):
     @property
     def experiment_images(self):
         experiments = self.ordered_experiments
-        images = []
+        image_urls = []
         for experiment in experiments:
-            image = experiment.most_repr_image
-            if image:
-                images.append(image)
-            if len(images) >= 2:
+            urls = experiment.image_urls
+            if urls:
+                image_urls.append(urls[0])
+            if len(image_urls) >= 2:
                 break
-        return images
+        return image_urls
 
 
 def _parse_children_relations_from_gb(seq):
@@ -447,10 +449,23 @@ class Experiment(models.Model):
                 for excel_prop in ExperimentPropExcel.objects.filter(experiment=self)]
 
     @property
-    def most_repr_image(self):
-        # if excel with format: get image
-        # else get image from props image
-        pass
+    def image_urls(self):
+        urls = []
+        try:
+            exp_excels = ExperimentPropExcel.objects.filter(experiment=self)
+        except ExperimentPropExcel.DoesNotExist:
+            exp_excels = None
+        if exp_excels:
+            for exp_excel in exp_excels:
+                url = reverse('api_excel_image',
+                              args=[exp_excel.experiment_prop_excel_id])
+                alt = exp_excel.description
+                urls.append((url, alt))
+        for image_desc, image in self.image_props:
+            url = image.url
+            alt = image_desc
+            urls.append((url, alt))
+        return urls
 
 
 class ExperimentPerm(models.Model):
@@ -522,3 +537,9 @@ class ExperimentPropExcel(models.Model):
     class Meta:
         db_table = u'experimentpropexcel'
 
+    @property
+    def drawed_image(self):
+        temp_fhand = NamedTemporaryFile()
+        plot_from_excel(self.excel.path, temp_fhand)
+        content_type = 'image/png'
+        return open(temp_fhand.name).read(), content_type

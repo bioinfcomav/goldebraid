@@ -72,6 +72,13 @@
       </table>    
    </div>
    {% endif %}
+   {% if feature.experiment_images %}
+   <div>
+        {% for url, alt in feature.experiment_images %}
+        <img src={{url}} alt={{alt}} height="400" width="300">
+        {% endfor %}
+   </div>
+   {% endif %}
    <a href= "{%url 'add_experiment' %}?feature={{feature}}">Add Experiment</a>
    
    <h2> Feature Management Tools (only if permission granted)</h2>

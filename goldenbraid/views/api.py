@@ -4,9 +4,9 @@ Created on 2015 api. 1
 @author: peio
 '''
 import json
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, Http404
 
-from goldenbraid.models import Feature
+from goldenbraid.models import Feature, ExperimentPropExcel
 
 
 def feature_uniquenames(request):
@@ -68,3 +68,13 @@ def features_key_elements(request):
     all_feats = list(children) + features
     return HttpResponse(json.dumps([c.uniquename for c in all_feats]),
                         content_type='application/json')
+
+
+def excel_image(request, excel_id):
+    try:
+        print 'ee', excel_id
+        exp_excel = ExperimentPropExcel.objects.get(experiment_prop_excel_id=excel_id)
+    except ExperimentPropExcel.DoesNotExist:
+        return Http404
+    image_content, content_type = exp_excel.drawed_image
+    return HttpResponse(image_content, content_type=content_type)

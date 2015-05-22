@@ -39,6 +39,7 @@ from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropExcel)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB
+from django.http.response import HttpResponse, Http404
 
 
 def experiment_view(request, uniquename):
@@ -292,3 +293,8 @@ def search_experiment(request):
     context['form'] = form
 
     return render_to_response(template, context, content_type=content_type)
+
+
+
+
+

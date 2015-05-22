@@ -1,6 +1,27 @@
+# Copyright 2013 Diego Orzaez, Univ.Politecnica Valencia, Consejo Superior de
+# Investigaciones Cientificas
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import division
+
 from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string
 
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
+FIGURE_SIZE = (15.0, 11.0)  # inche
 
 KEY_CELL_NAME = 'plot_type'
 COLUMNS = 'columns'
@@ -90,27 +111,65 @@ def parse_xlsx(fpath_or_fhand):
                     value = str(cell_value)
 
                 data[data_type].append(value)
-
+    # print plot_type, labels, data
     return plot_type, labels, data
 
 
 def draw_columns(labels, data, out_fhand):
-    x_vals = data
+    canvas, axes = get_canvas_and_axes()
+    x_vals = data[XVALUES]
+    y_vals = data[YVALUES]
+    y_stdev = data.get(YSTDEV, None)
+    bar_width = 0.8
+
+    half_width = bar_width / 2
+    xlabel_pos = list(range(len(x_vals)))
+    left = [i - half_width for i in xlabel_pos]
+    bottom = [0] * len(x_vals)
+    height = y_vals
+    kwargs = {}
+    if y_stdev:
+        kwargs['yerr'] = y_stdev
+        kwargs['ecolor'] = 'red'
+        # kwargs['capsize'] = 8
+    axes.bar(left=left, width=bar_width, bottom=bottom, height=height,
+             **kwargs)
+    axes.set_title(labels[TITLE])
+    axes.set_ylabel(labels[YLABEL])
+    axes.set_xlabel(labels[XLABEL], clip_on=False)
+    axes.set_xticklabels([''] + data[XVALUES])
+    canvas.print_figure(out_fhand, plot_format='png')
 
 
-def plot_from_excel(fpath):
-    plot_type, labels, data = parse_xlsx(fpath)
-    print data
-#     if plot_type == 'columns':
-#         draw_columns(labels, data)
-#     elif plot_type == 'scatter':
-#         draw_scatter(labels, data)
-#     else:
-#         raise RuntimeError()
-def main():
-    plot_from_excel('/home/peio/devel/goldenbraid/goldenbraid/tests/data/columns.xlsx')
+def draw_scatter(labels, data, out_fhand):
+    canvas, axes = get_canvas_and_axes()
+    x_vals = data[XVALUES]
+    y_vals = data[YVALUES]
+    y_stdev = data.get(YSTDEV, None)
+    x_stdev = data.get(XSTDEV, None)
+    # axes.scatter(x_vals, y_vals)
+    axes.errorbar(x_vals, y_vals, xerr=x_stdev, yerr=y_stdev, fmt='o')
 
-    plot_from_excel('/home/peio/devel/goldenbraid/goldenbraid/tests/data/scatter.xlsx')
-    plot_from_excel('/home/peio/tomato_gbs.xlsx')
-if __name__ == '__main__':
-    main()
+    axes.set_title(labels[TITLE])
+    axes.set_ylabel(labels[YLABEL])
+    axes.set_xlabel(labels[XLABEL], clip_on=False)
+    canvas.print_figure(out_fhand, plot_format='png')
+
+
+def plot_from_excel(fpath_or_fhand, out_fhand):
+    plot_type, labels, data = parse_xlsx(fpath_or_fhand)
+    if plot_type == 'columns':
+        draw_columns(labels, data, out_fhand)
+    elif plot_type == 'scatter':
+        draw_scatter(labels, data, out_fhand)
+    else:
+        raise RuntimeError()
+
+
+def get_canvas_and_axes():
+    'It returns a matplotlib canvas and axes instance'
+    fig = Figure()
+    canvas = FigureCanvas(fig)
+    axes = fig.add_subplot(111)
+    # fig.subplots_adjust(left=left, right=right, top=top, bottom=bottom)
+    return canvas, axes
