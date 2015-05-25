@@ -379,13 +379,13 @@ class DomesticationForm(forms.Form):
     for category_name in CATEGORIES.keys():
         choices.append((category_name, category_name))
     super_choice.append(('GB parts', choices))
-    # Add crysper Proms and TERM
+    # Add crispr Proms and TERM
     choices = []
     for category_name in CRYSPER_CATEGORIES.keys():
         if category_name in CRYSPER_TARGETS_TO_DOMESTICATE:
             continue
         choices.append((category_name, category_name))
-    super_choice.append(('Crysper parts', choices))
+    super_choice.append(('Crispr parts', choices))
 
     intron_label = 'The secuence has introns in lowercase'
     with_intron = forms.BooleanField(label=intron_label, required=False)
@@ -644,7 +644,7 @@ class FeatureManagementForm(forms.Form):
         return create_feature_validator('feature')(self)
 
 
-class DomesticationCrysperForm(DomesticationForm):
+class DomesticationCrisprForm(DomesticationForm):
     choices = [('', '')]
     for category_name in CRYSPER_TARGETS_TO_DOMESTICATE:
         choices.append((category_name, category_name))
@@ -670,7 +670,6 @@ class DomesticationCrysperForm(DomesticationForm):
 
         if not _seq_is_dna(seq):
             raise ValidationError('Seq must only contain ACTG')
-
         if has_rec_sites(seq):
             msg = 'This secuence can not be domesticated.'
             msg += 'It has internal restriction sites'
@@ -701,5 +700,3 @@ class DomesticationCrysperForm(DomesticationForm):
         if category == TARGET_MONOCOT and str(seq[0]).upper() != 'A':
             msg = 'First nucleotide must be A for target monocot category'
             self._errors['seq'] = self.error_class([msg])
-
-

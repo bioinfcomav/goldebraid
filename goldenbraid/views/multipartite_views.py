@@ -64,7 +64,7 @@ def assemble_parts(parts, part_types):
         part_record = SeqIO.read(gb_path, 'gb')
         seq = Seq(part.residues)
 
-        # crysper targets are the unique parts that are not vectors
+        # crispr targets are the unique parts that are not vectors
         # and does not have a verctor
         if part.vector is None and part.type.name != VECTOR_TYPE_NAME:
             pref_idx = 0
@@ -299,7 +299,7 @@ def get_enzymes_for_protocol(protocol_data, part_order):
     for part_type in part_order:
         part_name = protocol_data[part_type]
         part = Feature.objects.get(uniquename=part_name)
-        # this conditions are only met by crysper targets
+        # this conditions are only met by crispr targets
         if part.type.name != VECTOR_TYPE_NAME and part.vector is None:
             continue
         enzyme_outs = part.enzyme_out
