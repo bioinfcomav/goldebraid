@@ -651,7 +651,7 @@ class DomesticationCrysperForm(DomesticationForm):
     category = forms.CharField(max_length=100,
                                label='Choose a category to domesticate to',
                                widget=Select(choices=choices), required=False)
-    seq = forms.CharField(max_length=20, label='Add your sequence',
+    seq = forms.CharField(max_length=30, label='Add your sequence',
                           required=True)
     prefix = forms.CharField(max_length=4,
                              label='custom prefix', required=False)
@@ -660,8 +660,16 @@ class DomesticationCrysperForm(DomesticationForm):
 
     def clean_seq(self):
         seq = self.cleaned_data['seq']
-        if len(seq) != 20:
-            raise ValidationError('Crysper seq len must be 20 nucleotides')
+        category = self.cleaned_data.get('category', None)
+        if len(seq) < 20:
+            raise ValidationError('Seq length must be at least 20')
+
+        if len(seq) != 20 and category is not None:
+            msg = 'CRISPR target seq length must be 20 nucleotides'
+            raise ValidationError(msg)
+
+        if not _seq_is_dna(seq):
+            raise ValidationError('Seq must only contain ACTG')
 
         if has_rec_sites(seq):
             msg = 'This secuence can not be domesticated.'

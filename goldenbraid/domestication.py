@@ -495,8 +495,14 @@ def _domesticate_rec_site(rec_site, patch, rec_sites_regex):
 
 # cryspers
 def domestication_crysper(seq, category=None, prefix=None, suffix=None):
-    if len(seq) != 20:
-        raise ValueError('Seq length different 20')
+    if len(seq) < 20:
+        raise ValueError('Seq length must be at least 20')
+
+    if len(seq) != 20 and category:
+        msg = 'To domesticate with the given target type, the CRISPR target '
+        msg += 'size must be 20'
+        raise ValueError(msg)
+
     if category == TARGET_DICOT and str(seq[0]).upper() != 'G':
         raise ValueError('First nucleotide must be G for target dicot category')
     if category == TARGET_MONOCOT and str(seq[0]).upper() != 'A':
