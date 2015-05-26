@@ -40,7 +40,8 @@ from Bio import SeqIO
 
 from goldenbraid.models import Feature, Count
 from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX, UT_PREFIX,
-                                  ASSEMBLED_SEQ)
+                                  ASSEMBLED_SEQ,
+    CRYSPER_TARGETS_TO_DOMESTICATE)
 from goldenbraid.tags import (VECTOR_TYPE_NAME, REVERSE, TU_TYPE_NAME,
                               MODULE_TYPE_NAME)
 from goldenbraid.views.feature_views import (get_prefix_and_suffix_index,
@@ -246,7 +247,8 @@ def write_protocol(protocol_data, assembly_type, part_order):
     for part_type in part_order:
         part_name = protocol_data[part_type]
         fragments.append(part_name)
-    part_str = "({0}){1}".format(":".join(fragments), protocol_data[VECTOR_TYPE_NAME])
+    part_str = "({0}){1}".format(":".join(fragments),
+                                 protocol_data[VECTOR_TYPE_NAME])
 
     protocol.append("Entities to assemble: {0}".format(part_str))
     protocol.append("Reaction should be performed as follows:")
@@ -254,9 +256,10 @@ def write_protocol(protocol_data, assembly_type, part_order):
     part_order.append(VECTOR_TYPE_NAME)
     for part_type in part_order:
         part_name = protocol_data[part_type]
-        protocol.append("\t75 ng of {0}".format(part_name))
+        quantity = '2' if part_type in CRYSPER_TARGETS_TO_DOMESTICATE else "75"
+        protocol.append("\t{} ng of {0}".format(quantity, part_name))
     for enzyme in get_enzymes_for_protocol(protocol_data, part_order):
-	    protocol.append("\t5-10u of {0}".format(enzyme))
+        protocol.append("\t5-10u of {0}".format(enzyme))
     protocol.append("")
     protocol.append(u"\t3u of T4 ligase")
     protocol.append("")
