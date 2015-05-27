@@ -24,6 +24,9 @@ from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
                               FORWARD, REVERSE, DERIVES_FROM)
+from goldenbraid.excel import plot_from_excel
+from django.core.files.temp import NamedTemporaryFile
+from django.core.urlresolvers import reverse
 
 
 class Db(models.Model):
@@ -44,6 +47,9 @@ class Cv(models.Model):
 
     class Meta:
         db_table = u'cv'
+
+    def __unicode__(self):
+        return u'{}'.format(self.name)
 
 
 class Dbxref(models.Model):
@@ -68,8 +74,12 @@ class Cvterm(models.Model):
     class Meta:
         db_table = u'cvterm'
 
+    def __unicode__(self):
+        return u'{}'.format(self.name)
+
 
 class Count(models.Model):
+    "This clase is used to count how many entrys of type name has been created"
     count_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     value = models.IntegerField()
@@ -145,6 +155,9 @@ class Feature(models.Model):
 
     class Meta:
         db_table = u'feature'
+
+    def __unicode__(self):
+        return u'{}'.format(self.uniquename)
 
     @property
     def url(self):
@@ -268,6 +281,31 @@ class Feature(models.Model):
                 continue
             _get_or_create_feature_relationship(object_=self, subject=child)
 
+    @property
+    def ordered_experiments(self):
+        experiments = []
+        for featsubexpe in ExperimentSubFeature.objects.filter(feature=self):
+            exp = featsubexpe.experiment
+            if exp not in experiments:
+                experiments.append(exp)
+        for featexpe in ExperimentSubFeature.objects.filter(feature=self):
+            exp = featexpe.experiment
+            if exp not in experiments:
+                experiments.append(exp)
+        return experiments
+
+    @property
+    def experiment_images(self):
+        experiments = self.ordered_experiments
+        image_urls = []
+        for experiment in experiments:
+            urls = experiment.image_urls
+            if urls:
+                image_urls.append(urls[0])
+            if len(image_urls) >= 2:
+                break
+        return image_urls
+
 
 def _parse_children_relations_from_gb(seq):
     definition = seq.description
@@ -322,3 +360,184 @@ class FeatureRelationship(models.Model):
 
     class Meta:
         db_table = u'feature_relationship'
+
+
+class Experiment(models.Model):
+    'Store the experiments asociated to features'
+    experiment_id = models.AutoField(primary_key=True)
+    uniquename = models.CharField(max_length=255, unique=True)
+    chasis_1 = models.CharField(max_length=255)
+    chasis_2 = models.CharField(max_length=255)
+    description = models.TextField(max_length=255)
+    type = models.ForeignKey(Cvterm)
+    timecreation = models.DateTimeField(auto_now_add=True)
+    dbxref = models.ForeignKey(Dbxref)
+
+    class Meta:
+        db_table = 'experiment'
+
+    @property
+    def features_used_in_experiment(self):
+        try:
+            exp_feats = ExperimentFeature.objects.filter(experiment=self)
+        except ExperimentFeature.DoesNotExist:
+            exp_feats = None
+        if exp_feats:
+            return [exp_feat.feature for exp_feat in exp_feats]
+
+    @property
+    def key_features(self):
+        try:
+            exp_subfeats = ExperimentSubFeature.objects.filter(experiment=self)
+        except ExperimentSubFeature.DoesNotExist:
+            exp_subfeats = None
+        if exp_subfeats:
+            return [exp_subfeat.feature for exp_subfeat in exp_subfeats]
+
+    @property
+    def owner(self):
+        'owner of the feat'
+        return ExperimentPerm.objects.get(experiment=self).owner
+        # return self.featureperm.owner
+
+    @property
+    def is_public(self):
+        'owner of the feat'
+        return ExperimentPerm.objects.get(experiment=self).is_public
+
+    @property
+    def url(self):
+        urlprefix = self.dbxref.db.urlprefix
+        feat_dir = 'experiment'
+        accession = self.dbxref.accession
+        return '{0}{1}/{2}'.format(urlprefix, feat_dir, accession)
+
+    @property
+    def numeric_props(self):
+        prop_dict = {}
+        props = ExperimentPropNumeric.objects.filter(experiment=self)
+        for prop in props:
+            type_ = prop.type.name
+            value = prop.value
+            if type_ not in prop_dict:
+                prop_dict[type_] = []
+            prop_dict[type_].append(value)
+
+        return ReadOnlyDict(prop_dict)
+
+    @property
+    def text_props(self):
+        prop_dict = {}
+        props = ExperimentPropText.objects.filter(experiment=self)
+        for prop in props:
+            title = prop.title
+            value = prop.value
+            if title not in prop_dict:
+                prop_dict[title] = []
+            prop_dict[title].append(value)
+
+        return ReadOnlyDict(prop_dict)
+
+    @property
+    def image_props(self):
+        return [(image_prop.description, image_prop.image)
+                for image_prop in ExperimentPropImage.objects.filter(experiment=self)]
+
+    @property
+    def excel_props(self):
+        return ExperimentPropExcel.objects.filter(experiment=self)
+
+    @property
+    def image_urls(self):
+        urls = []
+        for exp_excel in self.excel_props:
+            url = exp_excel.image_url
+            alt = exp_excel.description
+            urls.append((url, alt))
+        for image_desc, image in self.image_props:
+            url = image.url
+            alt = image_desc
+            urls.append((url, alt))
+        return urls
+
+
+class ExperimentPerm(models.Model):
+    experiment = models.OneToOneField(Experiment, primary_key=True)
+    owner = models.ForeignKey(User)
+    is_public = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = u'experimentperm'
+
+
+class ExperimentFeature(models.Model):
+    experiment_feature_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    feature = models.ForeignKey(Feature)
+
+    class Meta:
+        db_table = u'experimentfeature'
+        unique_together = ('experiment', 'feature')
+
+
+class ExperimentSubFeature(models.Model):
+    experiment_key_subfeature_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    feature = models.ForeignKey(Feature)
+
+    class Meta:
+        db_table = u'experimentkeysubfeature'
+        unique_together = ('experiment', 'feature')
+
+
+class ExperimentPropNumeric(models.Model):
+    experiment_prop_numeric_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    type = models.ForeignKey(Cvterm)
+    value = models.FloatField()
+
+    class Meta:
+        db_table = u'experimentpropnumeric'
+
+
+class ExperimentPropText(models.Model):
+    experiment_prop_text_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    title = models.CharField(max_length=255)
+    value = models.TextField(max_length=255)
+
+    class Meta:
+        db_table = u'experimentproptext'
+
+
+# TODO: File name must be unique
+class ExperimentPropImage(models.Model):
+    experiment_prop_image_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    image = models.ImageField(upload_to=settings.RESULTS_DIR)
+    description = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = u'experimentpropimage'
+
+
+class ExperimentPropExcel(models.Model):
+    experiment_prop_excel_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    excel = models.FileField(upload_to=settings.RESULTS_DIR)
+    description = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = u'experimentpropexcel'
+
+    @property
+    def drawed_image(self):
+        temp_fhand = NamedTemporaryFile()
+        plot_from_excel(self.excel.path, temp_fhand)
+        content_type = 'image/png'
+        return open(temp_fhand.name).read(), content_type
+
+    @property
+    def image_url(self):
+        return reverse('api_excel_image', args=[self.experiment_prop_excel_id])
+

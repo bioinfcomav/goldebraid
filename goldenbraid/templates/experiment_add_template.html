@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Add feature {% endblock title %}
+
+{% block extra_js %}
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.js" type="text/javascript"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/smoothness/jquery-ui.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>
+<script src="/static/autocomplete-init.js"></script>
+<script src="/static/jquery.formset.js"></script>
+
+<script type="text/javascript">
+    $(function() {
+        $('#id_feature_table tbody tr').formset({
+              prefix: '{{ feature_formset.prefix }}',
+              added: function(row) {
+                   enableAutocomplete(row, "/api/feature_uniquenames/?limit=100");
+          }
+        });
+    })
+    $(function() {
+        $('#id_numeric_table tbody tr').formset({
+              prefix: '{{ numeric_formset.prefix }}'
+        });
+    })
+    $(function() {
+        $('#id_text_table tbody tr').formset({
+              prefix: '{{ text_formset.prefix }}'
+        });
+    })
+    $(function() {
+        $('#id_image_table tbody tr').formset({
+              prefix: '{{ image_formset.prefix }}'
+        });
+    })
+    $(function() {
+        $('#id_excel_table tbody tr').formset({
+              prefix: '{{ excel_formset.prefix }}'
+        });
+    })
+</script>
+<style type="text/css">
+    .add-row {
+        padding-left:18px;
+        background:url(/static/style/images/add.png) no-repeat left center;
+    }
+    .delete-row {
+        float:right;
+        display:block;
+        margin:5px 0 0 5px;
+        text-indent:-6000px;
+        background:url(/static/style/images/delete.png) no-repeat left center;
+        width:16px;
+        height:16px;
+    }
+
+</style>
+{% endblock %}
+{% block content %}
+<p><span class='emphasis'>Note: User-added GBdatabase entries are private and only accessible to the user who created them.</span></p>
+<p>To add a construct to the database fill out the following form:</p>
+<form action="{% url 'add_experiment' %}"  enctype="multipart/form-data" method="post">{% csrf_token %}
+<fieldset>
+<legend>Experiment information:</legend>
+{{form.as_table }}
+</fieldset>
+<fieldset>
+<legend>Parts used in the Experiment:</legend>
+<table id='id_feature_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+    {% for feature_form in feature_formset %}
+        <tr>
+            <td>Feature:{{feature_form.feature}}</td>
+        </tr>{{feature_form.errors}}
+    {% endfor %}
+    </tbody>
+</table>
+{{ feature_formset.management_form }}
+</fieldset>
+<fieldset>
+<legend>Key features:</legend>
+{{subfeat_form}}
+</fieldset>
+<fieldset>
+<legend>Numeric informaction:</legend>
+<table id='id_numeric_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+    {% for numeric_form in numeric_formset %}
+        <tr>
+            <td>{{numeric_form.type}}</td>
+            <td>{{numeric_form.value}}</td>
+        </tr>{{numeric_form.errors}}
+    {% endfor %}
+    </tbody>
+</table>
+{{ numeric_formset.management_form }}
+</fieldset>
+<fieldset>
+<legend>Text informaction:</legend>
+<table id='id_text_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+    {% for text_form in text_formset %}
+        <tr>
+            <td>{{text_form.title}}</td>
+            <td>{{text_form.value}}</td>
+        </tr>{{text_form.errors}}
+    {% endfor %}
+    </tbody>
+</table>
+{{ text_formset.management_form }}
+</fieldset>
+
+<fieldset>
+<legend>Associated images:</legend>
+<table id='id_image_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+    {% for image_form in image_formset %}
+        <tr>
+            <td>{{image_form.description}}</td>
+            <td>{{image_form.image}}</td>
+        </tr>{{image_form.errors}}
+    {% endfor %}
+    </tbody>
+</table>
+{{ image_formset.management_form }}
+</fieldset>
+     
+<fieldset>
+<legend>Associated excel files:</legend>
+<table id='id_excel_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+    {% for excel_form in excel_formset %}
+        <tr>
+            <td>{{excel_form.description}}</td>
+            <td>{{excel_form.excel}}</td>
+        </tr>{{excel_form.errors}}
+    {% endfor %}
+    </tbody>
+</table>
+{{ excel_formset.management_form }}
+</fieldset>
+<input type="submit" value="Add" />
+</form>
+
+{% endblock content %}

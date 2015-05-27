@@ -27,7 +27,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASES = {}
-
+SOUTH_TESTS_MIGRATE = False
 REMOTE_DATABASE = {
          'ENGINE': 'django.db.backends.postgresql_psycopg2',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
          'NAME': 'goldenbraid',  # Or path to database file if using sqlite3.
@@ -97,7 +97,7 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"

@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.db import transaction
-
 '''
 tests the goldenbraid models
 '''
@@ -22,11 +20,13 @@ from django.test import TestCase
 from django.db.utils import IntegrityError
 from django.core.files import File
 from django.conf import settings as proj_settings
+from django.db import transaction
 
 import goldenbraid
 from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
                                 Contact, Stock, Stockcollection, Count,
-                                FeaturePerm, FeatureRelationship)
+                                FeaturePerm, FeatureRelationship, Experiment,
+                                ExperimentPropExcel)
 from goldenbraid.tags import (ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME,
                               DERIVES_FROM)
@@ -39,7 +39,7 @@ TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
 class FeatureTestModels(TestCase):
     fixtures = FIXTURES_TO_LOAD
 
-    def test_create(self):
+    def xtest_create(self):
         'can we create a feature?'
         gb_file = File(open(os.path.join(TEST_DATA, 'pAn11_uniq.gb')))
         db = Db.objects.get(name='goldenbraid')
@@ -205,3 +205,35 @@ class FeatureTestModels(TestCase):
         assert fet_rel.type.name == DERIVES_FROM
         assert f1.children[0].uniquename == "GB0365"
 
+    def test_feature_images(self):
+        f1 = Feature.objects.get(uniquename='GB0125')
+        assert f1.experiment_images == [(u'/api/excel_graph/1', u'excel')]
+        f1 = Feature.objects.get(uniquename='GB0129')
+        assert not f1.experiment_images
+
+
+class ExperimentTests(TestCase):
+    fixtures = FIXTURES_TO_LOAD
+
+    def test_experiment_excels(self):
+        exp = Experiment.objects.get(uniquename='GB_EXP_2B')
+        excel_exp = ExperimentPropExcel.objects.get(experiment=exp)
+        fhand = open(os.path.join(TEST_DATA, 'scatter.xlsx'))
+        excel_exp.excel = File(fhand)
+        excel_exp.save()
+        excel_exp.excel.close()
+        fhand.close()
+
+        assert excel_exp.drawed_image[1] == 'image/png'
+
+        # image url from excel
+        assert exp.image_urls == [(u'/api/excel_graph/1', u'excel',)]
+        # image_url_from_image
+        exp = Experiment.objects.get(uniquename='GB_EXP_2A')
+        assert not exp.image_urls
+        exp = Experiment.objects.get(uniquename='GB_EXP_29')
+        assert exp.image_urls == [('/media/result_files/hayedo.jpg', 'Image1'),
+                                  ('/media/result_files/escocia.jpg',
+                                   'Image2')]
+
+        # print open(excelExp.excel).read()

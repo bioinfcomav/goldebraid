@@ -18,6 +18,7 @@ from textwrap import fill
 
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+from Bio.Alphabet import DNAAlphabet
 
 from django.core.context_processors import csrf
 from django.template.context import RequestContext
@@ -27,13 +28,14 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponseServerError
 from django.db.utils import IntegrityError
 
-from goldenbraid.domestication import (domesticate, domesticate_for_synthesis, 
-				       domestication_crispr)
-from goldenbraid.forms import DomesticationForm, DomesticationCrisprForm
+from goldenbraid.domestication import (domesticate, domesticate_for_synthesis,
+                                       domestication_crispr)
 from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES
-from goldenbraid.views.feature_views import add_feature
 from goldenbraid.tags import TARGET_DICOT, TARGET_MONOCOT
-from Bio.Alphabet import DNAAlphabet
+
+from goldenbraid.forms.domestication import (DomesticationForm,
+                                             DomesticationCrisprForm)
+from goldenbraid.views.feature import add_feature
 
 
 def synthesis_view(request):
@@ -127,10 +129,10 @@ def _domestication_view(request, kind):
                                       context_instance=RequestContext(request))
             elif kind == 'synthesis':
                 seq_for_syn, prepared_seq = domesticate_for_synthesis(seq,
-                                                                   category,
-                                                                   prefix,
-                                                                   suffix,
-                                                                   with_intron)
+                                                                      category,
+                                                                      prefix,
+                                                                      suffix,
+                                                                      with_intron)
                 return render_to_response('synthesis_result.html',
                                           {'category': category,
                                            'prefix': prefix,

@@ -14,11 +14,7 @@
 # limitations under the License.
 
 import os
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
+from collections import OrderedDict
 
 from django.conf import settings
 
@@ -29,6 +25,8 @@ from goldenbraid.tags import (MODULE_TYPE_NAME, TU_TYPE_NAME, TARGET_DICOT,
 
 
 GENBANK_DIR = getattr(settings, 'GOLDENBRAID_GENBANK_DIR', 'genbank_files')
+RESULTS_DIR = getattr(settings, 'GOLDENBRAID_RESULTS_DIR', 'result_files')
+
 REBASE = os.path.join(goldenbraid.__path__[0], 'rebase', 'withrefm.301')
 REBASE_FILE = getattr(settings, 'GOLDENBRAID_REBASE_FILE', REBASE)
 SEARCH_MENU_TYPE_CHOICES = getattr(settings,
@@ -145,3 +143,4 @@ OLIGO_UNIVERSAL = 'GCGCCGTCTCG'
 ASSEMBLED_SEQ = 'GB_UA'
 DOMESTICATED_SEQ = 'GB_UD'
 CRYSPER_SEQ = 'GB_UC'
+EXPERIMENT_ID_PREFIX = 'GB_EXP'

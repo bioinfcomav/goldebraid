@@ -28,6 +28,9 @@ from django.db import transaction
 from django.http.response import HttpResponseBadRequest
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import MultipleObjectsReturned
+from django import forms
+from django.core.paginator import Paginator, InvalidPage, EmptyPage
+from django.db.models import Q
 
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -39,8 +42,11 @@ from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, DERIVES_FROM)
-from goldenbraid.forms import (FeatureForm, FeatureManagementForm,
-                               get_all_vectors_as_choices, VectorForm)
+
+from goldenbraid.forms.feature import (FeatureForm, FeatureManagementForm,
+                                       get_all_vectors_as_choices, VectorForm,
+                                       SearchFeatureForm,
+                                       SPECIAL_SEARCH_CATEGORIES)
 from goldenbraid.utils import parse_rebase_file
 
 
@@ -128,7 +134,8 @@ def get_prefix_and_suffix_index(seq, enzyme):
 def get_prefix_and_suffix(seq, enzyme):
     'it gets the prefix and the suffix of the feature seq'
     try:
-        prefix_index, suffix_index, prefix_size = get_prefix_and_suffix_index(seq, enzyme)
+        result = get_prefix_and_suffix_index(seq, enzyme)
+        prefix_index, suffix_index, prefix_size = result
     except RuntimeError as error:
         if str(error) == "No rec_site":
             return None, None
@@ -245,7 +252,8 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                 try:
                     prop_type = Cvterm.objects.get(name=type_name)
                 except Cvterm.DoesNotExist:
-                    msg = 'Trying to add a property which cvterm does not exist: {0}'
+                    msg = 'Trying to add a property which cvterm does '
+                    msg += 'not exist: {0}'
                     msg = msg.format(type_name)
                     raise RuntimeError(msg)
                 except MultipleObjectsReturned:
@@ -261,14 +269,16 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                     Featureprop.objects.create(feature=feature, type=prop_type,
                                                value=value, rank=rank)
                     rank += 1
-            if suffix is None or prefix is None:
-                if type_ == vector_type:
-                    enzyme = props[ENZYME_IN_TYPE_NAME][0]
-                else:
-                    enzyme = vector.enzyme_out[0]
-                prefix, suffix = get_prefix_and_suffix(residues, enzyme)
-                if prefix is None or suffix is None:
-                    raise RuntimeError('The given vector is not compatible with this part')
+
+            if type_ == vector_type:
+                enzyme = props[ENZYME_IN_TYPE_NAME][0]
+            else:
+                enzyme = vector.enzyme_out[0]
+            prefix, suffix = get_prefix_and_suffix(residues, enzyme)
+            if prefix is None or suffix is None:
+                msg = 'The given vector is not compatible with this part'
+                raise RuntimeError(msg)
+
             feature.prefix = prefix
             feature.suffix = suffix
             feature.save()
@@ -333,16 +343,18 @@ def add_vector_view(request):
             except IntegrityError as error:
                 if 'feature already in db' in str(error):
                     # TODO choose a template
+                    req_context = RequestContext(request)
                     return render_to_response('feature_exists.html', {},
-                                    context_instance=RequestContext(request))
+                                              context_instance=req_context)
                 else:
                     return HttpResponseServerError(str(error))
 
             except Exception as error:
+                req_context = RequestContext(request)
                 return render_to_response('goldenbraid_info.html',
                                           {'title': 'Error',
                                            'info': str(error)},
-                                      context_instance=RequestContext(request))
+                                          context_instance=req_context)
             # if everithing os fine we show the just added feature
             return redirect(vector.url)
 
@@ -371,22 +383,25 @@ def add_feature_view(request):
             except IntegrityError as error:
                 if 'feature already in db' in str(error):
                     # TODO choose a template
+                    req_context = RequestContext(request)
                     return render_to_response('feature_exists.html', {},
-                                    context_instance=RequestContext(request))
+                                              context_instance=req_context)
                 else:
                     return HttpResponseServerError(str(error))
 
             except Exception as error:
+                req_context = RequestContext(request)
                 return render_to_response('goldenbraid_info.html',
                                           {'title': 'Error',
                                            'info': str(error)},
-                                      context_instance=RequestContext(request))
+                                          context_instance=req_context)
             # if everithing os fine we show the just added feature
             return redirect(feature.url)
 
     else:
         form = FeatureForm()
-        form.fields['vector'].widget.choices = get_all_vectors_as_choices(request.user)
+        _choices = get_all_vectors_as_choices(request.user)
+        form.fields['vector'].widget.choices = _choices
 
     context['form'] = form
     template = 'feature_add_template.html'
@@ -410,9 +425,10 @@ def feature_view(request, uniquename):
         request_data = None
 
     if feature is None:
+        info_text = 'This feature ({0}) does not exist in the database'
         return render_to_response('goldenbraid_info.html',
                                   {'title': 'Feature not exist',
-                                   'info': 'This feature ({0}) does not exist in the database'.format(uniquename)},
+                                   'info': info_text.format(uniquename)},
                                   context_instance=RequestContext(request))
 
     if not request_data:
@@ -422,9 +438,10 @@ def feature_view(request, uniquename):
                                       {'feature': feature},
                                       context_instance=RequestContext(request))
         else:
+            info_text = 'You are not allowed to view this feature'
             return render_to_response('goldenbraid_info.html',
                                       {'title': 'Not Allowed',
-                                       'info': 'You are not allowed to view this feature'},
+                                       'info': info_text},
                                       context_instance=RequestContext(request))
 
     else:
@@ -433,6 +450,7 @@ def feature_view(request, uniquename):
             form_data = form.cleaned_data
             action = form_data['action']
             feature = Feature.objects.get(uniquename=form_data['feature'])
+            req_context = RequestContext(request)
             if action == 'delete':
                 if request.user.is_staff or request.user == feature.owner:
                     file_path = feature.genbank_file.path
@@ -441,14 +459,16 @@ def feature_view(request, uniquename):
                     return render_to_response('goldenbraid_info.html',
                                               {'title': 'Feature deleted',
                                                'info': 'Feature Deleted'},
-                                    context_instance=RequestContext(request))
+                                              context_instance=req_context)
                 else:
+                    info_txt = 'You are not allowed to delete this feature'
                     return render_to_response('goldenbraid_info.html',
                                               {'title': 'Not Allowed',
-                        'info': 'You are not allowed to delete this feature'},
-                                    context_instance=RequestContext(request))
+                                               'info': info_txt},
+                                              context_instance=req_context)
 
             elif action in 'make_public' or 'make_private':
+
                 if request.user.is_staff:
                     if action == 'make_public' and not feature.is_public:
                         featperm = FeaturePerm.objects.get(feature=feature)
@@ -463,13 +483,129 @@ def feature_view(request, uniquename):
                     return render_to_response('feature_template.html',
                                               {'feature': feature,
                                                'info': 'Feature modified'},
-                              context_instance=RequestContext(request))
+                                              context_instance=req_context)
                 else:
+                    info_text = 'You are not allowed to modify this feature'
                     return render_to_response('Goldenbraid_info.html',
                                               {'title': 'Not Allowed',
-                        'info': 'You are not allowed to modify this feature'},
-                                    context_instance=RequestContext(request))
+                                               'info': info_text},
+                                              context_instance=req_context)
 
             else:
                 return HttpResponseBadRequest()
 
+
+# search
+def _build_name_or_prop_query(query, text, exact):
+    'It looks in the name or in the feature property tables'
+    if exact == 'True':
+        name_criteria = Q(name__iexact=text) | Q(uniquename__iexact=text)
+    else:
+        name_criteria = (Q(name__icontains=text) |
+                         Q(uniquename__icontains=text) |
+                         Q(Q(featureprop__type__name=DESCRIPTION_TYPE_NAME) &
+                           Q(featureprop__value__icontains=text)))
+
+    query = query.filter(name_criteria)
+    return query
+
+
+def _build_feature_query(search_criteria, user):
+    'Given a search criteria dict it returns a feature queryset'
+    criteria = search_criteria
+    query = Feature.objects
+    if 'name_or_description' in criteria and criteria['name_or_description']:
+        if 'name_exact' not in criteria:
+            criteria['name_exact'] = 'False'
+        query = _build_name_or_prop_query(query,
+                                          criteria['name_or_description'],
+                                          criteria['name_exact'])
+    if 'category' in criteria and criteria['category']:
+        kind, prefix, suffix = criteria['category'].split(',')
+        query = query.filter(type__name=kind)
+        if kind not in SPECIAL_SEARCH_CATEGORIES:
+            query = query.filter(prefix=prefix, suffix=suffix)
+    if user.is_staff:
+        if 'only_user' in criteria and criteria['only_user']:
+            query = query.filter(featureperm__owner__username=user)
+
+    else:
+        if 'only_user' in criteria and criteria['only_user']:
+            query = query.filter(featureperm__owner__username=user)
+        else:
+            query = query.filter(Q(featureperm__is_public=True) |
+                                 Q(featureperm__owner__username=user))
+
+    query = query.distinct()
+    return query
+
+
+def search_features_view(request):
+    'The feature search view'
+
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    elif request.method == 'GET':
+        request_data = request.GET
+    else:
+        request_data = None
+
+    template = 'search_feature.html'
+    content_type = None  # default
+    if request_data:
+        form = SearchFeatureForm(request_data)
+
+        if request.user.is_authenticated():
+            usr_only_label = "Search only in my parts?"
+            form.fields['only_user'] = forms.BooleanField(label=usr_only_label,
+                                                          initial=False,
+                                                          required=False)
+        # _update_form_init_values(form, database)
+        if form.is_valid():
+            search_criteria = form.cleaned_data
+            search_criteria = dict([(key, value)
+                                    for key, value in search_criteria.items()
+                                    if value])
+            context['search_criteria'] = search_criteria
+            feature_queryset = _build_feature_query(search_criteria,
+                                                    user=request.user)
+            download_search = search_criteria.get('download_search', False)
+            if feature_queryset and download_search:
+                context['queryset'] = feature_queryset
+                template = 'search_feature_download.txt'
+                content_type = 'text/plain'
+            elif feature_queryset and not download_search:
+                if feature_queryset.count() == 1:
+                    feature_uniquename = feature_queryset[0].uniquename
+                    return redirect(feature_view,
+                                    uniquename=feature_uniquename)
+
+                paginator = Paginator(feature_queryset, 25)
+                # Make sure page request is an int. If not, deliver first page.
+                try:
+                    page_number = int(request.POST.get('page', '1'))
+                except ValueError:
+                    page_number = 1
+                # If page request (9999) is out of range, deliver last page of
+                # results.
+                try:
+                    page_object = paginator.page(page_number)
+                except (EmptyPage, InvalidPage):
+                    page_object = paginator.page(paginator.num_pages)
+
+                context['features_page'] = page_object
+            else:
+                context['features_page'] = None
+    else:
+        form = SearchFeatureForm()
+        if request.user.is_authenticated():
+            only_usr_label = "Search only in my parts?"
+            form.fields['only_user'] = forms.BooleanField(initial=False,
+                                                          required=False,
+                                                          label=only_usr_label)
+
+    context['form'] = form
+
+    return render_to_response(template, context, content_type=content_type)

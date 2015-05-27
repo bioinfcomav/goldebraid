@@ -45,6 +45,42 @@
       {% endwith %}
 
    {%endif%}
+   {% if feature.ordered_experiments %}
+   <div>
+      <h2> Experiments in with the feature is involved</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Accession</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Owner</th>
+            <th>Entry Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for experiment in feature.ordered_experiments %}
+          <tr>
+           <td>{{ experiment.uniquename|link_if_url:experiment }}</td>
+            <td>{{ experiment.description }}</td>
+            <td>{{ experiment.type.name }}</td>
+            <td>{{ experiment.owner.username }}</td>
+            <td>{{ experiment.timecreation }}</td>
+          </tr> 
+          {% endfor %}
+        </tbody>
+      </table>    
+   </div>
+   {% endif %}
+   {% if feature.experiment_images %}
+   <div>
+        {% for url, alt in feature.experiment_images %}
+        <img src={{url}} alt={{alt}} height="400" width="300">
+        {% endfor %}
+   </div>
+   {% endif %}
+   <a href= "{%url 'add_experiment' %}?feature={{feature}}">Add Experiment</a>
+   
    <h2> Feature Management Tools (only if permission granted)</h2>
    {% if feature.owner == user or user.is_staff %}
         <form action='' method='POST' onsubmit="return confirm('Are you sure you want to delete the feature?')">{% csrf_token %}

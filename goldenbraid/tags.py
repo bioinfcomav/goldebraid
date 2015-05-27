@@ -33,3 +33,11 @@ TARGET_MONOCOT = 'M Target (B3d-B4-B5d)'
 PROM_DICOT = 'PROM DPolIII (A1-A2-A3-B1-B2c)'
 PROM_MONOCOT = 'PROM MPolIII (A1-A2-A3-B1-B2d)'
 TER_CRYSPER = 'sgRNA (B6b-C1)'
+
+# Cvs that a user has to save in DB
+EXPERIMENT_TYPES = 'experiment_types'
+NUMERIC_TYPES = 'numeric_types'
+
+# CVterms defining roles for features in expeiment
+MAIN_ROLE = 'main_role'
+ACCESORY_ROLE = 'Accesory_role'

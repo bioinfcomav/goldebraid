@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Experiment{{experiment.name}} {% endblock title %}
+{% block content %}
+{% load goldenbraid_extras %}
+{% if not experiment %}
+   <h1> This experiment does not exist</h1>
+{% else %}
+    <h1>{{ experiment.type.name|capfirst|replaceunderscore }} {{ experiment.uniquename }}</h1>
+    <p><span class='key'>Name:</span> <span class='value'>{{ experiment.uniquename }}</span></p>
+    <p><span class='key'>Experiment type:</span> <span class='value'>{{ experiment.type.name }}</span></p>
+    <p><span class='key'>Chasis 1:</span> <span class='value'>{{ experiment.chasis_1 }}</span></p>
+    <p><span class='key'>Chasis 2:</span> <span class='value'>{{ experiment.chasis_2 }}</span></p>
+    <p><span class='key'>Description:</span> <span class='value'>{{ experiment.description }}</span></p>
+    {% if experiment.features_used_in_experiment %}
+        <h2>Features used in the experiment</h2>
+        {% with features=experiment.features_used_in_experiment %}
+            {% include "feature_table.html" %}
+      {% endwith %}
+    {% endif %}
+    {% if experiment.key_features %}
+        <h2>Key Features in the experiment</h2>
+        {% with features=experiment.key_features %}
+            {% include "feature_table.html" %}
+      {% endwith %}
+    {% endif %}
+    {% if experiment.numeric_props %}
+        <h2>Numeric values</h2>
+        {% for key, values in experiment.numeric_props.items %}
+            {% if values|length > 1 %}
+                <p><span class='key'>{{ key|capfirst|replaceunderscore}}{{values|pluralize }}:</span></p>
+                <ul class='property'>
+                {% for value in values %}
+                    <li><p><span class='value'>{{ value|capfirst|replaceunderscore}}</span></p></li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p><span class='key'>{{ key|capfirst|replaceunderscore }}:</span> <span class='value'>{{ values|first}}</span></p>
+            {% endif %}
+        {% endfor %}
+    {%endif%}
+    {% if experiment.text_props %}
+        <h2>Text values</h2>
+        {% for key, values in experiment.text_props.items %}
+            {% if values|length > 1 %}
+                <p><span class='key'>{{ key|capfirst|replaceunderscore}}{{values|pluralize }}:</span></p>
+                <ul class='property'>
+                {% for value in values %}
+                    <li><p><span class='value'>{{ value|capfirst|replaceunderscore}}</span></p></li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p><span class='key'>{{ key|capfirst|replaceunderscore }}:</span> <span class='value'>{{ values|first}}</span></p>
+            {% endif %}
+        {% endfor %}
+    {%endif%}
+    {% if experiment.image_props%}
+        <h2>Result images</h2>
+        {% for title, image in experiment.image_props %}
+             <p><span class='key'>{{ title|capfirst|replaceunderscore }}:</span> 
+                <img src={{image.url}} alt={{title}} heigth=800 width=600>
+             </p>
+        {% endfor %}
+    {% endif %}
+    {% if experiment.excel_props%}
+        <h2>Associated excel files</h2>
+        {% for exp_excel in experiment.excel_props %}
+            <p><span class='key'>{{ exp_excel.description|capfirst|replaceunderscore }}:</span> 
+                <a href={{exp_excel.excel.url}}>Excel File</a>
+                <img src={{exp_excel.image_url}} alt={{exp_excel.description}} heigth=800 width=600>
+            </p>
+        {% endfor %}
+    {% endif %}
+{% endif %}
+{% endblock content %}
