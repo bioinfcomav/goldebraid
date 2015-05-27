@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from django.conf.urls import patterns, url
-from goldenbraid.views.feature import (add_feature, feature_view,
+from goldenbraid.views.feature import (add_feature_view, feature_view,
                                        add_vector_view, search_features_view)
 
 from goldenbraid.views.api import(feature_uniquenames, features_children,
@@ -71,7 +71,7 @@ urlpatterns = patterns('',
                            name='crispr_view_add'),
                        url(r'^add/vector/$', add_vector_view,
                            name='add_vector'),
-                       url(r'^add/feature/$', add_feature,
+                       url(r'^add/feature/$', add_feature_view,
                            name='add_feature'),
                        url(r'^add/experiment/$', add_experiment_view,
                            name='add_experiment'),

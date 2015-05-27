@@ -141,10 +141,8 @@ def _domestication_view(request, kind):
                                            'seq_name': prepared_seq.name,
                                            'with_intron': with_intron_str},
                                       context_instance=RequestContext(request))
-
     else:
         form = DomesticationForm()
-
     context['form'] = form
     context['kind'] = kind
 
