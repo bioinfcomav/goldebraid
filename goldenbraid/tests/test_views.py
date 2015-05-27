@@ -209,7 +209,7 @@ class MultipartiteFreeTestViews(TestCase):
         assert response.status_code == 200
 
         seqrec1 = SeqIO.read(StringIO(str(response)), 'gb')
-        assert seqrec1.name == 'GB_UA_D'
+        assert seqrec1.name == 'GB_UA_E'
         multipartite_free_seq1 = str(seqrec1.seq)
         gb_path = os.path.join(TEST_DATA, 'pEGBMybrev_uniq.gb')
         seqrec2 = SeqIO.read(gb_path, 'gb')
@@ -240,7 +240,7 @@ class MultipartiteFreeTestViews(TestCase):
                                      'part_1': 'pPE8',
                                      'part_2': 'pANT1',
                                      'part_3': 'pTnos'})
-        assert 'GB_UA_D' in str(response)
+        assert 'GB_UA_E' in str(response)
         assert 'LOCUS' in str(response)
 
         response = client.post(url, {'assembled_seq': 'aaa',
@@ -248,7 +248,7 @@ class MultipartiteFreeTestViews(TestCase):
                                      'part_1': 'pPE8',
                                      'part_2': 'pANT1',
                                      'part_3': 'pTnos'})
-        assert 'GB_UA_E' in str(response)
+        assert 'GB_UA_F' in str(response)
         assert 'LOCUS' in str(response)
 
         # with more than one part of the same type

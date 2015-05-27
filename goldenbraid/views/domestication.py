@@ -31,7 +31,6 @@ from django.db.utils import IntegrityError
 from goldenbraid.domestication import (domesticate, domesticate_for_synthesis,
                                        domestication_crispr)
 from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES
-from goldenbraid.tags import TARGET_DICOT, TARGET_MONOCOT
 
 from goldenbraid.forms.domestication import (DomesticationForm,
                                              DomesticationCrisprForm)

@@ -258,7 +258,7 @@ def write_protocol(protocol_data, assembly_type, part_order):
     for part_type in part_order:
         part_name = protocol_data[part_type]
         quantity = '2' if part_type in CRYSPER_TARGETS_TO_DOMESTICATE else "75"
-        protocol.append("\t{} ng of {0}".format(quantity, part_name))
+        protocol.append("\t{} ng of {}".format(quantity, part_name))
     for enzyme in get_enzymes_for_protocol(protocol_data, part_order):
         protocol.append("\t5-10u of {0}".format(enzyme))
     protocol.append("")
