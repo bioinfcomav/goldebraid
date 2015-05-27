@@ -4,7 +4,7 @@ from django.db import models
 
 from gb_genome_domestication.settings import DB, ENZYMES_USED_IN_GOLDENBRAID
 
-from goldenbraid.domestication import get_ret_sites
+from goldenbraid.utils import get_ret_sites
 
 
 class Db(models.Model):
