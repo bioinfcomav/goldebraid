@@ -108,7 +108,7 @@ class Migration(migrations.Migration):
             name='ExperimentPropExcel',
             fields=[
                 ('experiment_prop_excel_id', models.AutoField(serialize=False, primary_key=True)),
-                ('image', models.FileField(upload_to=b'result_files')),
+                ('excel', models.FileField(upload_to=b'result_files')),
                 ('description', models.CharField(max_length=255)),
             ],
             options={
@@ -165,7 +165,7 @@ class Migration(migrations.Migration):
                 ('residues', models.TextField()),
                 ('prefix', models.CharField(max_length=4)),
                 ('suffix', models.CharField(max_length=4)),
-                ('genbank_file', models.FileField(upload_to=b'genbank_files')),
+                ('genbank_file', models.FileField(upload_to=b'genbank')),
                 ('timecreation', models.DateTimeField(auto_now_add=True)),
                 ('timelastmodified', models.DateTimeField(auto_now=True)),
             ],
