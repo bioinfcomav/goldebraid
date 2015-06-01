@@ -138,7 +138,7 @@ urlpatterns = patterns('',
                            name='api_feature_children'),
                        url('api/features_key_elements/$',
                            features_key_elements,
-                           name='feature_key_elements'),
+                           name='api_feature_key_elements'),
                        url('api/excel_graph/(?P<excel_id>.+)?', excel_image,
                            name='api_excel_image')
                        )
