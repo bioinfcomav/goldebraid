@@ -106,39 +106,6 @@ class DinamicSelectMultiple(SelectMultiple):
         javascript = self.render_js(attrs['id'])
         return mark_safe('\n'.join(output) + javascript)
 
-    def render_js_old(self, field_id):
-        'The javascript that does the select options'
-
-        javascript = u'''<script type="text/javascript">
-$(document).ready(function() {
-inputs = ssacar ldlde fdom inputys
-for input in finputs:
-    fillalnfsdlk(input)
-
-    $("input").focusout(function(){
-        if ($(this).hasClass('%(parent_class)s')) {
-            //buscar todos los input con esa classe y mirar que no vacio
-            var values = [];
-            $('.ui-autocomplete-input').each(function(){
-                var value = $(this).val();
-                if(value != ''){ values.push(value);}
-            })
-            $.getJSON("%(source)s", {'features':values}, function(result){
-                 var toAppend = '';
-                $.each(result, function(i, val){
-                    toAppend += '<option>'+val+'</option>';
-                });
-                $('#%(field_id)s').empty().append(toAppend);
-            })
-        }
-
-    });
-});
-</script>'''
-        javascript %= {'field_id': field_id, 'source': self.source,
-                       'parent_class': self._parent_class}
-        return javascript
-
     def render_js(self, field_id):
         'The javascript that does the select options'
 
@@ -167,9 +134,11 @@ $(document).ready(function() {
     var inputs = $(this).find("input");
     $.each(inputs, function(index, val){
         $.fn.fill_children(index, val)});
-    $("input").focusout(function(){
+    $(document).on("focusout", "input", function(){
                     $.fn.fill_children('0', $(this))});
 });
+
+
 </script>'''
         javascript %= {'field_id': field_id, 'source': self.source,
                        'parent_class': self._parent_class}
