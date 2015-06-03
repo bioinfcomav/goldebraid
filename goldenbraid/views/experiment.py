@@ -96,6 +96,8 @@ def _add_experiment(form, numeric_formset, text_formset, image_formset,
             ExperimentPerm.objects.create(experiment=experiment, owner=user,
                                           is_public=is_public)
             for feat_id_in_exp in feat_formset.cleaned_data:
+                if not feat_id_in_exp:
+                    continue
                 try:
                     feat_id = feat_id_in_exp['feature']
                     feat = Feature.objects.get(feature_id=feat_id)
