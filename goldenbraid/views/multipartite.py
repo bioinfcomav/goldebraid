@@ -417,7 +417,7 @@ def multipartite_view_free(request, form_num):
             form = form_class(request_data)
             if form.is_valid():
                 last_feat = Feature.objects.get(uniquename=feats[-1])
-                last_suffix = last_feat.suffix
+                last_suffix = last_feat.suffix.upper()
                 if last_suffix == str(Seq(UT_SUFFIX).reverse_complement()):
                     last_suffix = UT_PREFIX
                 if last_suffix == 'CGCT':
@@ -445,7 +445,7 @@ def multipartite_view_free(request, form_num):
                 else:
                     # add new_field
                     part_num = len(feats)
-                    feats = Feature.objects.filter(prefix=last_suffix)
+                    feats = Feature.objects.filter(prefix__iexact=last_suffix)
                     if user.is_staff:
                         pass
                     elif user.is_authenticated():

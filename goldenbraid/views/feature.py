@@ -279,8 +279,8 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                 msg = 'The given vector is not compatible with this part'
                 raise RuntimeError(msg)
 
-            feature.prefix = prefix
-            feature.suffix = suffix
+            feature.prefix = prefix.upper()
+            feature.suffix = suffix.upper()
             feature.save()
 
     except (IntegrityError, RuntimeError):
