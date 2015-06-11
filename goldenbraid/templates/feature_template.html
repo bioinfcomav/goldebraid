@@ -83,11 +83,14 @@
         {% endfor %}
    </p>
    {% endif %}
-   <p><a href= "{%url 'add_experiment' %}?feature={{feature}}">Add Experiment</a></p>
+   
 </div>
 <div id='space'> </div>
-   <h2> Feature Management Tools (only if permission granted)</h2>
    {% if feature.owner == user or user.is_staff %}
+      <h2> Feature Management Tools (only if permission granted)</h2>
+   {% endif %}
+   {% if feature.owner == user or user.is_staff %}
+        <p><a href= "{%url 'add_experiment' %}?feature={{feature}}">Add Experiment</a></p>
         <form action='' method='POST' onsubmit="return confirm('Are you sure you want to delete the feature?')">{% csrf_token %}
             <INPUT type="hidden" name="feature" value="{{ feature.uniquename }}">
             <INPUT type="hidden" name="action" value="delete">
