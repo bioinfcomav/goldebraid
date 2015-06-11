@@ -12,12 +12,7 @@ from goldenbraid.models import Feature, ExperimentPropExcel
 
 
 def feature_uniquenames(request):
-    username = request.user
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return HttpResponseForbidden()
-
+    user = request.user
     query = Feature.objects.all()
     if not user.is_staff:
         query = query.filter(Q(featureperm__is_public=True) |
