@@ -109,8 +109,13 @@ def _domestication_view(request, kind):
                 prefix = form.cleaned_data.get('prefix')
                 suffix = form.cleaned_data.get('suffix')
             else:
-                prefix = CATEGORIES[category][1]
-                suffix = CATEGORIES[category][2]
+                try:
+                    prefix = CATEGORIES[category][1]
+                    suffix = CATEGORIES[category][2]
+                except KeyError:
+                    prefix = CRYSPER_CATEGORIES[category][1]
+                    suffix = CRYSPER_CATEGORIES[category][2]
+
             with_intron = form.cleaned_data['with_intron']
             with_intron_str = '1' if with_intron else '0'
             if kind == 'domestication':

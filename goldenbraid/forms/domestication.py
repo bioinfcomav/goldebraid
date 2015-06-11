@@ -47,7 +47,7 @@ class DomesticationForm(forms.Form):
         if not category_name:
             del self.cleaned_data['category']
             return
-        if category_name not in CATEGORIES.keys():
+        if category_name not in CATEGORIES.keys() + CRYSPER_CATEGORIES.keys():
             raise ValidationError('You must choose a valid category')
         return category_name
 
