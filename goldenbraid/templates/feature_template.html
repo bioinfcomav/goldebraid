@@ -6,22 +6,27 @@
 {% if not feature %}
    <h1> This feature does not exist</h1>
 {% else %}
-  <h1>{{ feature.type.name|capfirst|replaceunderscore }} {{ feature.uniquename }}</h1>
-  <p><span class='key'>Accession:</span> <span class='value'>{{ feature.uniquename }}</span></p>
-  <p><span class='key'>Name:</span> <span class='value'>{{ feature.name }}</span></p>
-  <p><span class='key'>Vector:</span> <span class='value'>{{ feature.vector.name }}</span></p>
-  <p><span class='key'>Owner:</span> <span class='value'>{{ feature.owner }}</span></p>
-  <p><span class='key'>Public:</span> <span class='value'>{{ feature.is_public }}</span></p>
-  <p><span class='key'>Prefix:</span> <span class='value'>{{ feature.prefix }}</span></p>
-  <p><span class='key'>Suffix:</span> <span class='value'>{{ feature.suffix }}</span></p>
-  <p><span class='key'>Genbank_file:</span><a href="{{feature.genbank_file.url}}">{{ feature.uniquename }}</a></p>
-  <p>You can use your favorite sequence viewer to open the genbank file. We suggest you to use <a href=https://benchling.com/ target='blank'>Benchling</a>.</p>
-  {% if feature.description %}
-      <p><span class='key'>Description:</span> <span class='value'>{{ feature.description }}</span></p>
+  <h1 class="feature_template">{{ feature.type.name|capfirst|replaceunderscore }} {{ feature.uniquename }}</h1>
+<h6>General Information</h6>
+<div id='featuregeneral'>
+<div class='col_left'>
+  <p><span class='key'><strong>Accession:</strong></span> <span class='value'>{{ feature.uniquename }}</span></p>
+  <p><span class='key'><strong>Name:</strong></span> <span class='value'>{{ feature.name }}</span></p>
+  <p><span class='key'><strong>Vector:</strong></span> <span class='value'>{{ feature.vector.name }}</span></p>
+  <p><span class='key'><strong>Prefix:</strong></span> <span class='value'>{{ feature.prefix }}</span></p>
+  <p><span class='key'><strong>Suffix:</strong></span> <span class='value'>{{ feature.suffix }}</span></p>
+ {% if feature.description %}
+      <p><span class='key'><strong>Description:</strong></span> <span class='value'>{{ feature.description }}</span></p>
   {% endif %}
-  {% if feature.residues %}
+<p><span class='key'><strong>Owner:</strong></span> <span class='value'>{{ feature.owner }}</span></p>
+  <p><span class='key'><strong>Public:</strong></span> <span class='value'>{{ feature.is_public }}</span></p>
+  <p><span class='key'><strong>Genbank_file: </strong></span><a href="{{feature.genbank_file.url}}">{{ feature.uniquename }}</a></p></div>
+<div class="col_right"></div><div style='clear:both;'>&nbsp;</div>
+  <p>You can use your favorite sequence viewer to open the genbank file. We suggest you to use <a href=https://benchling.com/ target='blank'>Benchling</a>.</p></div>
+<div id='space'> </div>
+ {% if feature.residues %}
       {% include "feature_sequence.html" %}
-  {% endif %}
+  {% endif %}  
   {% if feature.props %}
       {% for key, values in feature.props.items %}
           {% if key != 'Description'%}
@@ -46,9 +51,9 @@
 
    {%endif%}
    {% if feature.ordered_experiments %}
-   <div>
-      <h2> Experiments in with the feature is involved</h2>
-      <table>
+        <h6> Experiments</h6>
+<div id='featureexperiments'>
+      <table class='searchresult'>
         <thead>
           <tr>
             <th>Accession</th>
@@ -70,17 +75,17 @@
           {% endfor %}
         </tbody>
       </table>    
-   </div>
-   {% endif %}
+    {% endif %}
    {% if feature.experiment_images %}
-   <div>
+   <p>
         {% for url, alt in feature.experiment_images %}
-        <img src={{url}} alt={{alt}} height="400" width="300">
+        <img class='resize' src={{url}} alt={{alt}}>
         {% endfor %}
-   </div>
+   </p>
    {% endif %}
-   <a href= "{%url 'add_experiment' %}?feature={{feature}}">Add Experiment</a>
-   
+   <p><a href= "{%url 'add_experiment' %}?feature={{feature}}">Add Experiment</a></p>
+</div>
+<div id='space'> </div>
    <h2> Feature Management Tools (only if permission granted)</h2>
    {% if feature.owner == user or user.is_staff %}
         <form action='' method='POST' onsubmit="return confirm('Are you sure you want to delete the feature?')">{% csrf_token %}
@@ -106,4 +111,5 @@
    {% endif %}
 
 {% endif %}
+<div id='space'> </div>
 {% endblock content %}
