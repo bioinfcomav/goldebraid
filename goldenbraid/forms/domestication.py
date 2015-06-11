@@ -15,14 +15,25 @@ from goldenbraid.tags import TARGET_DICOT, TARGET_MONOCOT
 
 
 class DomesticationForm(forms.Form):
-    choices = [('', '')]
+    super_choice = [('', '')]
+    choices = []
     for category_name in CATEGORIES.keys():
         choices.append((category_name, category_name))
+    super_choice.append(('GB parts', choices))
+    # Add crispr Proms and TERM
+    choices = []
+    for category_name in CRYSPER_CATEGORIES.keys():
+        if category_name in CRYSPER_TARGETS_TO_DOMESTICATE:
+            continue
+        choices.append((category_name, category_name))
+    super_choice.append(('Crispr parts', choices))
+
     intron_label = 'The secuence has introns in lowercase'
     with_intron = forms.BooleanField(label=intron_label, required=False)
     category = forms.CharField(max_length=100,
                                label='Choose a category to domesticate to',
-                               widget=Select(choices=choices), required=False)
+                               widget=Select(choices=super_choice),
+                               required=False)
     seq = forms.FileField(max_length=100,
                           label='Add a genbank or a fast file', required=False)
     residues = forms.CharField(widget=forms.HiddenInput(), required=False)
