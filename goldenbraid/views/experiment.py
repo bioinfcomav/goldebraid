@@ -230,9 +230,9 @@ def add_experiment_view(request):
         excel_formset = ExcelFormset(request_data, request.FILES,
                                      prefix='excel')
         # print request_data, request.FILES
-        if (form.is_valid() and numeric_formset.is_valid()
-            and text_formset.is_valid() and feat_formset.is_valid()
-                and subfeat_form.is_valid() and excel_formset.is_valid()):
+        if (form.is_valid() and numeric_formset.is_valid() and
+            text_formset.is_valid() and feat_formset.is_valid() and
+                subfeat_form.is_valid() and excel_formset.is_valid()):
             print "valid"
             try:
                 experiment = _add_experiment(form=form,
@@ -267,10 +267,9 @@ def add_experiment_view(request):
         numeric_formset = NumericFormset(prefix='numeric')
         text_formset = TextFormset(prefix='text',
                                    queryset=ExperimentPropText.objects.none())
-        image_formset = ImageFormset(prefix='image',
-                                     queryset=ExperimentPropImage.objects.none())
+        none_image_query = ExperimentPropImage.objects.none()
+        image_formset = ImageFormset(prefix='image', queryset=none_image_query)
         excel_formset = ExcelFormset(prefix='excel')
-        print 'ss', excel_formset.auto_id
     context['form'] = form
     context['feature_formset'] = feat_formset
     context['subfeat_form'] = subfeat_form
@@ -298,6 +297,18 @@ def _build_experiment_query(criteria, user=None):
         query = query.filter(type_cvterm_id=criteria['experiment_type'])
     if 'feature' in criteria and criteria['feature']:
         query = query.filter(experimentfeature__feature__feature_id=criteria['feature'])
+
+    if user.is_staff:
+        if 'only_user' in criteria and criteria['only_user']:
+            query = query.filter(experimentperm__owner=user)
+
+    else:
+        if 'only_user' in criteria and criteria['only_user']:
+            query = query.filter(experimentperm__owner=user)
+        else:
+            query = query.filter(Q(experimentperm__is_public=True) |
+                                 Q(experimentperm__owner=user))
+
     query = query.distinct()
     return query
 
@@ -325,7 +336,8 @@ def search_experiment(request):
                                                           required=False)
         if form.is_valid():
             search_criteria = form.cleaned_data
-            search_criteria = dict([(key, value) for key, value in search_criteria.items() if value])
+            search_criteria = dict([(key, value) for key, value in
+                                    search_criteria.items() if value])
             context['search_criteria'] = search_criteria
             experiment_queryset = _build_experiment_query(search_criteria,
                                                           user=request.user)
@@ -352,6 +364,11 @@ def search_experiment(request):
 
     else:
         form = ExperimentSearchForm()
+        if request.user.is_authenticated():
+            _label = "Search only in my parts?"
+            form.fields['only_user'] = forms.BooleanField(label=_label,
+                                                          initial=False,
+                                                          required=False)
 
     context['form'] = form
 

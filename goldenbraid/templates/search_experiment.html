@@ -24,7 +24,7 @@
 	{% if experiments_page.object_list %}
 	  <p>
 	  {% if 'kind' in search_criteria %}
-	      {{ features_page.object_list.0.type.name|replaceunderscore|capfirst }}{{ features_page.paginator.count|pluralize }} found: {{ features_page.paginator.count }} </p>
+	      {{ experiments_page.object_list.0.type.name|replaceunderscore|capfirst }}{{ experiments_page.paginator.count|pluralize }} found: {{ features_page.paginator.count }} </p>
 	  {% else %}
 	    Experiments found: {{ experiments_page.paginator.count }} </p>
 	  {% endif%}

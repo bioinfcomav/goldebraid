@@ -556,7 +556,6 @@ def search_features_view(request):
     content_type = None  # default
     if request_data:
         form = SearchFeatureForm(request_data)
-
         if request.user.is_authenticated():
             usr_only_label = "Search only in my parts?"
             form.fields['only_user'] = forms.BooleanField(label=usr_only_label,
