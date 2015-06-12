@@ -213,6 +213,7 @@ def add_feature(name, type_name, vector, genbank, props, owner,
             residues = str(seq.seq)
             name = name
             uniquename = seq.id
+            print 'type', type_name
             type_ = Cvterm.objects.get(name=type_name)
             db = Db.objects.get(name=GOLDEN_DB)
             genbank_file = File(genbank)
@@ -269,15 +270,14 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                     Featureprop.objects.create(feature=feature, type=prop_type,
                                                value=value, rank=rank)
                     rank += 1
-
-            if type_ == vector_type:
-                enzyme = props[ENZYME_IN_TYPE_NAME][0]
-            else:
-                enzyme = vector.enzyme_out[0]
-            prefix, suffix = get_prefix_and_suffix(residues, enzyme)
-            if prefix is None or suffix is None:
-                msg = 'The given vector is not compatible with this part'
-                raise RuntimeError(msg)
+            if suffix is None or prefix is None:
+                if type_ == vector_type:
+                    enzyme = props[ENZYME_IN_TYPE_NAME][0]
+                else:
+                    enzyme = vector.enzyme_out[0]
+                prefix, suffix = get_prefix_and_suffix(residues, enzyme)
+                if prefix is None or suffix is None:
+                    raise RuntimeError('The given vector is not compatible with this part')
 
             feature.prefix = prefix.upper()
             feature.suffix = suffix.upper()
