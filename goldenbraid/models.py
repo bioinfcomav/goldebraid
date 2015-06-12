@@ -405,6 +405,12 @@ class Experiment(models.Model):
         'owner of the feat'
         return ExperimentPerm.objects.get(experiment=self).is_public
 
+    @is_public.setter
+    def is_public(self, value):
+        exp_perm = ExperimentPerm.objects.get(experiment=self)
+        exp_perm.is_public = value
+        exp_perm.save()
+
     @property
     def url(self):
         urlprefix = self.dbxref.db.urlprefix

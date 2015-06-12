@@ -71,4 +71,30 @@
         {% endfor %}
     {% endif %}
 {% endif %}
+{% if experiment.owner == user or user.is_staff %}
+  <h2> Experiment Management Tools (only if permission granted)</h2>
+{% endif %}
+{% if experiment.owner == user or user.is_staff %}
+  <form action='' method='POST' onsubmit="return confirm('Are you sure you want to delete the experiment?')">{% csrf_token %}
+    <INPUT type="hidden" name="experiment" value="{{ experiment.uniquename }}">
+    <INPUT type="hidden" name="action" value="delete">
+    <p>You can delete this experiment from the database, this step can not be undone.
+    <INPUT type="submit" value="Delete"></p>
+  </form>
+{% endif %}
+{% if user.is_staff%}
+  <form action='' method='POST'>{% csrf_token %}
+    <INPUT type="hidden" name="experiment" value="{{experiment.uniquename }}">
+    {% if experiment.is_public %}
+      <INPUT type="hidden" name="action" value="make_private">
+      <p>Make the experiment private only for the owner
+      <INPUT type="submit" value="Make_private"></p>
+    {% else %}
+      <INPUT type="hidden" name="action" value="make_public">
+      <p>Make the experiment public for everyone
+      <INPUT type="submit" value="Make_public"></p>
+    {% endif %}
+  </form>
+{% endif %}
+
 {% endblock content %}

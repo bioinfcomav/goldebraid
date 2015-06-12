@@ -26,12 +26,14 @@ from django import forms
 from django.db.models import Q
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.forms.models import modelformset_factory
+from django.http.response import HttpResponseForbidden, HttpResponseBadRequest
 
 from goldenbraid.forms.experiment import (ExperimentForm, ExperimentNumForm,
                                           ExperimentFeatureForm,
                                           ExperimentSubFeatureForm,
                                           ExperimentSearchForm,
-    ExperimentExcelForm)
+                                          ExperimentExcelForm,
+                                          ExperimentManagementForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
                                 Feature, ExperimentFeature,
@@ -39,7 +41,6 @@ from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropExcel)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB
-from django.http.response import HttpResponse, Http404
 
 
 def experiment_view(request, uniquename):
@@ -49,12 +50,21 @@ def experiment_view(request, uniquename):
     except Experiment.DoesNotExist:
         experiment = None
 
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    elif request.method == 'GET':
+        request_data = request.GET
+    else:
+        request_data = None
+
     if experiment is None:
         return render_to_response('goldenbraid_info.html',
                                   {'title': 'Experiment not exist',
                                    'info': 'This experiment ({0}) does not exist in the database'.format(uniquename)},
                                   context_instance=RequestContext(request))
-    else:
+    if not request_data:
         if (experiment.is_public or
            (request.user.is_staff or request.user == experiment.owner)):
             return render_to_response('experiment_template.html',
@@ -65,6 +75,48 @@ def experiment_view(request, uniquename):
                                       {'title': 'Not Allowed',
                                        'info': 'You are not allowed to view this experiment'},
                                       context_instance=RequestContext(request))
+    else:
+        form = ExperimentManagementForm(request_data)
+        if form.is_valid():
+            form_data = form.cleaned_data
+            action = form_data['action']
+            experiment = Experiment.objects.get(uniquename=form_data['experiment'])
+            req_context = RequestContext(request)
+            if action == 'delete':
+                if request.user.is_staff or request.user == experiment.owner:
+                    experiment.delete()
+                    return render_to_response('goldenbraid_info.html',
+                                              {'title': 'Experiment deleted',
+                                               'info': 'Experiment Deleted'},
+                                              context_instance=req_context)
+                else:
+                    info_txt = 'You are not allowed to delete this experiment'
+                    return render_to_response('goldenbraid_info.html',
+                                              {'title': 'Not Allowed',
+                                               'info': info_txt},
+                                              context_instance=req_context)
+
+            elif action in 'make_public' or 'make_private':
+                if request.user.is_staff:
+                    if action == 'make_public' and not experiment.is_public:
+                        experiment.is_public = True
+                    elif action == 'make_private' and experiment.is_public:
+                        experiment.is_public = False
+                    else:
+                        raise RuntimeError('bad conbinations of input request')
+                    return render_to_response('experiment_template.html',
+                                              {'experiment': experiment,
+                                               'info': 'Feature modified'},
+                                              context_instance=req_context)
+                else:
+                    info_text = 'You are not allowed to modify this feature'
+                    return render_to_response('Goldenbraid_info.html',
+                                              {'title': 'Not Allowed',
+                                               'info': info_text},
+                                              context_instance=req_context)
+
+            else:
+                return HttpResponseBadRequest()
 
 
 def _add_experiment(form, numeric_formset, text_formset, image_formset,
@@ -104,6 +156,10 @@ def _add_experiment(form, numeric_formset, text_formset, image_formset,
                 except Feature.DoesNotExist:
                     feat = None
                 if feat:
+                    if feat.owner != user and not feat.is_public:
+                        msg = 'You can not add an experiment with features in '
+                        msg = 'which you are not the owner'
+                        raise RuntimeError(msg)
                     ExperimentFeature.objects.create(experiment=experiment,
                                                      feature=feat)
 
@@ -190,6 +246,10 @@ def add_experiment_view(request):
             except IntegrityError as error:
                 print error
                 raise
+            except RuntimeError as error:
+                msg = 'This user is not entitled to add this experiment'
+                msg += ' as it is'
+                return HttpResponseForbidden(msg)
             return redirect(experiment.url)
         else:
             print "no valid"
@@ -227,7 +287,8 @@ def _build_experiment_query(criteria, user=None):
     query = Experiment.objects
     if 'name_or_description' in criteria and criteria['name_or_description']:
         text = criteria['name_or_description']
-        name_criteria = Q(uniquename__icontains=text) | Q(description__icontains=text)
+        name_criteria = (Q(uniquename__icontains=text) |
+                         Q(description__icontains=text))
         query = query.filter(name_criteria)
     if 'chasis_1' in criteria and criteria['chasis_1']:
         query = query.filter(chasis_1__icontains=criteria['chasis_1'])
@@ -295,8 +356,3 @@ def search_experiment(request):
     context['form'] = form
 
     return render_to_response(template, context, content_type=content_type)
-
-
-
-
-

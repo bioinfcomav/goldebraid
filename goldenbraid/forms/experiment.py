@@ -168,3 +168,18 @@ class ExperimentSearchForm(forms.Form):
     feature = FeatureField(max_length=100, required=False,
                            widget=AutocompleteTextInput(source='/api/feature_uniquenames/',
                                                         min_length=1))
+
+
+class ExperimentManagementForm(forms.Form):
+    experiment = forms.CharField(max_length=30, widget=forms.HiddenInput())
+    action = forms.CharField(max_length=30, widget=forms.HiddenInput())
+
+    def clean_action(self):
+        action = self.cleaned_data['action']
+        if action in ('delete', 'make_public', 'make_private'):
+            return action
+        raise ValidationError('action must be delete or make_public')
+
+#     def clean_experiment(self):
+#
+#         return create_feature_validator('feature')(self)
