@@ -42,7 +42,7 @@ CATEGORIES = OrderedDict()
 CATEGORIES['PROM+5UTR+NTAG (A1-A2-A3-B1-B2)'] = ('PROM+UTR+ATG', 'GGAG',
                                                  'AATG')
 CATEGORIES['PROM+5UTR (A1-A2-A3-B1)'] = ('PROM+UTR', 'GGAG', 'CCAT')
-CATEGORIES['A1-A2 (OP)'] = ('OP', 'GGAG', 'TCCC')
+CATEGORIES['OP (A1-A2)'] = ('OP', 'GGAG', 'TCCC')
 CATEGORIES['MinPROM (A3-B1-B2)'] = ('MinPROM', 'TCCC', 'AATG')
 CATEGORIES['PROM (A1)'] = ('PROM', 'GGAG', 'TGAC')
 CATEGORIES['OP (A2)'] = ('OP', 'TGAC', 'TCCC')
@@ -89,14 +89,14 @@ PARTS_TO_ASSEMBLE = {'basic': [CATEGORIES['PROM+5UTR+NTAG (A1-A2-A3-B1-B2)'],
                                    CATEGORIES['3UTR+TERM (B6-C1)']],
                      'nt-fusion': [CATEGORIES['PROM+5UTR (A1-A2-A3-B1)'],
                                    CATEGORIES['NTAG (B2)'],
-                                   CATEGORIES['CTAG (B5)'],
+                                   CATEGORIES['CDS (B3-B4-B5)'],
                                    CATEGORIES['3UTR+TERM (B6-C1)']],
                      'nt-ct-fusion': [CATEGORIES['PROM+5UTR (A1-A2-A3-B1)'],
                                       CATEGORIES['NTAG (B2)'],
                                       CATEGORIES['CDS (B3-B4)'],
                                       CATEGORIES['CTAG (B5)'],
                                       CATEGORIES['3UTR+TERM (B6-C1)']],
-                     'operated-promoter-a': [CATEGORIES['A1-A2 (OP)'],
+                     'operated-promoter-a': [CATEGORIES['OP (A1-A2)'],
                                              CATEGORIES['MinPROM (A3-B1-B2)'],
                                              CATEGORIES['CDS (B3-B4-B5)'],
                                              CATEGORIES['3UTR+TERM (B6-C1)']],
@@ -135,6 +135,9 @@ UT_SUFFIX = PARTS_TO_ASSEMBLE['basic'][-1][2]
 SITE_A = UT_PREFIX
 SITE_B = UT_SUFFIX
 SITE_C = 'GTCA'
+
+DOMESTICATION_VECTORS_IN_GB = ('pUPD',)
+DOMESTICATED_VECTOR = 'pUPD'
 
 PUPD_PREFIX = 'CTCG'
 

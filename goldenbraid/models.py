@@ -27,6 +27,7 @@ from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
 from goldenbraid.excel import plot_from_excel
 from django.core.files.temp import NamedTemporaryFile
 from django.core.urlresolvers import reverse
+from goldenbraid.settings import DOMESTICATION_VECTORS_IN_GB
 
 
 class Db(models.Model):
@@ -244,6 +245,19 @@ class Feature(models.Model):
         else:
             direction = None
         return direction
+
+    @property
+    def level(self):
+        if not self.vector:
+            return None
+        vector_name = self.vector.uniquename
+        if vector_name == DOMESTICATION_VECTORS_IN_GB:
+            return '0'
+        elif 'alpha' in vector_name:
+            return '1-alpha'
+        elif 'omega' in vector_name:
+            return '1-omega'
+
 
     @property
     def owner(self):
