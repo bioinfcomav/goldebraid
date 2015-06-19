@@ -258,6 +258,13 @@ class Feature(models.Model):
         elif 'omega' in vector_name:
             return '1-omega'
 
+    def gb_version(self):
+        category = (self.type.uniquename, self.prefix, self.suffix)
+        v2_categories = [('CDS', 'AATG', 'GCAG'), ('CT', 'GCAG' 'GCTT')]
+        if category in v2_categories:
+            return 'GB-2'
+        else:
+            return 'GB-3'
 
     @property
     def owner(self):
