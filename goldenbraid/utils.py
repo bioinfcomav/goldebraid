@@ -43,7 +43,7 @@ def get_ret_sites(enzymes):
 def has_rec_sites(seq, enzymes=None):
     if enzymes is None:
         enzymes = ENZYMES_USED_IN_GOLDENBRAID
-    rec_sites = get_ret_sites()
+    rec_sites = get_ret_sites(enzymes)
     # regex with the sites to domesticate
     rec_sites_regex = '(' + '|'.join(rec_sites) + ')'
     rec_sites_regex = re.compile(rec_sites_regex, flags=re.IGNORECASE)
