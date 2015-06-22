@@ -26,7 +26,8 @@ from goldenbraid.settings import (DOMESTICATION_DEFAULT_MELTING_TEMP,
                                   DOMESTICATION_MIN_OLIGO_LENGTH,
                                   ENZYMES_USED_IN_GOLDENBRAID, PUPD_PREFIX,
                                   OLIGO_UNIVERSAL, DOMESTICATED_SEQ,
-                                  MINIMUN_PCR_LENGTH, CRYSPER_SEQ)
+                                  MINIMUN_PCR_LENGTH, CRYSPER_SEQ,
+                                  DOMESTICATED_VECTOR)
 from goldenbraid.models import Feature, Count
 from Bio.SeqFeature import FeatureLocation, CompoundLocation, SeqFeature
 from goldenbraid.tags import TARGET_MONOCOT, TARGET_DICOT
@@ -66,6 +67,10 @@ def domesticate_for_synthesis(seqrec, category, prefix, suffix,
     seq_for_synthesis = str(seqs_for_sintesis[0])
     prepared_seq = SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
 
+    start = len(prefix)
+    part_feat = SeqFeature(FeatureLocation(start, len(new_seq) + start),
+                           type='misc_feature', id=prepared_seq.id)
+    prepared_seq.features.append(part_feat)
     return seq_for_synthesis, prepared_seq
 
 
@@ -111,6 +116,10 @@ def domesticate(seqrec, category, prefix, suffix, with_intron=False):
     seq_name = DOMESTICATED_SEQ + '_' + next_value
     new_seq_record = SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
 
+    start = len(prefix)
+    part_feat = SeqFeature(FeatureLocation(start, len(new_seq) + start),
+                           type='misc_feature', id=new_seq_record.id)
+    new_seq_record.features.append(part_feat)
     if with_intron:
         cds = _get_cds_from_seq(seq, prefix)
         new_seq_record.features.append(cds)
@@ -290,7 +299,7 @@ def get_overhang(rev_start, fow_end, prev_seq_len, frag_5, frag_3, rec_site):
 
 
 def _get_stripped_vector_seq():
-    pupd = Feature.objects.get(uniquename='pUPD')
+    pupd = Feature.objects.get(uniquename=DOMESTICATED_VECTOR)
     vec_seq = pupd.residues
     pre_suf_size = get_prefix_and_suffix_index(vec_seq, pupd.enzyme_in[0])
     prefix_index, suffix_index, prefix_size = pre_suf_size
