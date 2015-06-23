@@ -12,12 +12,20 @@
 <div class='col_left'>
   <p><span class='key'><strong>Accession:</strong></span> <span class='value'>{{ feature.uniquename }}</span></p>
   <p><span class='key'><strong>Name:</strong></span> <span class='value'>{{ feature.name }}</span></p>
-  <p><span class='key'><strong>Vector:</strong></span> <span class='value'>{{ feature.vector.name }}</span></p>
+  {% if feature.vector%}
+    <p><span class='key'><strong>Vector:</strong></span> <span class='value'>{{ feature.vector.name }}</span></p>
+  {% endif %}
   <p><span class='key'><strong>Prefix:</strong></span> <span class='value'>{{ feature.prefix }}</span></p>
   <p><span class='key'><strong>Suffix:</strong></span> <span class='value'>{{ feature.suffix }}</span></p>
   <p><span class='key'><strong>GB Version:</strong></span> <span class='value'>{{ feature.gb_version }}</span></p>
   {% if feature.level %}
     <p><span class='key'><strong>Level:</strong></span> <span class='value'>{{ feature.level }}</span></p>
+  {% endif %}
+  {% if not feature.moclo_compatible == 'not_evaluable' %}
+    <p><span class='key'><strong>Moclo Compatible:</strong></span> <span class='value'>{{ feature.moclo_compatible }}</span></p>
+  {% endif %}
+  {% if feature.sections %}
+    <p><span class='key'><strong>Sections:</strong></span> <span class='value'>{{ feature.sections }}</span></p>
   {% endif %}
   {% if feature.description %}
     <p><span class='key'><strong>Description:</strong></span> <span class='value'>{{ feature.description }}</span></p>

@@ -27,7 +27,8 @@ from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
 from goldenbraid.excel import plot_from_excel
 from django.core.files.temp import NamedTemporaryFile
 from django.core.urlresolvers import reverse
-from goldenbraid.settings import DOMESTICATION_VECTORS_IN_GB
+from goldenbraid.settings import DOMESTICATION_VECTORS_IN_GB, CATEGORIES
+from goldenbraid.utils import has_rec_sites
 
 
 class Db(models.Model):
@@ -250,21 +251,45 @@ class Feature(models.Model):
     def level(self):
         if not self.vector:
             return None
-        vector_name = self.vector.uniquename
-        if vector_name == DOMESTICATION_VECTORS_IN_GB:
+        vector_name = self.vector.name
+        if vector_name in DOMESTICATION_VECTORS_IN_GB:
             return '0'
         elif 'alpha' in vector_name:
             return '1-alpha'
         elif 'omega' in vector_name:
             return '1-omega'
 
+    @property
     def gb_version(self):
-        category = (self.type.uniquename, self.prefix, self.suffix)
+        category = (self.type.name, self.prefix, self.suffix)
         v2_categories = [('CDS', 'AATG', 'GCAG'), ('CT', 'GCAG' 'GCTT')]
         if category in v2_categories:
             return 'GB-2'
         else:
             return 'GB-3'
+
+    @property
+    def moclo_compatible(self):
+        return None
+        if not self.level or self.level != '0':
+            return 'not_evaluable'
+        print self.type.name, self.residues[:4]
+        raise RuntimeError("we need to remove the tags and the vector")
+        # TODO: maybe we should look only to the part seq. not with the vector
+        seq = self.residues
+        return not has_rec_sites(seq, enzymes=('BpiI', 'BsaI'))
+
+    @property
+    def sections(self):
+        if self.level != '0' or self.type.name == VECTOR_TYPE_NAME:
+            return None
+        type_ = self.type.name
+        prefix = self.prefix
+        suffix = self.suffix
+
+        for category, values in CATEGORIES.items():
+            if values == (type_, prefix, suffix):
+                return category.split(' ')[-1].strip()
 
     @property
     def owner(self):

@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from goldenbraid.settings import CATEGORIES
+from goldenbraid.utils import has_rec_sites
 '''
 tests the goldenbraid models
 '''
@@ -194,6 +196,42 @@ class FeatureTestModels(TestCase):
         featureperm.is_public = False
         featureperm.save()
         assert not feature.is_public
+
+    def test_featurelevel(self):
+        feature = Feature.objects.get(uniquename='pAn11')
+        assert feature.level == '0'
+        f1 = Feature.objects.get(uniquename='pEGBMyb_rev1')
+        assert f1.level == '1-alpha'
+
+    def test_featureversion(self):
+        feature = Feature.objects.get(uniquename='pAn11')
+        assert feature.gb_version == 'GB-3'
+
+    def test_moclo_compatible(self):
+        # alpha and omega  vectors have recsites for this enzymes
+        feature = Feature.objects.get(uniquename='pDGB1_alpha1')
+        assert has_rec_sites(feature.residues, enzymes=('BpiI', 'BsaI'))
+        feature = Feature.objects.get(uniquename='pUPD')
+        print has_rec_sites(feature.residues, enzymes=('BpiI', 'BsaI'))
+        return
+        feature = Feature.objects.get(uniquename='pAn11')
+        print feature.moclo_compatible
+        feature = Feature.objects.get(uniquename='pDGB1_alpha1')
+        assert feature.moclo_compatible == 'not_evaluable'
+
+        f1 = Feature.objects.get(uniquename='pDelila')
+        print f1.moclo_compatible
+
+
+
+    def test_sections(self):
+        feature = Feature.objects.get(uniquename='pAn11')
+        assert feature.sections == "(B3-B4-B5)"
+        feature = Feature.objects.get(uniquename='GB0125')
+        assert feature.sections is None
+
+        feature = Feature.objects.get(uniquename='pUPD')
+        assert feature.sections is None
 
     def test_feature_relationship(self):
 
