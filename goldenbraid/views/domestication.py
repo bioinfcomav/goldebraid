@@ -105,6 +105,7 @@ def _domestication_view(request, kind):
             if seq is None:
                 seq = form.cleaned_data['residues']
             category = form.cleaned_data.get('category', None)
+            enzymes = form.cleaned_data.get('enzymes', None)
             if category is None:
                 prefix = form.cleaned_data.get('prefix')
                 suffix = form.cleaned_data.get('suffix')
@@ -119,7 +120,7 @@ def _domestication_view(request, kind):
             with_intron = form.cleaned_data['with_intron']
             with_intron_str = '1' if with_intron else '0'
             if kind == 'domestication':
-                pcr = domesticate(seq, category, prefix, suffix,
+                pcr = domesticate(seq, category, prefix, suffix, enzymes,
                                   with_intron)[0]
 
                 return render_to_response('domestication_result.html',

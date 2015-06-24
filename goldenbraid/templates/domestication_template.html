@@ -32,6 +32,9 @@
 	    <li>
             {{ form.category.errors }}<label for="name">{{ form.with_intron.label}}:</label>{{ form.with_intron }}
         </li>
+        <li>
+             {{ form.enzymes.errors }}<label for="name">{{ form.enzymes.label}}:</label>{{ form.enzymes }}
+        </li>
 	</ul>
 	<input type="submit" value="Submit" />
 {% endif %}
