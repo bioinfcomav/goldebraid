@@ -44,13 +44,13 @@ def get_codontable():
     return codon_table
 
 
-def domesticate_for_synthesis(seqrec, category, prefix, suffix,
+def domesticate_for_synthesis(seqrec, category, prefix, suffix, enzymes,
                               with_intron=False):
     kind = category
     seq = seqrec.seq
     if not with_intron:
         seq = seq.upper()
-    new_seq = _remove_rec_sites(seq)[0]
+    new_seq = _remove_rec_sites(seq, enzymes)[0]
     seqs_for_sintesis, prefix, suffix = _add_tags_to_pcrproducts([new_seq],
                                                                  prefix,
                                                                  suffix,
@@ -74,13 +74,13 @@ def domesticate_for_synthesis(seqrec, category, prefix, suffix,
     return seq_for_synthesis, prepared_seq
 
 
-def domesticate(seqrec, category, prefix, suffix, with_intron=False):
+def domesticate(seqrec, category, prefix, suffix, enzymes, with_intron=False):
     kind = category
     seq = seqrec.seq
     if not with_intron:
         seq = seq.upper()
     min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
-    new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq)
+    new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq, enzymes)
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
 
     pcr_products = [str(new_seq[s['start']:s['end'] + 1]) for s in segments]
@@ -387,10 +387,12 @@ def _calculate_annealing_temp(seq):
     return 64.9 + 41 * (seq.count('G') + seq.count('C') - 16.4) / len_seq
 
 
-def _remove_rec_sites(seq):
+def _remove_rec_sites(seq, enzymes=None):
     '''It modifies all rec sites in the sequence to be able to use with
     goldenbraid pipeline'''
-    rec_sites = get_ret_sites(ENZYMES_USED_IN_GOLDENBRAID)
+    if enzymes is None:
+        enzymes = ENZYMES_USED_IN_GOLDENBRAID
+    rec_sites = get_ret_sites(enzymes)
     # regex with the sites to domesticate
     rec_sites_regex = '(' + '|'.join(rec_sites) + ')'
     rec_sites_regex = re.compile(rec_sites_regex, flags=re.IGNORECASE)
