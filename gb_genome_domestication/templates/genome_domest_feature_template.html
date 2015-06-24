@@ -10,18 +10,18 @@
   <p><span class='key'>Description:</span> <span class='value'>{{ feature.description }}</span></p>
   <p><span class='key'>Species:</span> <span class='value'>{{ feature.species|capfirst|replaceunderscore }}</span></p>
   <div>
-  <h2> This CDS in other databases</h2>
+  <h6> This CDS in other databases:</h6>
   {% for  dbxref in feature.secondary_dbxrefs %}
   		<p><span>In {{ dbxref.db.name }} is {{ dbxref.accession|link_if_url:dbxref }}</span>
   {% endfor %}
   </div>
 {% endif %}
-
+ <h6> Domesticate your sequence:</h6>
 <form action='/do/domestication/' method='POST'>{% csrf_token %}
     <INPUT type="hidden" name="residues" value="{{ feature.residues }}">
     <INPUT type="hidden" name="category" value="13-14-15-16 (CDS)">
     <INPUT type="hidden" name="seq_name" value="{{ feature.uniquename }}">
-    <p>You can domesticate the secuence with goldenbraid's domesticator <INPUT type="submit" value="Domesticate"></p>
+    <p>You can domesticate the secuence with the GB domesticator <INPUT type="submit" value="Domesticate"></p>
 </form>
 
 {% endblock content %}
