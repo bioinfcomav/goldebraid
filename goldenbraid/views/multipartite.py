@@ -41,11 +41,11 @@ from Bio import SeqIO
 from goldenbraid.models import Feature, Count
 from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX, UT_PREFIX,
                                   ASSEMBLED_SEQ,
-    CRYSPER_TARGETS_TO_DOMESTICATE)
+                                  CRYSPER_TARGETS_TO_DOMESTICATE)
 from goldenbraid.tags import (VECTOR_TYPE_NAME, REVERSE, TU_TYPE_NAME,
                               MODULE_TYPE_NAME)
-from goldenbraid.views.feature import (get_prefix_and_suffix_index,
-                                       add_feature)
+from goldenbraid.utils import get_prefix_and_suffix_index
+from goldenbraid.views.feature import add_feature
 from goldenbraid.forms.assemblers import (get_multipartite_form,
                                           get_multipartite_free_form,
                                           MultipartiteFormFreeInitial,

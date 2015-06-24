@@ -28,7 +28,7 @@ from goldenbraid.excel import plot_from_excel
 from django.core.files.temp import NamedTemporaryFile
 from django.core.urlresolvers import reverse
 from goldenbraid.settings import DOMESTICATION_VECTORS_IN_GB, CATEGORIES
-from goldenbraid.utils import has_rec_sites
+from goldenbraid.utils import has_rec_sites, get_prefix_and_suffix_index
 
 
 class Db(models.Model):
@@ -264,23 +264,25 @@ class Feature(models.Model):
         category = (self.type.name, self.prefix, self.suffix)
         v2_categories = [('CDS', 'AATG', 'GCAG'), ('CT', 'GCAG' 'GCTT')]
         if category in v2_categories:
-            return 'GB-2'
+            return '2.0'
         else:
-            return 'GB-3'
+            return '3.0'
 
     @property
     def moclo_compatible(self):
-        return None
         if not self.level or self.level != '0':
             return 'not_evaluable'
-        print self.type.name, self.residues[:4]
-        raise RuntimeError("we need to remove the tags and the vector")
+        enzyme = self.enzyme_out[0]
+        residues = self.residues
+        pref_idx, suf_idx = get_prefix_and_suffix_index(residues, enzyme)[:2]
+
+        seq = residues[pref_idx:suf_idx + len(self.suffix)]
+
         # TODO: maybe we should look only to the part seq. not with the vector
-        seq = self.residues
         return not has_rec_sites(seq, enzymes=('BpiI', 'BsaI'))
 
     @property
-    def sections(self):
+    def gb_category(self):
         if self.level != '0' or self.type.name == VECTOR_TYPE_NAME:
             return None
         type_ = self.type.name

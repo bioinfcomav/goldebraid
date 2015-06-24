@@ -33,11 +33,9 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.db.models import Q
 
 from Bio import SeqIO
-from Bio.Seq import Seq
 
 from goldenbraid.models import (Cvterm, Feature, Db, Dbxref, Featureprop,
                                 FeaturePerm, FeatureRelationship)
-from goldenbraid.settings import REBASE_FILE
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
@@ -47,88 +45,7 @@ from goldenbraid.forms.feature import (FeatureForm, FeatureManagementForm,
                                        get_all_vectors_as_choices, VectorForm,
                                        SearchFeatureForm,
                                        SPECIAL_SEARCH_CATEGORIES)
-from goldenbraid.utils import parse_rebase_file
-
-
-def _search_rec_sites(seq, rec_site):
-    """It looks for the rec sites in the string"""
-    # look for the rec_site in the seq
-    elong_size = 10
-    seq_elonged = seq + seq[:elong_size]
-    residues = str(seq_elonged)
-    finded_site_indexes = [m.start() for m in re.finditer(rec_site.upper(),
-                                                          residues.upper())]
-    corrected_site_indexes = set()
-    for site in finded_site_indexes:
-        if site > len(seq):
-            site -= len(seq)
-        corrected_site_indexes.add(site)
-
-    if len(corrected_site_indexes) > 2:
-        raise RuntimeError('rec site found more than twice')
-    if not corrected_site_indexes:
-        raise RuntimeError("No rec_site")
-    corrected_site_indexes = list(corrected_site_indexes)
-    corrected_site_indexes.sort()
-    return corrected_site_indexes
-
-
-def _choose_rec_sites(forward_sites, rev_sites):
-    'It chooses the forward and reverse site'
-    len_for = len(forward_sites)
-    len_rev = len(rev_sites)
-    if len_for == len_rev and len_for == 1:
-        return forward_sites[0], rev_sites[0]
-    elif len_for == len_rev and len_for > 2:
-        msg = "We can't have this number of sites: {0}"
-        msg = msg.format(len_for + len_rev)
-        raise RuntimeError(msg)
-    elif len_for < len_rev:
-        forw_site = forward_sites[0]
-        rev_site = None
-    else:
-        rev_site = rev_sites[0]
-        forw_site = None
-
-    all_sites = rev_sites + forward_sites
-    all_sites.sort()
-    if rev_site is None:
-        index_in_all = all_sites.index(forw_site)
-        try:
-            rev_site = all_sites[index_in_all + 1]
-        except IndexError:
-            rev_site = all_sites[0]
-
-    elif forw_site is None:
-        index_in_all = all_sites.index(rev_site)
-        try:
-            forw_site = all_sites[index_in_all - 1]
-        except IndexError:
-            forw_site = all_sites[len(all_sites) - 1]
-
-    return forw_site, rev_site
-
-
-def get_prefix_and_suffix_index(seq, enzyme):
-    'it gets the prefix and the suffix indexes of the feature seq'
-    restriction_site = parse_rebase_file(REBASE_FILE)[enzyme]
-    if '^' in restriction_site:
-        raise NotImplementedError
-    rec_site, cut_site = restriction_site.split('(')
-    forw_cut_delta, rev_cut_delta = cut_site.rstrip(')').split('/')
-    forw_cut_delta, rev_cut_delta = int(forw_cut_delta), int(rev_cut_delta)
-    forw_sites = _search_rec_sites(seq, rec_site)
-    rec_seq = Seq(rec_site)
-    rec_seq.reverse_complement()
-    rev_sites = _search_rec_sites(seq, str(rec_seq.reverse_complement()))
-    forw_site, rev_site = _choose_rec_sites(forw_sites, rev_sites)
-    prefix_index, suffix_index = _pref_suf_index_from_rec_sites(seq,
-                                                                forw_site,
-                                                                rev_site,
-                                                                rec_site,
-                                                                forw_cut_delta,
-                                                                rev_cut_delta)
-    return prefix_index, suffix_index, rev_cut_delta - forw_cut_delta
+from goldenbraid.utils import get_prefix_and_suffix_index
 
 
 def get_prefix_and_suffix(seq, enzyme):
@@ -158,19 +75,6 @@ def _get_pref_suff_from_index(seq, prefix_index, suffix_index, prefix_size):
         prefix += seq[0:remaining]
 
     return str(prefix), str(suffix)
-
-
-def _pref_suf_index_from_rec_sites(seq, forw_site, rev_site, rec_site,
-                                   forw_cut_delta, rev_cut_delta):
-
-    prefix_index = forw_site + len(rec_site) + forw_cut_delta
-    if prefix_index >= len(seq):
-        prefix_index = prefix_index - len(seq)
-
-    suffix_index = rev_site - rev_cut_delta
-    if suffix_index < 0:
-        suffix_index = len(seq) - abs(suffix_index)
-    return prefix_index, suffix_index
 
 
 def get_or_create_feature_relationship(object_, subject):

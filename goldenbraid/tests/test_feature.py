@@ -23,11 +23,11 @@ from Bio.Seq import Seq
 
 import goldenbraid
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
-from goldenbraid.views.feature import (get_prefix_and_suffix,
-                                       _choose_rec_sites,
-                                      _pref_suf_index_from_rec_sites,
-                                      _get_pref_suff_from_index,
-                                      add_feature)
+from goldenbraid.views.feature import get_prefix_and_suffix, add_feature, \
+    _get_pref_suff_from_index
+from goldenbraid.utils import (_choose_rec_sites,
+                               _pref_suf_index_from_rec_sites,
+                               get_prefix_and_suffix_index)
 from goldenbraid.tags import (VECTOR_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               ENZYME_OUT_TYPE_NAME, TU_TYPE_NAME, DERIVES_FROM)
 from goldenbraid.models import Feature, Cv, Cvterm, FeatureRelationship

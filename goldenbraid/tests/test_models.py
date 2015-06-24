@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldenbraid.settings import CATEGORIES
-from goldenbraid.utils import has_rec_sites
 '''
 tests the goldenbraid models
 '''
@@ -25,6 +23,7 @@ from django.conf import settings as proj_settings
 from django.db import transaction
 
 import goldenbraid
+from goldenbraid.utils import has_rec_sites
 from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
                                 Contact, Stock, Stockcollection, Count,
                                 FeaturePerm, FeatureRelationship, Experiment,
@@ -205,33 +204,31 @@ class FeatureTestModels(TestCase):
 
     def test_featureversion(self):
         feature = Feature.objects.get(uniquename='pAn11')
-        assert feature.gb_version == 'GB-3'
+        assert feature.gb_version == '3.0'
 
     def test_moclo_compatible(self):
         # alpha and omega  vectors have recsites for this enzymes
         feature = Feature.objects.get(uniquename='pDGB1_alpha1')
         assert has_rec_sites(feature.residues, enzymes=('BpiI', 'BsaI'))
         feature = Feature.objects.get(uniquename='pUPD')
-        print has_rec_sites(feature.residues, enzymes=('BpiI', 'BsaI'))
-        return
+        assert has_rec_sites(feature.residues, enzymes=('BpiI', 'BsaI'))
+
         feature = Feature.objects.get(uniquename='pAn11')
-        print feature.moclo_compatible
+        assert feature.moclo_compatible
         feature = Feature.objects.get(uniquename='pDGB1_alpha1')
         assert feature.moclo_compatible == 'not_evaluable'
 
         f1 = Feature.objects.get(uniquename='pDelila')
-        print f1.moclo_compatible
+        assert not f1.moclo_compatible
 
-
-
-    def test_sections(self):
+    def test_gb_category(self):
         feature = Feature.objects.get(uniquename='pAn11')
-        assert feature.sections == "(B3-B4-B5)"
+        assert feature.gb_category == "(B3-B4-B5)"
         feature = Feature.objects.get(uniquename='GB0125')
-        assert feature.sections is None
+        assert feature.gb_category is None
 
         feature = Feature.objects.get(uniquename='pUPD')
-        assert feature.sections is None
+        assert feature.gb_category is None
 
     def test_feature_relationship(self):
 

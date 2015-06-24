@@ -21,7 +21,6 @@ from Bio.Alphabet import generic_dna
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
-from goldenbraid.views.feature import get_prefix_and_suffix_index
 from goldenbraid.settings import (DOMESTICATION_DEFAULT_MELTING_TEMP,
                                   DOMESTICATION_MIN_OLIGO_LENGTH,
                                   ENZYMES_USED_IN_GOLDENBRAID, PUPD_PREFIX,
@@ -31,7 +30,8 @@ from goldenbraid.settings import (DOMESTICATION_DEFAULT_MELTING_TEMP,
 from goldenbraid.models import Feature, Count
 from Bio.SeqFeature import FeatureLocation, CompoundLocation, SeqFeature
 from goldenbraid.tags import TARGET_MONOCOT, TARGET_DICOT
-from goldenbraid.utils import get_ret_sites, has_rec_sites
+from goldenbraid.utils import (get_ret_sites, has_rec_sites,
+                               get_prefix_and_suffix_index)
 
 
 def get_codontable():
