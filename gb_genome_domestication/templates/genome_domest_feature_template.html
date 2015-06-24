@@ -19,9 +19,11 @@
 
 <form action='/do/domestication/' method='POST'>{% csrf_token %}
     <INPUT type="hidden" name="residues" value="{{ feature.residues }}">
-    <INPUT type="hidden" name="category" value="13-14-15-16 (CDS)">
+    <INPUT type="hidden" name="category" value="CDS (B3-B4-B5)">
     <INPUT type="hidden" name="seq_name" value="{{ feature.uniquename }}">
-    <p>You can domesticate the secuence with goldenbraid's domesticator <INPUT type="submit" value="Domesticate"></p>
+    <INPUT type="hidden" name="enzymes" value="BsmBI">
+    <INPUT type="hidden" name="enzymes" value="BsaI">
+    <p>You can domesticate the sequence with goldenbraid's domesticator <INPUT type="submit" value="Domesticate"></p>
 </form>
 
 {% endblock content %}
