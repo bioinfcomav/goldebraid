@@ -3,7 +3,7 @@ Created on 2015 mai. 6
 
 @author: peio
 '''
-from goldenbraid.settings import REBASE_FILE, ENZYMES_USED_IN_GOLDENBRAID
+from goldenbraid.settings import REBASE_FILE, MANDATORY_DOMEST_ENZYMES
 import re
 from Bio.Seq import Seq
 
@@ -42,7 +42,7 @@ def get_ret_sites(enzymes):
 
 def has_rec_sites(seq, enzymes=None):
     if enzymes is None:
-        enzymes = ENZYMES_USED_IN_GOLDENBRAID
+        enzymes = MANDATORY_DOMEST_ENZYMES
     rec_sites = get_ret_sites(enzymes)
     # regex with the sites to domesticate
     rec_sites_regex = '(' + '|'.join(rec_sites) + ')'

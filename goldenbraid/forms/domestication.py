@@ -10,7 +10,7 @@ from Bio import SeqIO
 from goldenbraid.settings import (CATEGORIES, MINIMUN_PCR_LENGTH,
                                   CRYSPER_TARGETS_TO_DOMESTICATE,
                                   CRYSPER_CATEGORIES,
-    ENZYMES_USED_IN_GOLDENBRAID)
+                                  OPTIONAL_DOMEST_ENZYMES)
 from goldenbraid.utils import has_rec_sites
 from goldenbraid.tags import TARGET_DICOT, TARGET_MONOCOT
 
@@ -43,10 +43,10 @@ class DomesticationForm(forms.Form):
     suffix = forms.CharField(max_length=4,
                              label='custom prefix', required=False)
 
-    enzyme_choices = [(enzy, enzy)for enzy in ENZYMES_USED_IN_GOLDENBRAID]
+    enzyme_choices = [(enzy, enzy)for enzy in OPTIONAL_DOMEST_ENZYMES]
     enzymes = forms.MultipleChoiceField(widget=forms.SelectMultiple,
                                         choices=enzyme_choices,
-                                        label='Enzymes')
+                                        label='Enzymes', required=False)
 
     def clean_category(self):
         category_name = self.cleaned_data['category']

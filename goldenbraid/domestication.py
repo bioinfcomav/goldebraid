@@ -23,10 +23,12 @@ from Bio.SeqRecord import SeqRecord
 
 from goldenbraid.settings import (DOMESTICATION_DEFAULT_MELTING_TEMP,
                                   DOMESTICATION_MIN_OLIGO_LENGTH,
-                                  ENZYMES_USED_IN_GOLDENBRAID, PUPD_PREFIX,
+                                  PUPD_PREFIX,
                                   OLIGO_UNIVERSAL, DOMESTICATED_SEQ,
                                   MINIMUN_PCR_LENGTH, CRYSPER_SEQ,
-                                  DOMESTICATED_VECTOR)
+                                  DOMESTICATED_VECTOR,
+                                  MANDATORY_DOMEST_ENZYMES,
+                                  OPTIONAL_DOMEST_ENZYMES)
 from goldenbraid.models import Feature, Count
 from Bio.SeqFeature import FeatureLocation, CompoundLocation, SeqFeature
 from goldenbraid.tags import TARGET_MONOCOT, TARGET_DICOT
@@ -50,6 +52,10 @@ def domesticate_for_synthesis(seqrec, category, prefix, suffix, enzymes,
     seq = seqrec.seq
     if not with_intron:
         seq = seq.upper()
+    if not enzymes:
+        enzymes = MANDATORY_DOMEST_ENZYMES
+    else:
+        enzymes = tuple(enzymes) + OPTIONAL_DOMEST_ENZYMES
     new_seq = _remove_rec_sites(seq, enzymes)[0]
     seqs_for_sintesis, prefix, suffix = _add_tags_to_pcrproducts([new_seq],
                                                                  prefix,
@@ -80,6 +86,10 @@ def domesticate(seqrec, category, prefix, suffix, enzymes, with_intron=False):
     if not with_intron:
         seq = seq.upper()
     min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
+    if not enzymes:
+        enzymes = MANDATORY_DOMEST_ENZYMES
+    else:
+        enzymes = tuple(enzymes) + OPTIONAL_DOMEST_ENZYMES
     new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq, enzymes)
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
 
@@ -391,7 +401,7 @@ def _remove_rec_sites(seq, enzymes=None):
     '''It modifies all rec sites in the sequence to be able to use with
     goldenbraid pipeline'''
     if enzymes is None:
-        enzymes = ENZYMES_USED_IN_GOLDENBRAID
+        enzymes = MANDATORY_DOMEST_ENZYMES
     rec_sites = get_ret_sites(enzymes)
     # regex with the sites to domesticate
     rec_sites_regex = '(' + '|'.join(rec_sites) + ')'
