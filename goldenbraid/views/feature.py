@@ -117,7 +117,6 @@ def add_feature(name, type_name, vector, genbank, props, owner,
             residues = str(seq.seq)
             name = name
             uniquename = seq.id
-            print 'type', type_name
             type_ = Cvterm.objects.get(name=type_name)
             db = Db.objects.get(name=GOLDEN_DB)
             genbank_file = File(genbank)
