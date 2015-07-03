@@ -12,7 +12,8 @@ from goldenbraid.settings import (CATEGORIES, MINIMUN_PCR_LENGTH,
                                   CRYSPER_CATEGORIES,
                                   OPTIONAL_DOMEST_ENZYMES)
 from goldenbraid.utils import has_rec_sites
-from goldenbraid.tags import TARGET_DICOT, TARGET_MONOCOT
+from goldenbraid.tags import (TARGET_DICOT, TARGET_MONOCOT, CDS, CDS1, NTAG,
+                              CDS1_CDS2, CDS2_CTAG, CTAG)
 
 
 class DomesticationForm(forms.Form):
@@ -68,19 +69,17 @@ class DomesticationForm(forms.Form):
             raise ValidationError(msg)
         if self._data_in(self.cleaned_data, 'category'):
             category = self.cleaned_data['category']
-            if category in ('CDS (B3-B4-B5)', 'SP (B3)', 'NTAG (B2)',
-                            'CDS (B3-B4)'):
+            if category in (CDS, CDS1, NTAG, CDS1_CDS2):
                 if not _seq_has_codon_start(seq.seq, with_intron):
                     msg = 'The provided seq must start with start codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-            if category in ('CDS (B3-B4-B5)', 'CDS (B4-B5)', 'CTAG (B5)'):
+            if category in (CDS, CDS1_CDS2, CTAG):
                 if not _seq_has_codon_end(seq.seq, with_intron):
                     msg = 'The provided seq must end with a end codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-            if category in ('CDS (B3-B4-B5)', 'SP (B3)', 'NTAG (B2)',
-                            'CDS (B3-B4)', 'CDS (B4-B5)', 'CTAG (B5)'):
+            if category in (CDS, CDS1, NTAG, CDS1_CDS2, CDS2_CTAG, CTAG):
                 if not _is_seq_3_multiple(seq.seq, with_intron):
                     msg = 'The provided seq must be multiple of three in '
                     msg += 'order to use as choosen category'
@@ -90,7 +89,7 @@ class DomesticationForm(forms.Form):
                     msg = 'The provided seq must have less than 500 nucleotides in'
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-            if category in ('CDS (B3-B4)', 'NTAG (B2)', 'SP (B3)'):
+            if category in (CDS1_CDS2, NTAG, CDS1):
                 if _seq_has_codon_end(seq.seq, with_intron):
                     msg = 'The provided seq must not end with a stop codon in '
                     msg += 'order to use as choosen category'

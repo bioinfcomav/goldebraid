@@ -21,7 +21,11 @@ from django.conf import settings
 import goldenbraid
 from goldenbraid.tags import (MODULE_TYPE_NAME, TU_TYPE_NAME, TARGET_DICOT,
                               TARGET_MONOCOT, PROM_DICOT, PROM_MONOCOT,
-                              TER_CRYSPER)
+                              TER_CRYSPER, PROM_5UTR_NTAG, PROM_5UTR, PROX,
+                              DIST_PROX, CORE_5UTR, DIST, INTERACTION_ADAPTOR,
+                              PROM_5UTR_MIR173, NTAG, CDS, CDS2_CTAG,
+                              CDS1_CDS2, CTAG, FS5, TARGET, FS3, GOI, INT, IOG,
+                              FGOI, UTR3_TERM, CDS1)
 
 
 GENBANK_DIR = getattr(settings, 'GOLDENBRAID_GENBANK_DIR', 'genbank_files')
@@ -39,31 +43,28 @@ MINIMUN_PCR_LENGTH = 50
 BIPARTITE_ALLOWED_PARTS = (TU_TYPE_NAME, MODULE_TYPE_NAME)
 
 CATEGORIES = OrderedDict()
-CATEGORIES['PROM+5UTR+NTAG (A1-A2-A3-B1-B2)'] = ('PROM+UTR+ATG', 'GGAG',
-                                                 'AATG')
-CATEGORIES['PROM+5UTR (A1-A2-A3-B1)'] = ('PROM+UTR', 'GGAG', 'CCAT')
-CATEGORIES['OP (A1-A2)'] = ('OP', 'GGAG', 'TCCC')
-CATEGORIES['MinPROM (A3-B1-B2)'] = ('MinPROM', 'TCCC', 'AATG')
-CATEGORIES['PROM (A1)'] = ('PROM', 'GGAG', 'TGAC')
-CATEGORIES['OP (A2)'] = ('OP', 'TGAC', 'TCCC')
-CATEGORIES['INTERACTION ADAPTOR (A1-A2-A3-B1-B2b)'] = ('INTERACTION ADAPTOR',
-                                                       'GGAG', 'AATG')
-CATEGORIES['PROM+5UTR+mir173 (A1-A2-A3-B1b)'] = ('PROM+UTR+mir173', 'GGAG',
-                                                 'CCAT')
-CATEGORIES['NTAG (B2)'] = ('NT', 'CCAT', 'AATG')
-CATEGORIES['CDS (B3-B4-B5)'] = ('CDS', 'AATG', 'GCTT')
-CATEGORIES['SP (B3)'] = ('SP', 'AATG', 'AGCC')
-CATEGORIES['CDS (B4-B5)'] = ('CDS', 'AGCC', 'GCTT')
-CATEGORIES['CDS (B3-B4)'] = ('CDS', 'AATG', 'TTCG')
-CATEGORIES['CTAG (B5)'] = ('CT', 'TTCG', 'GCTT')
-CATEGORIES["5'FS (B2-B3b)"] = ('''5'FS''', 'CCAT', 'GTAG')
-CATEGORIES['Target (B4b)'] = ('Target', 'GTAG', 'TCTC')
-CATEGORIES["3'FS (B5b)"] = ('''3'FS''', 'TCTC', 'GCTT')
-CATEGORIES['goi (B2-B3)'] = ('goi', 'CCAT', 'AGCC')
-CATEGORIES['int (B4)'] = ('int', 'AGCC', 'TTCG')
-CATEGORIES['iog (B5)'] = ('iog', 'TTCG', 'GCTT')
-CATEGORIES['goi (B2-B3-B4-B5)'] = ('goi', 'CCAT', 'GCTT')
-CATEGORIES['3UTR+TERM (B6-C1)'] = ('TER', 'GCTT', 'CGCT')
+CATEGORIES[PROM_5UTR_NTAG] = ('PROM+UTR+ATG', 'GGAG', 'AATG')
+CATEGORIES[PROM_5UTR] = ('PROM+UTR', 'GGAG', 'CCAT')
+CATEGORIES[DIST_PROX] = ('OP', 'GGAG', 'TCCC')
+CATEGORIES[CORE_5UTR] = ('MinPROM', 'TCCC', 'AATG')
+CATEGORIES[DIST] = ('PROM', 'GGAG', 'TGAC')
+CATEGORIES[PROX] = ('OP', 'TGAC', 'TCCC')
+CATEGORIES[INTERACTION_ADAPTOR] = ('INTERACTION ADAPTOR', 'GGAG', 'AATG')
+CATEGORIES[PROM_5UTR_MIR173] = ('PROM+UTR+mir173', 'GGAG', 'CCAT')
+CATEGORIES[NTAG] = ('NT', 'CCAT', 'AATG')
+CATEGORIES[CDS] = ('CDS', 'AATG', 'GCTT')
+CATEGORIES[CDS1] = ('SP', 'AATG', 'AGCC')
+CATEGORIES[CDS2_CTAG] = ('CDS', 'AGCC', 'GCTT')
+CATEGORIES[CDS1_CDS2] = ('CDS', 'AATG', 'TTCG')
+CATEGORIES[CTAG] = ('CT', 'TTCG', 'GCTT')
+CATEGORIES[FS5] = ('''5'FS''', 'CCAT', 'GTAG')
+CATEGORIES[TARGET] = ('Target', 'GTAG', 'TCTC')
+CATEGORIES[FS3] = ('''3'FS''', 'TCTC', 'GCTT')
+CATEGORIES[GOI] = ('goi', 'CCAT', 'AGCC')
+CATEGORIES[INT] = ('int', 'AGCC', 'TTCG')
+CATEGORIES[IOG] = ('iog', 'TTCG', 'GCTT')
+CATEGORIES[FGOI] = ('goi', 'CCAT', 'GCTT')
+CATEGORIES[UTR3_TERM] = ('TER', 'GCTT', 'CGCT')
 
 
 CRYSPER_CATEGORIES = OrderedDict()
@@ -78,52 +79,51 @@ MANDATORY_DOMEST_ENZYMES = ('BsmBI', 'BsaI')
 OPTIONAL_DOMEST_ENZYMES = ('BtgZI', 'BpiI')
 
 
-PARTS_TO_ASSEMBLE = {'basic': [CATEGORIES['PROM+5UTR+NTAG (A1-A2-A3-B1-B2)'],
-                               CATEGORIES['CDS (B3-B4-B5)'] ,
-                               CATEGORIES['3UTR+TERM (B6-C1)']],
-                     'secreted': [CATEGORIES['PROM+5UTR+NTAG (A1-A2-A3-B1-B2)'],
-                                  CATEGORIES['SP (B3)'],
-                                  CATEGORIES['CDS (B4-B5)'],
-                                  CATEGORIES['3UTR+TERM (B6-C1)']],
-                     'ct-fusion': [CATEGORIES['PROM+5UTR+NTAG (A1-A2-A3-B1-B2)'],
-                                   CATEGORIES['CDS (B3-B4)'],
-                                   CATEGORIES['CTAG (B5)'],
-                                   CATEGORIES['3UTR+TERM (B6-C1)']],
-                     'nt-fusion': [CATEGORIES['PROM+5UTR (A1-A2-A3-B1)'],
-                                   CATEGORIES['NTAG (B2)'],
-                                   CATEGORIES['CDS (B3-B4-B5)'],
-                                   CATEGORIES['3UTR+TERM (B6-C1)']],
-                     'nt-ct-fusion': [CATEGORIES['PROM+5UTR (A1-A2-A3-B1)'],
-                                      CATEGORIES['NTAG (B2)'],
-                                      CATEGORIES['CDS (B3-B4)'],
-                                      CATEGORIES['CTAG (B5)'],
-                                      CATEGORIES['3UTR+TERM (B6-C1)']],
-                     'operated-promoter-a': [CATEGORIES['OP (A1-A2)'],
-                                             CATEGORIES['MinPROM (A3-B1-B2)'],
-                                             CATEGORIES['CDS (B3-B4-B5)'],
-                                             CATEGORIES['3UTR+TERM (B6-C1)']],
-                     'operated-promoter-b': [CATEGORIES['PROM (A1)'],
-                                             CATEGORIES['OP (A2)'],
-                                             CATEGORIES['MinPROM (A3-B1-B2)'],
-                                             CATEGORIES['CDS (B3-B4-B5)'],
-                                             CATEGORIES['3UTR+TERM (B6-C1)']],
-                     'protein-interaction': [CATEGORIES['INTERACTION ADAPTOR (A1-A2-A3-B1-B2b)'],
-                                             CATEGORIES['CDS (B3-B4-B5)'] ,
-                                             CATEGORIES['3UTR+TERM (B6-C1)']],
-                     'amiRNA':  [CATEGORIES['PROM+5UTR (A1-A2-A3-B1)'],
-                                 CATEGORIES["5'FS (B2-B3b)"],
-                                 CATEGORIES['Target (B4b)'],
-                                 CATEGORIES["3'FS (B5b)"],
-                                 CATEGORIES['3UTR+TERM (B6-C1)']],
-                     'hpRNA':  [CATEGORIES['PROM+5UTR (A1-A2-A3-B1)'],
-                                CATEGORIES['goi (B2-B3)'],
-                                CATEGORIES['int (B4)'],
-                                CATEGORIES['iog (B5)'],
-                                CATEGORIES['3UTR+TERM (B6-C1)']],
-                     'tasiRNA':  [CATEGORIES['PROM+5UTR+mir173 (A1-A2-A3-B1b)'],
-                                  CATEGORIES['goi (B2-B3-B4-B5)'],
-                                  CATEGORIES['3UTR+TERM (B6-C1)']],
-
+PARTS_TO_ASSEMBLE = {'basic': [CATEGORIES[PROM_5UTR_NTAG],
+                               CATEGORIES[CDS] ,
+                               CATEGORIES[UTR3_TERM]],
+                     'secreted': [CATEGORIES[PROM_5UTR_NTAG],
+                                  CATEGORIES[CDS1],
+                                  CATEGORIES[CDS1_CDS2],
+                                  CATEGORIES[UTR3_TERM]],
+                     'ct-fusion': [CATEGORIES[PROM_5UTR_NTAG],
+                                   CATEGORIES[CDS1_CDS2],
+                                   CATEGORIES[CTAG],
+                                   CATEGORIES[UTR3_TERM]],
+                     'nt-fusion': [CATEGORIES[PROM_5UTR],
+                                   CATEGORIES[NTAG],
+                                   CATEGORIES[CDS],
+                                   CATEGORIES[UTR3_TERM]],
+                     'nt-ct-fusion': [CATEGORIES[PROM_5UTR],
+                                      CATEGORIES[NTAG],
+                                      CATEGORIES[CDS1_CDS2],
+                                      CATEGORIES[CTAG],
+                                      CATEGORIES[UTR3_TERM]],
+                     'operated-promoter-a': [CATEGORIES[DIST_PROX],
+                                             CATEGORIES[CORE_5UTR],
+                                             CATEGORIES[CDS],
+                                             CATEGORIES[UTR3_TERM]],
+                     'operated-promoter-b': [CATEGORIES[DIST],
+                                             CATEGORIES[PROX],
+                                             CATEGORIES[CORE_5UTR],
+                                             CATEGORIES[CDS],
+                                             CATEGORIES[UTR3_TERM]],
+                     'protein-interaction': [CATEGORIES[INTERACTION_ADAPTOR],
+                                             CATEGORIES[CDS],
+                                             CATEGORIES[UTR3_TERM]],
+                     'amiRNA':  [CATEGORIES[PROM_5UTR],
+                                 CATEGORIES[FS5],
+                                 CATEGORIES[TARGET],
+                                 CATEGORIES[FS3],
+                                 CATEGORIES[UTR3_TERM]],
+                     'hpRNA':  [CATEGORIES[PROM_5UTR],
+                                CATEGORIES[GOI],
+                                CATEGORIES[INT],
+                                CATEGORIES[IOG],
+                                CATEGORIES[UTR3_TERM]],
+                     'tasiRNA':  [CATEGORIES[PROM_5UTR_MIR173],
+                                  CATEGORIES[FGOI],
+                                  CATEGORIES[UTR3_TERM]],
                      'gRNA_monocot': [CRYSPER_CATEGORIES[PROM_MONOCOT],
                                       CRYSPER_CATEGORIES[TARGET_MONOCOT],
                                       CRYSPER_CATEGORIES[TER_CRYSPER]],
