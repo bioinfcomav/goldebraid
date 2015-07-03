@@ -156,7 +156,8 @@ def _add_experiment(form, numeric_formset, text_formset, image_formset,
                 except Feature.DoesNotExist:
                     feat = None
                 if feat:
-                    if feat.owner != user and not feat.is_public:
+                    if not user.is_admin and (feat.owner != user and
+                                              not feat.is_public):
                         msg = 'You can not add an experiment with features in '
                         msg = 'which you are not the owner'
                         raise RuntimeError(msg)
