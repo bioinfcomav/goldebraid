@@ -38,7 +38,7 @@ from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
                                 Feature, ExperimentFeature,
                                 ExperimentPropImage, ExperimentSubFeature,
-                                ExperimentPropExcel)
+                                ExperimentPropExcel, ExperimentPropGenericFile)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB
 
@@ -120,8 +120,8 @@ def experiment_view(request, uniquename):
 
 
 def _add_experiment(form, numeric_formset, text_formset, image_formset,
-                    excel_formset, feat_formset, subfeat_form, user,
-                    is_public=False):
+                    excel_formset, feat_formset, subfeat_form,
+                    generic_file_formset, user, is_public=False):
     try:
         with transaction.atomic():
             experiment = form.save(commit=False)
@@ -190,6 +190,11 @@ def _add_experiment(form, numeric_formset, text_formset, image_formset,
                 image_prop.experiment = experiment
                 image_prop.save()
 
+            generic_file_props = generic_file_formset.save(commit=False)
+            for generic_file_prop in generic_file_props:
+                generic_file_prop.experiment = experiment
+                generic_file_prop.save()
+
             for excel_formdata in excel_formset.cleaned_data:
                 if not excel_formdata:
                     continue
@@ -218,6 +223,8 @@ def add_experiment_view(request):
                                        exclude=('experiment',))
     ImageFormset = modelformset_factory(ExperimentPropImage,
                                         exclude=('experiment',))
+    GeneriFileFormset = modelformset_factory(ExperimentPropGenericFile,
+                                             exclude=('experiment',))
     ExcelFormset = formset_factory(ExperimentExcelForm)
     if request_data:
         form = ExperimentForm(request_data, instance=Experiment())
@@ -227,12 +234,15 @@ def add_experiment_view(request):
         text_formset = TextFormset(request_data, prefix='text')
         image_formset = ImageFormset(request_data, request.FILES,
                                      prefix='image')
+        generic_file_formset = GeneriFileFormset(request_data, request.FILES,
+                                                 prefix='generic_file')
         excel_formset = ExcelFormset(request_data, request.FILES,
                                      prefix='excel')
         # print request_data, request.FILES
         if (form.is_valid() and numeric_formset.is_valid() and
             text_formset.is_valid() and feat_formset.is_valid() and
-                subfeat_form.is_valid() and excel_formset.is_valid()):
+                subfeat_form.is_valid() and excel_formset.is_valid() and
+                generic_file_formset.is_valid()):
             print "valid"
             try:
                 experiment = _add_experiment(form=form,
@@ -242,6 +252,7 @@ def add_experiment_view(request):
                                              excel_formset=excel_formset,
                                              feat_formset=feat_formset,
                                              subfeat_form=subfeat_form,
+                                             generic_file_formset=generic_file_formset,
                                              user=request.user)
             except IntegrityError as error:
                 print error
@@ -269,6 +280,9 @@ def add_experiment_view(request):
                                    queryset=ExperimentPropText.objects.none())
         none_image_query = ExperimentPropImage.objects.none()
         image_formset = ImageFormset(prefix='image', queryset=none_image_query)
+        none_genericf_query = ExperimentPropGenericFile.objects.none()
+        generic_file_formset = GeneriFileFormset(prefix='generic_file',
+                                                 queryset=none_genericf_query)
         excel_formset = ExcelFormset(prefix='excel')
     context['form'] = form
     context['feature_formset'] = feat_formset
@@ -277,6 +291,7 @@ def add_experiment_view(request):
     context['text_formset'] = text_formset
     context['image_formset'] = image_formset
     context['excel_formset'] = excel_formset
+    context['generic_file_formset'] = generic_file_formset
 
     template = 'experiment_add_template.html'
     return render_to_response(template, context)

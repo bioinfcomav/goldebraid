@@ -514,6 +514,11 @@ class Experiment(models.Model):
             urls.append((url, alt))
         return urls
 
+    @property
+    def generic_file_props(self):
+        return [(generic_file_prop.description, generic_file_prop.file)
+                for generic_file_prop in ExperimentPropGenericFile.objects.filter(experiment=self)]
+
 
 class ExperimentPerm(models.Model):
     experiment = models.OneToOneField(Experiment, primary_key=True)
@@ -594,4 +599,14 @@ class ExperimentPropExcel(models.Model):
     @property
     def image_url(self):
         return reverse('api_excel_image', args=[self.experiment_prop_excel_id])
+
+
+class ExperimentPropGenericFile(models.Model):
+    experiment_prop_generic_file_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    file = models.FileField(upload_to=settings.RESULTS_DIR)
+    description = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = u'experimentpropgenericfile'
 

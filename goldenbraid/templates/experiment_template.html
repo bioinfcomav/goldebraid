@@ -70,6 +70,14 @@
             </p>
         {% endfor %}
     {% endif %}
+    {% if experiment.generic_file_props %}
+        <h2>Associated Generic_files</h2>
+        {% for title, file_ in experiment.generic_file_props %}
+             <p><span class='key'>{{ title|capfirst|replaceunderscore }}:</span> 
+                <a href={{file_.url}}>Download file</a>
+             </p>
+        {% endfor %}
+    {% endif %}
 {% endif %}
 {% if experiment.owner == user or user.is_staff %}
   <h2> Experiment Management Tools (only if permission granted)</h2>

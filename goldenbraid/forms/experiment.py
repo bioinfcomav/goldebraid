@@ -5,7 +5,8 @@ from django.forms.models import ModelForm
 
 from goldenbraid.models import (Cvterm, Feature, Experiment,
                                 ExperimentPropNumeric, ExperimentPropText, Cv,
-                                ExperimentPropImage, ExperimentPropExcel)
+                                ExperimentPropImage, ExperimentPropExcel,
+    ExperimentPropGenericFile)
 from goldenbraid.tags import (EXPERIMENT_TYPES, NUMERIC_TYPES)
 from goldenbraid.forms.widgets import (AutocompleteTextInput,
                                        DinamicSelectMultiple)
@@ -128,14 +129,10 @@ class ExperimentImageForm(ModelForm):
         exclude = ['experiment']
 
 
-class ExperimentExcelForm_old(ModelForm):
+class ExperimentGenericFileForm(ModelForm):
     class Meta:
-        model = ExperimentPropExcel
+        model = ExperimentPropGenericFile
         exclude = ['experiment']
-
-    def clean_excel(self):
-        excel = self.cleaned_data['excel']
-        print type(excel)
 
 
 class ExperimentExcelForm(forms.Form):
