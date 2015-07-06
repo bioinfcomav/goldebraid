@@ -27,8 +27,7 @@ from goldenbraid.settings import (DOMESTICATION_DEFAULT_MELTING_TEMP,
                                   OLIGO_UNIVERSAL, DOMESTICATED_SEQ,
                                   MINIMUN_PCR_LENGTH, CRYSPER_SEQ,
                                   DOMESTICATED_VECTOR,
-                                  MANDATORY_DOMEST_ENZYMES,
-                                  OPTIONAL_DOMEST_ENZYMES)
+                                  MANDATORY_DOMEST_ENZYMES)
 from goldenbraid.models import Feature, Count
 from Bio.SeqFeature import FeatureLocation, CompoundLocation, SeqFeature
 from goldenbraid.tags import TARGET_MONOCOT, TARGET_DICOT, CDS, CDS1_CDS2, NTAG
@@ -54,8 +53,6 @@ def domesticate_for_synthesis(seqrec, category, prefix, suffix, enzymes,
         seq = seq.upper()
     if not enzymes:
         enzymes = MANDATORY_DOMEST_ENZYMES
-    else:
-        enzymes = tuple(enzymes) + OPTIONAL_DOMEST_ENZYMES
     new_seq = _remove_rec_sites(seq, enzymes)[0]
     seqs_for_sintesis, prefix, suffix = _add_tags_to_pcrproducts([new_seq],
                                                                  prefix,
@@ -88,8 +85,6 @@ def domesticate(seqrec, category, prefix, suffix, enzymes, with_intron=False):
     min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
     if not enzymes:
         enzymes = MANDATORY_DOMEST_ENZYMES
-    else:
-        enzymes = tuple(enzymes) + OPTIONAL_DOMEST_ENZYMES
     new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq, enzymes)
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
 
@@ -403,6 +398,7 @@ def _remove_rec_sites(seq, enzymes=None):
     if enzymes is None:
         enzymes = MANDATORY_DOMEST_ENZYMES
     rec_sites = get_ret_sites(enzymes)
+    print enzymes, rec_sites
     # regex with the sites to domesticate
     rec_sites_regex = '(' + '|'.join(rec_sites) + ')'
     rec_sites_regex = re.compile(rec_sites_regex, flags=re.IGNORECASE)
