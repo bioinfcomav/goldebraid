@@ -333,9 +333,9 @@ def domestication_view_add(request):
 
 
 CRYSPER_PROTOCOL = '''In order to use this sequence as a target in a guide RNA you have to order these primers:
-Forward primer: {forw_primer}
-Reverse primer: {rev_primer}
-Dilute them to a final concentration of 2ng/ul, mix 5ul of each primer and let them anneal for at least 2 hours at room temperature before setting up the multipartite reaction.
+Forward primer: 5' {forw_primer} 3'
+Reverse primer: 5' {rev_primer} 3'
+Dilute them to a final concentration of 1uM, mix 5ul of each primer and let them anneal for at least 30 minutes at room temperature before setting up the multipartite reaction.
 
 '''
 
