@@ -10,6 +10,13 @@
 <h6>General Information</h6>
 <div id='featuregeneral'>
 <div class='col_left'>
+    {% if feature.sbol_images %}
+        <ul id='sbol_images'>
+        {% for image in feature.sbol_images%}
+        <li><img src={{STATIC_URL}}/sbol_images/{{image}} alt=feature.gb_category ></li>
+        {% endfor %}
+        </ul>
+    {% endif %}
   <p><span class='key'><strong>Accession:</strong></span> <span class='value'>{{ feature.uniquename }}</span></p>
   <p><span class='key'><strong>Name:</strong></span> <span class='value'>{{ feature.name }}</span></p>
   {% if feature.vector%}

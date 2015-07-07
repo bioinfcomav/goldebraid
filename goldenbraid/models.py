@@ -19,6 +19,7 @@ from Bio import SeqIO
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings as site_settings
 from goldenbraid import settings
 from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
@@ -27,8 +28,13 @@ from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
 from goldenbraid.excel import plot_from_excel
 from django.core.files.temp import NamedTemporaryFile
 from django.core.urlresolvers import reverse
-from goldenbraid.settings import DOMESTICATION_VECTORS_IN_GB, CATEGORIES
+from goldenbraid.settings import (DOMESTICATION_VECTORS_IN_GB, CATEGORIES,
+                                  SBOL_IMAGES)
 from goldenbraid.utils import has_rec_sites, get_prefix_and_suffix_index
+
+LEVEL_0 = '0'
+LEVEL_1ALPHA = '1-alpha'
+LEVEL_1_OMEGA = '1-omega'
 
 
 class Db(models.Model):
@@ -253,11 +259,50 @@ class Feature(models.Model):
             return None
         vector_name = self.vector.name
         if vector_name in DOMESTICATION_VECTORS_IN_GB:
-            return '0'
+            return LEVEL_0
         elif 'alpha' in vector_name:
-            return '1-alpha'
+            return LEVEL_1ALPHA
         elif 'omega' in vector_name:
-            return '1-omega'
+            return LEVEL_1_OMEGA
+
+    def _get_sbol_image(self, direction=FORWARD):
+        if self.level == LEVEL_0:
+            if direction == FORWARD:
+                return SBOL_IMAGES[FORWARD][self.gb_category]
+            elif direction == REVERSE:
+                return SBOL_IMAGES[REVERSE][self.gb_category]
+            else:
+                print self.type.name
+                raise RuntimeError('Sequence direction must be forw or rev')
+
+    @property
+    def sbol_images(self):
+        images = []
+        level = self.level
+        if level == LEVEL_0:
+            images.append(self._get_sbol_image())
+        elif level in (LEVEL_1_OMEGA, LEVEL_1ALPHA):
+            sub_children = []
+            for child in self.children:
+                if child.level == LEVEL_0:
+                    sub_children.append(child)
+                elif level in (LEVEL_1_OMEGA, LEVEL_1ALPHA):
+                    images.append(child.sbol_images)
+            if sub_children:
+                if self.direction == REVERSE:
+                    sub_children = sub_children[::-1]
+                images.extend([child._get_sbol_image(self.direction) for child in sub_children])
+
+        images = list(self._flatten_list(images))
+        return images
+
+    def _flatten_list(self, list_):
+        for item in list_:
+            if hasattr(item, '__iter__'):
+                for item2 in self._flatten_list(item):
+                    yield item2
+            else:
+                yield item
 
     @property
     def gb_version(self):
@@ -270,7 +315,7 @@ class Feature(models.Model):
 
     @property
     def moclo_compatible(self):
-        if not self.level or self.level != '0':
+        if not self.level or self.level != LEVEL_0:
             return 'not_evaluable'
         enzyme = self.enzyme_out[0]
         residues = self.residues
@@ -283,7 +328,7 @@ class Feature(models.Model):
 
     @property
     def gb_category(self):
-        if self.level != '0' or self.type.name == VECTOR_TYPE_NAME:
+        if self.level != LEVEL_0 or self.type.name == VECTOR_TYPE_NAME:
             return None
         type_ = self.type.name
         prefix = self.prefix
@@ -291,7 +336,13 @@ class Feature(models.Model):
 
         for category, values in CATEGORIES.items():
             if values == (type_, prefix, suffix):
-                return category.split(' ')[-1].strip()
+                return category.strip()
+
+    @property
+    def gb_category_sections(self):
+        gb_category = self.gb_category
+        if gb_category is not None:
+            return gb_category.split(' ')[-1].strip()
 
     @property
     def owner(self):
@@ -309,7 +360,18 @@ class Feature(models.Model):
         children = []
         for frls in FeatureRelationship.objects.filter(object=self):
             children.append(frls.subject)
-        return children
+        # sort
+        current_suffix = None
+        ordered_children = []
+        while children:
+            for index, child in enumerate(children):
+                if ((current_suffix is None and child.prefix == 'GGAG') or
+                        (current_suffix and current_suffix == child.prefix)):
+                    current_suffix = child.suffix
+                    break
+
+            ordered_children.append(children.pop(index))
+        return ordered_children
 
     def add_relations(self, seq=None):
         """If seq object is not given, it will look in the genbank file
@@ -400,7 +462,7 @@ class Featureprop(models.Model):
 
 
 class FeatureRelationship(models.Model):
-    'Store the relationsshiop between parts'
+    'Store the relationships between parts'
     featurerelationship_id = models.AutoField(primary_key=True)
     type = models.ForeignKey(Cvterm)
     subject = models.ForeignKey(Feature, related_name='subject')
@@ -411,7 +473,7 @@ class FeatureRelationship(models.Model):
 
 
 class Experiment(models.Model):
-    'Store the experiments asociated to features'
+    'Store the experiments associated to features'
     experiment_id = models.AutoField(primary_key=True)
     uniquename = models.CharField(max_length=255, unique=True)
     chasis_1 = models.CharField(max_length=255)
@@ -609,4 +671,3 @@ class ExperimentPropGenericFile(models.Model):
 
     class Meta:
         db_table = u'experimentpropgenericfile'
-

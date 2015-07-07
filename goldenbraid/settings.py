@@ -25,7 +25,7 @@ from goldenbraid.tags import (MODULE_TYPE_NAME, TU_TYPE_NAME, TARGET_DICOT,
                               DIST_PROX, CORE_5UTR, DIST, INTERACTION_ADAPTOR,
                               PROM_5UTR_MIR173, NTAG, CDS, CDS2_CTAG,
                               CDS1_CDS2, CTAG, FS5, TARGET, FS3, GOI, INT, IOG,
-                              FGOI, UTR3_TERM, CDS1)
+                              FGOI, UTR3_TERM, CDS1, FORWARD, REVERSE)
 
 
 GENBANK_DIR = getattr(settings, 'GOLDENBRAID_GENBANK_DIR', 'genbank_files')
@@ -80,7 +80,7 @@ OPTIONAL_DOMEST_ENZYMES = ('BtgZI', 'BpiI')
 
 
 PARTS_TO_ASSEMBLE = {'basic': [CATEGORIES[PROM_5UTR_NTAG],
-                               CATEGORIES[CDS] ,
+                               CATEGORIES[CDS],
                                CATEGORIES[UTR3_TERM]],
                      'secreted': [CATEGORIES[PROM_5UTR_NTAG],
                                   CATEGORIES[CDS1],
@@ -149,3 +149,60 @@ ASSEMBLED_SEQ = 'GB_UA'
 DOMESTICATED_SEQ = 'GB_UD'
 CRYSPER_SEQ = 'GB_UC'
 EXPERIMENT_ID_PREFIX = 'GB_EXP'
+
+# CATEGORY SBOL IMAGE CORRESPONDENCE
+SBOL_IMAGES = {FORWARD: {PROM_5UTR_NTAG: 'prom_5utr_ntag.png',
+                         PROX: 'prox.png',
+                         CORE_5UTR: 'core_5utr.png',
+                         PROM_5UTR: 'prom_5utrf.png',
+                         DIST: 'dist.png',
+                         DIST_PROX: 'dist_prox.png',
+                         INTERACTION_ADAPTOR: 'interaction_adaptor.png',
+                         CDS: 'cds.png',
+                         CDS1_CDS2: 'cds1_cds2.png',
+                         CDS2_CTAG: 'cds2_ctag.png',
+                         CDS1: 'cds1.png',
+                         NTAG: 'ntag.png',
+                         CTAG: 'ctag.png',
+                         UTR3_TERM: '3utr_term.png',
+                         GOI: 'goi.png',
+                         INT: 'int.png',
+                         IOG: 'iog.png',
+                         PROM_5UTR_MIR173: 'prom_5utr_mir173.png',
+                         FGOI: 'fgoi.png',
+                         FS5: '5fs.png',
+                         TARGET: 'target.png',
+                         FS3: '3fs.png',
+                         TARGET_DICOT: 'target_dicot.png',
+                         TARGET_MONOCOT: 'target_monocot.png',
+                         PROM_DICOT: 'prom_dicot.png',
+                         PROM_MONOCOT: 'prom_monocot.png',
+                         TER_CRYSPER: ''},
+               REVERSE: {PROM_5UTR_NTAG: 'prom_5utr_ntag.png',
+                         PROX: 'prox.png',
+                         CORE_5UTR: 'core_5utr.png',
+                         PROM_5UTR: 'prom_5utrf.png',
+                         DIST: 'dist.png',
+                         DIST_PROX: 'dist_prox.png',
+                         INTERACTION_ADAPTOR: 'interaction_adaptor.png',
+                         CDS: 'cds.png',
+                         CDS1_CDS2: 'cds1_cds2.png',
+                         CDS2_CTAG: 'cds2_ctag.png',
+                         CDS1: 'cds1.png',
+                         NTAG: 'ntag.png',
+                         CTAG: 'ctag.png',
+                         UTR3_TERM: '3utr_term.png',
+                         GOI: 'goi.png',
+                         INT: 'int.png',
+                         IOG: 'iog.png',
+                         PROM_5UTR_MIR173: 'prom_5utr_mir173.png',
+                         FGOI: 'fgoi.png',
+                         FS5: '5fs.png',
+                         TARGET: 'target.png',
+                         FS3: '3fs.png',
+                         TARGET_DICOT: 'target_dicot.png',
+                         TARGET_MONOCOT: 'target_monocot.png',
+                         PROM_DICOT: 'prom_dicot.png',
+                         PROM_MONOCOT: 'prom_monocot.png',
+                         TER_CRYSPER: ''}
+               }

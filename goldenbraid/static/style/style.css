@@ -34,3 +34,9 @@
 #multi_link_table img:hover{
 	opacity:1; filter:alpha(opacity=100);
 }
+#sbol_images li
+{
+display: inline;
+list-style-type: none;
+padding-right: 2px;
+}

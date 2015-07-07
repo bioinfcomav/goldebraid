@@ -31,16 +31,16 @@ from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
 from goldenbraid.tags import (ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME,
                               DERIVES_FROM)
-from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
+from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD4
 
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                          'goldenbraid', 'tests', 'data')
 
 
 class FeatureTestModels(TestCase):
-    fixtures = FIXTURES_TO_LOAD
+    fixtures = FIXTURES_TO_LOAD4
 
-    def xtest_create(self):
+    def test_create(self):
         'can we create a feature?'
         gb_file = File(open(os.path.join(TEST_DATA, 'pAn11_uniq.gb')))
         db = Db.objects.get(name='goldenbraid')
@@ -223,12 +223,12 @@ class FeatureTestModels(TestCase):
 
     def test_gb_category(self):
         feature = Feature.objects.get(uniquename='pAn11')
-        assert feature.gb_category == "(B3-B4-B5)"
+        assert feature.gb_category_sections == "(B3-B4-B5)"
         feature = Feature.objects.get(uniquename='GB0125')
-        assert feature.gb_category is None
+        assert feature.gb_category_sections is None
 
         feature = Feature.objects.get(uniquename='pUPD')
-        assert feature.gb_category is None
+        assert feature.gb_category_sections is None
 
     def test_feature_relationship(self):
 
@@ -242,13 +242,22 @@ class FeatureTestModels(TestCase):
 
     def test_feature_images(self):
         f1 = Feature.objects.get(uniquename='GB0125')
-        assert f1.experiment_images == [(u'/api/excel_graph/1', u'excel')]
+        assert f1.experiment_images == [(u'/api/excel_graph/1', u'excel'),
+                                        (u'/api/excel_graph/2', u'columns')]
         f1 = Feature.objects.get(uniquename='GB0129')
-        assert not f1.experiment_images
+        print f1.experiment_images
+        assert f1.experiment_images == [(u'/api/excel_graph/8', u'columns'),
+                                        (u'/api/excel_graph/9', u'columns')]
+
+    def test_sbol_image(self):
+        f1 = Feature.objects.get(uniquename='GB_UA_15')
+        assert f1.sbol_images == ['prom_5utr_ntag.png', 'cds.png',
+                                  '3utr_term.png', '3utr_term.png', 'cds.png',
+                                  'prom_5utr_ntag.png']
 
 
 class ExperimentTests(TestCase):
-    fixtures = FIXTURES_TO_LOAD
+    fixtures = FIXTURES_TO_LOAD4
 
     def test_experiment_excels(self):
         exp = Experiment.objects.get(uniquename='GB_EXP_2B')
