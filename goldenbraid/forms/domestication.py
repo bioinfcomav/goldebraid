@@ -113,7 +113,11 @@ class DomesticationForm(forms.Form):
             msg = 'The given file must be a fasta or a genbank file'
             raise ValidationError(msg)
         format_ = 'fasta' if content.startswith('>') else 'genbank'
-        seq = SeqIO.read(self.cleaned_data['seq'], format_)
+        try:
+            seq = SeqIO.read(self.cleaned_data['seq'], format_)
+        except ValueError:
+            raise ValidationError('File malformed')
+
         seq = self._seq_validation(seq)
         return seq
 
