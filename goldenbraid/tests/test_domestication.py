@@ -29,7 +29,7 @@ from goldenbraid.domestication import (domesticate, _join_segments,
                                        get_ret_sites,
                                        change_nucl_in_intron_rec_site)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
-from goldenbraid.settings import ENZYMES_USED_IN_GOLDENBRAID
+from goldenbraid.settings import MANDATORY_DOMEST_ENZYMES
 
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                          'goldenbraid', 'tests', 'data')
@@ -248,7 +248,7 @@ class DomesticationTest(TestCase):
         assert seq_sin == result
 
     def test_change_nucl_in_intron_rec_site(self):
-        rec_sites = get_ret_sites(ENZYMES_USED_IN_GOLDENBRAID)
+        rec_sites = get_ret_sites(MANDATORY_DOMEST_ENZYMES)
         # regex with the sites to domesticate
         rec_sites_regex = '(' + '|'.join(rec_sites) + ')'
         rec_sites_regex = re.compile(rec_sites_regex, flags=re.IGNORECASE)
