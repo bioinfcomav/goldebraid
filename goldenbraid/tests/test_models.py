@@ -264,9 +264,11 @@ class FeatureExtraTestModels(TestCase):
 
     def test_sbol_image(self):
         f1 = Feature.objects.get(uniquename='GB_UA_226')
-        print f1.sbol_images
-        print [c.type.name for c in f1.children]
-        print [c.gb_category for c in f1.children]
+        assert f1.sbol_images == None
+
+    def test_gb_version(self):
+        f1 = Feature.objects.get(uniquename='GB_UD_AC5')
+        print f1.gb_version
 
 
 class ExperimentTests(TestCase):

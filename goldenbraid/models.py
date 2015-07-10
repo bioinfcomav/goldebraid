@@ -310,7 +310,7 @@ class Feature(models.Model):
     @property
     def gb_version(self):
         category = (self.type.name, self.prefix, self.suffix)
-        v2_categories = [('CDS', 'AATG', 'GCAG'), ('CT', 'GCAG' 'GCTT')]
+        v2_categories = [(u'CDS', u'AATG', u'GCAG'), (u'CT', u'GCAG', u'GCTT')]
         if category in v2_categories:
             return '2.0'
         else:
