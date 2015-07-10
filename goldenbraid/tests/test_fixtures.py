@@ -19,6 +19,7 @@ from goldenbraid.models import Db
 FIXTURES_TO_LOAD = ['initial_data.json', 'derives_from.json']
 FIXTURES_TO_LOAD = ['initial_data3.json', 'derives_from.json']
 FIXTURES_TO_LOAD4 = ['initial_data4.json', 'derives_from.json']
+FIXTURES_TO_LOAD5 = ['initial_data5.json']
 
 
 class TestFixtures(TestCase):

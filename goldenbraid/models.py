@@ -24,7 +24,7 @@ from goldenbraid import settings
 from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
-                              FORWARD, REVERSE, DERIVES_FROM)
+                              FORWARD, REVERSE, DERIVES_FROM, OTHER_TYPE_NAME)
 from goldenbraid.excel import plot_from_excel
 from django.core.files.temp import NamedTemporaryFile
 from django.core.urlresolvers import reverse
@@ -268,9 +268,9 @@ class Feature(models.Model):
     def _get_sbol_image(self, direction=FORWARD):
         if self.level == LEVEL_0:
             if direction == FORWARD:
-                return SBOL_IMAGES[FORWARD][self.gb_category]
+                return SBOL_IMAGES[FORWARD].get(self.gb_category, None)
             elif direction == REVERSE:
-                return SBOL_IMAGES[REVERSE][self.gb_category]
+                return SBOL_IMAGES[REVERSE].get(self.gb_category, None)
             else:
                 print self.type.name
                 raise RuntimeError('Sequence direction must be forw or rev')
@@ -294,6 +294,9 @@ class Feature(models.Model):
                 images.extend([child._get_sbol_image(self.direction) for child in sub_children])
 
         images = list(self._flatten_list(images))
+        # Sometimes we have old pieces and we can not know the type
+        if any([True if x is None else False for x in images]):
+            return None
         return images
 
     def _flatten_list(self, list_):
@@ -333,7 +336,8 @@ class Feature(models.Model):
         type_ = self.type.name
         prefix = self.prefix
         suffix = self.suffix
-
+        if type_ == OTHER_TYPE_NAME:
+            return OTHER_TYPE_NAME
         for category, values in CATEGORIES.items():
             if values == (type_, prefix, suffix):
                 return category.strip()
@@ -341,8 +345,19 @@ class Feature(models.Model):
     @property
     def gb_category_sections(self):
         gb_category = self.gb_category
+        if gb_category == OTHER_TYPE_NAME:
+            return None
+
         if gb_category is not None:
             return gb_category.split(' ')[-1].strip()
+
+    @property
+    def gb_category_name(self):
+        gb_category = self.gb_category
+        if gb_category == OTHER_TYPE_NAME:
+            return gb_category
+        if gb_category is not None:
+            return ' '.join(gb_category.split(' ')[:-1]).strip()
 
     @property
     def owner(self):

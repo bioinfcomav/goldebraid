@@ -31,7 +31,7 @@ from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
 from goldenbraid.tags import (ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME,
                               DERIVES_FROM)
-from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD4
+from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD4, FIXTURES_TO_LOAD5
 
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                          'goldenbraid', 'tests', 'data')
@@ -230,6 +230,9 @@ class FeatureTestModels(TestCase):
         feature = Feature.objects.get(uniquename='pUPD')
         assert feature.gb_category_sections is None
 
+        feature = Feature.objects.get(uniquename='pAn11')
+        assert feature.gb_category_name == 'CDS'
+
     def test_feature_relationship(self):
 
         cvterm = Cvterm.objects.get(name=DERIVES_FROM)
@@ -254,6 +257,16 @@ class FeatureTestModels(TestCase):
         assert f1.sbol_images == ['prom_5utr_ntag.png', 'cds.png',
                                   '3utr_term.png', '3utr_term.png', 'cds.png',
                                   'prom_5utr_ntag.png']
+
+
+class FeatureExtraTestModels(TestCase):
+    fixtures = FIXTURES_TO_LOAD5
+
+    def test_sbol_image(self):
+        f1 = Feature.objects.get(uniquename='GB_UA_226')
+        print f1.sbol_images
+        print [c.type.name for c in f1.children]
+        print [c.gb_category for c in f1.children]
 
 
 class ExperimentTests(TestCase):
