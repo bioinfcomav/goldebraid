@@ -24,12 +24,13 @@ from goldenbraid import settings
 from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
-                              FORWARD, REVERSE, DERIVES_FROM, OTHER_TYPE_NAME)
+                              FORWARD, REVERSE, DERIVES_FROM, OTHER_TYPE_NAME,
+			      TARGET_DICOT, TARGET_MONOCOT)
 from goldenbraid.excel import plot_from_excel
 from django.core.files.temp import NamedTemporaryFile
 from django.core.urlresolvers import reverse
 from goldenbraid.settings import (DOMESTICATION_VECTORS_IN_GB, CATEGORIES,
-                                  SBOL_IMAGES)
+                                  SBOL_IMAGES, CRYSPER_CATEGORIES)
 from goldenbraid.utils import has_rec_sites, get_prefix_and_suffix_index
 
 LEVEL_0 = '0'
@@ -255,6 +256,8 @@ class Feature(models.Model):
 
     @property
     def level(self):
+	if self.type.name in (TARGET_DICOT, TARGET_MONOCOT):
+	    return LEVEL_0
         if not self.vector:
             return None
         vector_name = self.vector.name
@@ -264,7 +267,7 @@ class Feature(models.Model):
             return LEVEL_1ALPHA
         elif 'omega' in vector_name:
             return LEVEL_1_OMEGA
-
+	
     def _get_sbol_image(self, direction=FORWARD):
         if self.level == LEVEL_0:
             if direction == FORWARD:
@@ -318,7 +321,7 @@ class Feature(models.Model):
 
     @property
     def moclo_compatible(self):
-        if not self.level or self.level != LEVEL_0:
+        if not self.level or self.level != LEVEL_0 or self.type.name in (TARGET_DICOT, TARGET_MONOCOT):
             return 'not_evaluable'
         enzyme = self.enzyme_out[0]
         residues = self.residues
@@ -339,6 +342,9 @@ class Feature(models.Model):
         if type_ == OTHER_TYPE_NAME:
             return OTHER_TYPE_NAME
         for category, values in CATEGORIES.items():
+            if values == (type_, prefix, suffix):
+                return category.strip()
+	for category, values in CRYSPER_CATEGORIES.items():
             if values == (type_, prefix, suffix):
                 return category.strip()
 
