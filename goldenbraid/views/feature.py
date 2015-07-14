@@ -215,7 +215,7 @@ def add_vector_from_form(form_data, user):
 def add_feature_from_form(form_data, user):
     'With this function we add a feature to the database'
     props = {}
-    feature_type_name = form_data['type']
+    feature_type_name = form_data['type'].split(',')[0]
     if form_data['description']:
         props[DESCRIPTION_TYPE_NAME] = [form_data['description']]
     if form_data['reference']:

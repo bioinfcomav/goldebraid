@@ -119,7 +119,7 @@ class FeatureForm(forms.Form):
         'It validates the type field'
         type_str = self.cleaned_data['type']
         try:
-            Cvterm.objects.get(name=type_str)
+            Cvterm.objects.get(name=self.cleaned_data['type'].split(',')[0])
         except Cvterm.DoesNotExist:
             raise ValidationError('This type does not exist in the database')
         return type_str
