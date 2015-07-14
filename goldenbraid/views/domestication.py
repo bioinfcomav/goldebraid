@@ -15,6 +15,7 @@
 
 from tempfile import NamedTemporaryFile
 from textwrap import fill
+import json
 
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -106,6 +107,7 @@ def _domestication_view(request, kind):
                 seq = form.cleaned_data['residues']
             category = form.cleaned_data.get('category', None)
             enzymes = form.cleaned_data.get('enzymes', None)
+            print enzymes
             if category is None:
                 prefix = form.cleaned_data.get('prefix')
                 suffix = form.cleaned_data.get('suffix')
@@ -130,6 +132,7 @@ def _domestication_view(request, kind):
                                            'pcrs': pcr,
                                            'seq': str(seq.seq),
                                            'seq_name': seq.name,
+                                           'enzymes': enzymes,
                                            'with_intron': with_intron_str},
                                       context_instance=RequestContext(request))
             elif kind == 'synthesis':
@@ -145,6 +148,7 @@ def _domestication_view(request, kind):
                                            'seq_syn': seq_for_syn,
                                            'seq': str(seq.seq),
                                            'seq_name': prepared_seq.name,
+                                           'enzymes': enzymes,
                                            'with_intron': with_intron_str},
                                       context_instance=RequestContext(request))
     else:
@@ -158,8 +162,8 @@ def _domestication_view(request, kind):
 
 
 def synthesis_view_genbank(request):
-    def function(seq, category, prefix, suffix, with_intron):
-        seq = domesticate_for_synthesis(seq, category, prefix, suffix,
+    def function(seq, category, prefix, suffix, enzymes, with_intron):
+        seq = domesticate_for_synthesis(seq, category, prefix, suffix, enzymes,
                                         with_intron)[1]
         response = HttpResponse(seq.format('genbank'),
                                 content_type='text/plain')
@@ -170,8 +174,9 @@ def synthesis_view_genbank(request):
 
 
 def domestication_view_genbank(request):
-    def function(seq, category, prefix, suffix, with_intron):
-        seq = domesticate(seq, category, prefix, suffix, with_intron)[1]
+    def function(seq, category, prefix, suffix, enzymes, with_intron):
+        seq = domesticate(seq, category, prefix, suffix, enzymes,
+                          with_intron)[1]
         response = HttpResponse(seq.format('genbank'),
                                 content_type='text/plain')
         response['Content-Disposition'] = 'attachment; '
@@ -357,8 +362,8 @@ def crispr_view_protocol(request):
 
 
 def synthesis_view_protocol(request):
-    def function(seq, category, prefix, suffix, with_intron):
-        seq = domesticate_for_synthesis(seq, category, prefix, suffix,
+    def function(seq, category, prefix, suffix, enzymes, with_intron):
+        seq = domesticate_for_synthesis(seq, category, prefix, suffix, enzymes,
                                         with_intron)[0]
         protocol = write_synthesis_protocol(seq)
         response = HttpResponse(protocol, content_type='text/plain')
@@ -369,8 +374,9 @@ def synthesis_view_protocol(request):
 
 
 def domestication_view_protocol(request):
-    def function(seq, category, prefix, suffix, with_intron):
-        pcrs, seq = domesticate(seq, category, prefix, suffix, with_intron)
+    def function(seq, category, prefix, suffix, enzymes, with_intron):
+        pcrs, seq = domesticate(seq, category, prefix, suffix, enzymes,
+                                with_intron)
         protocol = write_domestication_protocol(pcrs)
         response = HttpResponse(protocol, content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
@@ -390,8 +396,9 @@ def _domestication_view_no_template(request, function):
     category = request_data['category']
     prefix = request_data['prefix']
     suffix = request_data['suffix']
+    enzymes = json.loads(request_data['enzymes'])
     with_intron = request_data['with_intron']
     with_intron = bool(int(with_intron))
     seq_name = request_data['seq_name']
     seq = SeqRecord(Seq(seq), id=seq_name, name=seq_name)
-    return function(seq, category, prefix, suffix, with_intron)
+    return function(seq, category, prefix, suffix, enzymes, with_intron)

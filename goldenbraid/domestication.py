@@ -398,7 +398,6 @@ def _remove_rec_sites(seq, enzymes=None):
     if enzymes is None:
         enzymes = MANDATORY_DOMEST_ENZYMES
     rec_sites = get_ret_sites(enzymes)
-    print enzymes, rec_sites
     # regex with the sites to domesticate
     rec_sites_regex = '(' + '|'.join(rec_sites) + ')'
     rec_sites_regex = re.compile(rec_sites_regex, flags=re.IGNORECASE)

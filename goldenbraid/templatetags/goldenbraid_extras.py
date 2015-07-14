@@ -6,6 +6,10 @@ from django.utils.html import conditional_escape
 from django.template.defaultfilters import stringfilter
 from django.utils.encoding import force_unicode
 from django.utils.functional import allow_lazy
+from django.core.serializers import serialize
+from django.db.models.query import QuerySet
+import json
+
 
 register = template.Library()
 
@@ -81,3 +85,11 @@ def not_first_item(value, separator):
     """
     return ' '.join(value.split(separator, 1)[1:])
 register.filter('not_first_item', not_first_item, is_safe=True)
+
+
+def jsonify(item):
+    if isinstance(item, QuerySet):
+        return serialize('json', item)
+    return json.dumps(item)
+
+register.filter('jsonify', jsonify)
