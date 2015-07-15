@@ -48,7 +48,7 @@ class DomesticationForm(forms.Form):
     enzyme_choices = [(enzy, enzy)for enzy in MANDATORY_DOMEST_ENZYMES]
     enzyme_choices += [(enzy, enzy)for enzy in OPTIONAL_DOMEST_ENZYMES]
 
-    enzymes = forms.MultipleChoiceField(widget=forms.SelectMultiple,
+    enzymes = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
                                         choices=enzyme_choices,
                                         label='Enzymes', required=False,
                                         initial=MANDATORY_DOMEST_ENZYMES)
