@@ -107,7 +107,6 @@ def _domestication_view(request, kind):
                 seq = form.cleaned_data['residues']
             category = form.cleaned_data.get('category', None)
             enzymes = form.cleaned_data.get('enzymes', None)
-            print enzymes
             if category is None:
                 prefix = form.cleaned_data.get('prefix')
                 suffix = form.cleaned_data.get('suffix')
@@ -140,6 +139,7 @@ def _domestication_view(request, kind):
                                                                       category,
                                                                       prefix,
                                                                       suffix,
+                                                                      enzymes,
                                                                       with_intron)
                 return render_to_response('synthesis_result.html',
                                           {'category': category,
