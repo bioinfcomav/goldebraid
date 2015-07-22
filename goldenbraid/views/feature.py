@@ -39,13 +39,15 @@ from goldenbraid.models import (Cvterm, Feature, Db, Dbxref, Featureprop,
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
-                              RESISTANCE_TYPE_NAME, DERIVES_FROM)
+                              RESISTANCE_TYPE_NAME, DERIVES_FROM,
+    OTHER_TYPE_NAME)
 
 from goldenbraid.forms.feature import (FeatureForm, FeatureManagementForm,
                                        get_all_vectors_as_choices, VectorForm,
                                        SearchFeatureForm,
                                        SPECIAL_SEARCH_CATEGORIES)
 from goldenbraid.utils import get_prefix_and_suffix_index
+from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES
 
 
 def get_prefix_and_suffix(seq, enzyme):
@@ -181,7 +183,11 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                 prefix, suffix = get_prefix_and_suffix(residues, enzyme)
                 if prefix is None or suffix is None:
                     raise RuntimeError('The given vector is not compatible with this part')
-
+            if not _check_category(type_.name, prefix, suffix):
+                msg = 'It looks like yout construct does not match any of the '
+                msg += 'standar GBCloning categories. You should uso Other '
+                msg += 'category for this piece'
+                raise RuntimeError(msg)
             feature.prefix = prefix.upper()
             feature.suffix = suffix.upper()
             feature.save()
@@ -192,6 +198,19 @@ def add_feature(name, type_name, vector, genbank, props, owner,
         # transaction.rollback()
         raise
     return feature
+
+
+def _check_category(type_name, prefix, suffix):
+    if type_name == OTHER_TYPE_NAME:
+        return True
+
+    for values in CATEGORIES.values():
+        if values == (type_name, prefix, suffix):
+            return True
+    for values in CATEGORIES.values():
+        if values == (type_name, prefix, suffix):
+            return True
+    return False
 
 
 def add_vector_from_form(form_data, user):
