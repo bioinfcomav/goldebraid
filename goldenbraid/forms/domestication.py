@@ -88,11 +88,7 @@ class DomesticationForm(forms.Form):
                     msg = 'The provided seq must be multiple of three in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-            if category in ('goi (B2-B3)'):
-                if len(seq) > 500:
-                    msg = 'The provided seq must have less than 500 nucleotides in'
-                    msg += 'order to use as choosen category'
-                    raise ValidationError(msg)
+
             if category in (CDS1_CDS2, NTAG, CDS1):
                 if _seq_has_codon_end(seq.seq, with_intron):
                     msg = 'The provided seq must not end with a stop codon in '
