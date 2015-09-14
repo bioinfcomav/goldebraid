@@ -211,8 +211,9 @@ class Feature(models.Model):
         'It returns the enzyme out of the feature'
         if self.type.name == VECTOR_TYPE_NAME:
             return self.props[ENZYME_OUT_TYPE_NAME]
-        else:
+        elif self.vector:
             return self.vector.enzyme_out
+
 
     @property
     def resistance(self):
@@ -338,12 +339,12 @@ class Feature(models.Model):
     @property
     def gb_category(self):
         if self.level != LEVEL_0 or self.type.name == VECTOR_TYPE_NAME:
-            return None
+            print "hola"
+            return self.type.name
         type_ = self.type.name
         prefix = self.prefix
         suffix = self.suffix
-        if type_ == OTHER_TYPE_NAME:
-            return OTHER_TYPE_NAME
+
         for category, values in CATEGORIES.items():
             if values == (type_, prefix, suffix):
                 return category.strip()
