@@ -332,7 +332,7 @@ class Feature(models.Model):
 
             # TODO: maybe we should look only to the part seq. not with the vector
             return not has_rec_sites(seq, enzymes=('BpiI', 'BsaI'))
-        else 
+        else:
             return False
 
     @property

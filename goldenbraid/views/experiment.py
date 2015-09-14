@@ -119,9 +119,10 @@ def experiment_view(request, uniquename):
                 return HttpResponseBadRequest()
 
 
-def _add_experiment(form, numeric_formset, text_formset, image_formset,
-                    excel_formset, feat_formset, subfeat_form,
-                    generic_file_formset, user, is_public=False):
+def _add_experiment(form, user, feat_formset, subfeat_form,
+                    numeric_formset=None, text_formset=None,
+                    image_formset=None, excel_formset=None,
+                    generic_file_formset=None, is_public=False):
     try:
         with transaction.atomic():
             experiment = form.save(commit=False)
@@ -172,38 +173,40 @@ def _add_experiment(form, numeric_formset, text_formset, image_formset,
                 if feat:
                     ExperimentSubFeature.objects.create(experiment=experiment,
                                                         feature=feat)
+            if numeric_formset is not None:
+                for numeric_prop in numeric_formset.cleaned_data:
+                    if not numeric_prop:
+                        continue
+                    type_ = numeric_prop['type']
+                    value = numeric_prop['value']
+                    ExperimentPropNumeric.objects.create(experiment=experiment,
+                                                         type=type_,
+                                                         value=value)
+            if text_formset is not None:
+                text_props = text_formset.save(commit=False)
+                for text_prop in text_props:
+                    text_prop.experiment = experiment
+                    text_prop.save()
+            if image_formset is not None:
+                image_props = image_formset.save(commit=False)
+                for image_prop in image_props:
+                    image_prop.experiment = experiment
+                    image_prop.save()
 
-            for numeric_prop in numeric_formset.cleaned_data:
-                if not numeric_prop:
-                    continue
-                type_ = numeric_prop['type']
-                value = numeric_prop['value']
-                ExperimentPropNumeric.objects.create(experiment=experiment,
-                                                     type=type_, value=value)
-
-            text_props = text_formset.save(commit=False)
-            for text_prop in text_props:
-                text_prop.experiment = experiment
-                text_prop.save()
-
-            image_props = image_formset.save(commit=False)
-            for image_prop in image_props:
-                image_prop.experiment = experiment
-                image_prop.save()
-
-            generic_file_props = generic_file_formset.save(commit=False)
-            for generic_file_prop in generic_file_props:
-                generic_file_prop.experiment = experiment
-                generic_file_prop.save()
-
-            for excel_formdata in excel_formset.cleaned_data:
-                if not excel_formdata:
-                    continue
-                description = excel_formdata['description']
-                excel_file = excel_formdata['excel']
-                ExperimentPropExcel.objects.create(experiment=experiment,
-                                                   description=description,
-                                                   excel=excel_file)
+            if generic_file_formset is not None:
+                generic_file_props = generic_file_formset.save(commit=False)
+                for generic_file_prop in generic_file_props:
+                    generic_file_prop.experiment = experiment
+                    generic_file_prop.save()
+            if excel_formset is not None:
+                for excel_formdata in excel_formset.cleaned_data:
+                    if not excel_formdata:
+                        continue
+                    description = excel_formdata['description']
+                    excel_file = excel_formdata['excel']
+                    ExperimentPropExcel.objects.create(experiment=experiment,
+                                                       description=description,
+                                                       excel=excel_file)
 
     except (IntegrityError, RuntimeError):
         transaction.rollback()
@@ -212,7 +215,69 @@ def _add_experiment(form, numeric_formset, text_formset, image_formset,
 
 
 @login_required
-def add_experiment_view(request):
+def add_experiment_view(request, exp_type=None):
+    if exp_type is None:
+        return _add_experiment_free(request)
+    elif exp_type == 'luciferasa':
+        return _add_experiment_luciferasa(request)
+
+
+@login_required
+def _add_experiment_luciferasa(request):
+    context = RequestContext(request)
+    context.update(csrf(request))
+
+    request_data = request.POST if request.method == 'POST' else None
+    FeatFormset = formset_factory(ExperimentFeatureForm)
+    NumericFormset = formset_factory(ExperimentNumForm, extra=3)
+
+    if request_data:
+        form = ExperimentForm(request_data, instance=Experiment())
+        feat_formset = FeatFormset(request_data, prefix='feature')
+        subfeat_form = ExperimentSubFeatureForm(request_data)
+        numeric_formset = NumericFormset(request_data, prefix='numeric')
+        if (form.is_valid() and feat_formset.is_valid() and
+                subfeat_form.is_valid() and numeric_formset.is_valid()):
+            try:
+                experiment = _add_experiment(form=form,
+                                             feat_formset=feat_formset,
+                                             subfeat_form=subfeat_form,
+                                             user=request.user,
+                                             numeric_formset=numeric_formset)
+                print "valid"
+            except IntegrityError as error:
+                print error
+                raise
+            except RuntimeError as error:
+                msg = 'This user is not entitled to add this experiment'
+                msg += ' as it is'
+                return HttpResponseForbidden(msg)
+            return redirect(experiment.url)
+        else:
+            print numeric_formset.errors
+            print "no valid"
+
+    else:
+        form = ExperimentForm(instance=Experiment())
+        get_request_data = request.GET if request.method == 'GET' else None
+        if get_request_data:
+            initial = [{'feature': get_request_data.get('feature')}]
+        else:
+            initial = None
+        feat_formset = FeatFormset(initial=initial, prefix='feature')
+        subfeat_form = ExperimentSubFeatureForm()
+        numeric_formset = NumericFormset(prefix='numeric')
+
+    context['form'] = form
+    context['feature_formset'] = feat_formset
+    context['subfeat_form'] = subfeat_form
+    context['numeric_formset'] = numeric_formset
+    template = 'experiment_add_luciferasa.html'
+    return render_to_response(template, context)
+
+
+@login_required
+def _add_experiment_free(request):
     'The add feature view'
     context = RequestContext(request)
     context.update(csrf(request))
