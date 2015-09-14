@@ -7,10 +7,10 @@
 {% block content %}
 {% load gb_genome_domestication_extras %}
 {% if blast %}
-<div id='main'>
 <div class='blast'>
-    <h3>Blast result</h3>
-    <p>Database: {{ blast.database }}</p>
+    <h1>Blast result</h1>
+    <h2>Database: {{ blast.database }}</h2>
+    <p></p>
 
     {% if blast.query_url %}
       <p>Query:
@@ -22,18 +22,19 @@
     </p>
     {% endif %}
 
-    <h4>Descriptions</h4>
+    <h2>Descriptions</h2>
     {% if blast.descriptions %}
         <table>
-        <tr><td>Subject</td>
-        	<td>Score</td>
-        	<td>evalue</td>
-        	<td>Num of restriction sites</td>
-        	<td>Species</td>
-        </tr>
+<thead>
+        <tr><th>Subject</th>
+        	<th>Score</th>
+        	<th>evalue</th>
+        	<th>Num of restriction sites</th>
+        	<th>Species</th>
+        </tr></thead><tbody>
         {% for des in blast.descriptions %}
             <tr>
-                <td>
+                <td class="left">
                 {% if des.subject.url %}
                   <a href='{{ des.subject.url }}'target="_blank">{{ des.subject.name }}</a>
                 {% else %}
@@ -45,15 +46,16 @@
                 <td>{{ des.score }}</td>
                 <td><a href = #{{ des.subject.name }}>{{ des.evalue }}</a></td>
                 <td>{{ des.subject.name|rec_sites}}</td>
-                <td>{{ des.subject.name|species}}</td>
+                <td class="left">{{ des.subject.name|species}}</td>
             </tr>
         {% endfor %}
+</tbody>
         </table>
     {% else %}
         <p>No hits found</p>
     {% endif %}
     {% if blast.alignments %}
-        <h4>Aligments</h4>
+        <h2>Alignments</h2>
       {% for ali in blast.alignments %}
         {% if ali.subject.url %}
       <pre>><a name='{{ ali.subject.name }}' href='{{ ali.subject.url }}' target="_blank">{{ ali.subject.name }}</a> {{ ali.subject.description }}
@@ -67,9 +69,6 @@
     {% endif %}
 </div>
 {% else %}
-    <div id='main'>
         <h3>The page will be reloaded in {{ wait }} seconds</h3>
-    </div>
 {% endif %}
-</div>
 {% endblock content%}
