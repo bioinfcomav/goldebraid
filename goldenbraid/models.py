@@ -25,12 +25,13 @@ from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
                               FORWARD, REVERSE, DERIVES_FROM, OTHER_TYPE_NAME,
-			      TARGET_DICOT, TARGET_MONOCOT)
+                              TARGET_DICOT, TARGET_MONOCOT)
 from goldenbraid.excel import plot_from_excel
 from django.core.files.temp import NamedTemporaryFile
 from django.core.urlresolvers import reverse
 from goldenbraid.settings import (DOMESTICATION_VECTORS_IN_GB, CATEGORIES,
-                                  SBOL_IMAGES, CRYSPER_CATEGORIES)
+                                  SBOL_IMAGES, CRYSPER_CATEGORIES,
+                                  MOCLO_INCOMPATIBLE_RESISTANCES)
 from goldenbraid.utils import has_rec_sites, get_prefix_and_suffix_index
 
 LEVEL_0 = '0'
@@ -256,8 +257,8 @@ class Feature(models.Model):
 
     @property
     def level(self):
-	if self.type.name in (TARGET_DICOT, TARGET_MONOCOT):
-	    return LEVEL_0
+        if self.type.name in (TARGET_DICOT, TARGET_MONOCOT):
+            return LEVEL_0
         if not self.vector:
             return None
         vector_name = self.vector.name
@@ -267,7 +268,7 @@ class Feature(models.Model):
             return LEVEL_1ALPHA
         elif 'omega' in vector_name:
             return LEVEL_1_OMEGA
-	
+
     def _get_sbol_image(self, direction=FORWARD):
         if self.level == LEVEL_0:
             if direction == FORWARD:
@@ -323,14 +324,16 @@ class Feature(models.Model):
     def moclo_compatible(self):
         if not self.level or self.level != LEVEL_0 or self.type.name in (TARGET_DICOT, TARGET_MONOCOT):
             return 'not_evaluable'
-        enzyme = self.enzyme_out[0]
-        residues = self.residues
-        pref_idx, suf_idx = get_prefix_and_suffix_index(residues, enzyme)[:2]
+        if self.vector.resistance not in (MOCLO_INCOMPATIBLE_RESISTANCES):
+            enzyme = self.enzyme_out[0]
+            residues = self.residues
+            pref_idx, suf_idx = get_prefix_and_suffix_index(residues, enzyme)[:2]
+            seq = residues[pref_idx:suf_idx + len(self.suffix)]
 
-        seq = residues[pref_idx:suf_idx + len(self.suffix)]
-
-        # TODO: maybe we should look only to the part seq. not with the vector
-        return not has_rec_sites(seq, enzymes=('BpiI', 'BsaI'))
+            # TODO: maybe we should look only to the part seq. not with the vector
+            return not has_rec_sites(seq, enzymes=('BpiI', 'BsaI'))
+        else 
+            return False
 
     @property
     def gb_category(self):
@@ -344,7 +347,7 @@ class Feature(models.Model):
         for category, values in CATEGORIES.items():
             if values == (type_, prefix, suffix):
                 return category.strip()
-	for category, values in CRYSPER_CATEGORIES.items():
+        for category, values in CRYSPER_CATEGORIES.items():
             if values == (type_, prefix, suffix):
                 return category.strip()
 

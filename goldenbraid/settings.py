@@ -144,6 +144,7 @@ DOMESTICATED_VECTOR = 'pUPD2'
 DOMEST_VECTOR_PREFIX = 'CTCG'
 DOMEST_VECTOR_SUFFIX = 'CTCA'
 
+MOCLO_INCOMPATIBLE_RESISTANCES = ('Ampicillin', 'AmpR')
 # PUPD_PREFIX = 'CTCG'
 
 # added to create all oligos in domesticator
