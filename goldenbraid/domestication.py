@@ -23,7 +23,8 @@ from Bio.SeqRecord import SeqRecord
 
 from goldenbraid.settings import (DOMESTICATION_DEFAULT_MELTING_TEMP,
                                   DOMESTICATION_MIN_OLIGO_LENGTH,
-                                  PUPD_PREFIX,
+                                  DOMEST_VECTOR_PREFIX,
+                                  DOMEST_VECTOR_SUFFIX,
                                   OLIGO_UNIVERSAL, DOMESTICATED_SEQ,
                                   MINIMUN_PCR_LENGTH, CRYSPER_SEQ,
                                   DOMESTICATED_VECTOR,
@@ -343,10 +344,10 @@ def _add_tags_to_pcrproducts(pcr_products, prefix, suffix, kind):
     for index, pcr_product in enumerate(pcr_products):
         pcr_tag = OLIGO_UNIVERSAL
         if index == 0:
-            pcr_tag += PUPD_PREFIX + prefix
+            pcr_tag += DOMEST_VECTOR_PREFIX + prefix
         pcr_tag += pcr_product
         if index + 1 == len_pcr:
-            pcr_tag += suffix + str(Seq(PUPD_PREFIX).reverse_complement())
+            pcr_tag += suffix + str(Seq(DOMEST_VECTOR_SUFFIX).reverse_complement())
 
         pcr_tag += str(Seq(OLIGO_UNIVERSAL).reverse_complement())
         pcr_products_with_tags.append(pcr_tag.upper())
@@ -362,11 +363,11 @@ def _add_tags_to_oligos(oligos, prefix, suffix, kind):
     for index, oligo_pair in enumerate(oligos):
         oligo_tag5 = OLIGO_UNIVERSAL
         if index == 0:
-            oligo_tag5 += PUPD_PREFIX + prefix
+            oligo_tag5 += DOMEST_VECTOR_PREFIX + prefix
         oligo_tag5 += oligo_pair[0]
         oligo_tag3 = OLIGO_UNIVERSAL
         if index + 1 == len_oligos:
-            oligo_tag3 += PUPD_PREFIX + suffix
+            oligo_tag3 += DOMEST_VECTOR_SUFFIX + suffix
         oligo_tag3 += oligo_pair[1]
         oligos_with_tags.append((oligo_tag5.upper(), oligo_tag3.upper()))
     return oligos_with_tags
