@@ -40,7 +40,7 @@ from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, DERIVES_FROM,
-    OTHER_TYPE_NAME)
+                              OTHER_TYPE_NAME)
 
 from goldenbraid.forms.feature import (FeatureForm, FeatureManagementForm,
                                        get_all_vectors_as_choices, VectorForm,
