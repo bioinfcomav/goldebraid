@@ -2,7 +2,7 @@
 {% load goldenbraid_extras %}
 {% block title %}Feature search {% endblock title %}
 {% block content %}
-{% if not search_criteria %}
+{% if not features_page.paginator.count and not search_criteria %}
 <h1>Search Database<img src='{{STATIC_URL}}style/images/lupa.png' alt="search" style="margin:0 0 -10px 4px;"/></h1>
 <div id='searchmenu'>
 <ul>
