@@ -6,7 +6,7 @@ from django.forms.widgets import Select
 from django.core.exceptions import ValidationError
 
 from goldenbraid.models import Feature, Cvterm
-from goldenbraid.settings import CATEGORIES
+from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES
 
 from goldenbraid.tags import (TU_TYPE_NAME, MODULE_TYPE_NAME, OTHER_TYPE_NAME,
                               VECTOR_TYPE_NAME)
@@ -70,6 +70,9 @@ def _get_category_name(category):
     if category[0] in SPECIAL_SEARCH_CATEGORIES:
         return category[0]
     for name, category_def in CATEGORIES.items():
+        if category == category_def:
+            return name
+    for name, category_def in CRYSPER_CATEGORIES.items():
         if category == category_def:
             return name
     return '{0}: {1}'.format(category[0], ','.join(category))
