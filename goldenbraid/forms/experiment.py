@@ -6,13 +6,14 @@ from django.forms.models import ModelForm
 from goldenbraid.models import (Cvterm, Feature, Experiment,
                                 ExperimentPropNumeric, ExperimentPropText, Cv,
                                 ExperimentPropImage, ExperimentPropExcel,
-    ExperimentPropGenericFile)
+                                ExperimentPropGenericFile)
 from goldenbraid.tags import (EXPERIMENT_TYPES, NUMERIC_TYPES)
 from goldenbraid.forms.widgets import (AutocompleteTextInput,
                                        DinamicSelectMultiple)
 from django.forms.widgets import Select
 from goldenbraid.excel import parse_xlsx
 from zipfile import BadZipfile
+from django.forms.formsets import BaseFormSet
 
 
 class ExperimentForm(ModelForm):
@@ -47,6 +48,7 @@ class ExperimentNumForm(ModelForm):
         for cvterm in Cvterm.objects.filter(cv=cv):
             exp_type_choices.append((cvterm.cvterm_id, cvterm.name))
         self.fields['type'] = forms.ChoiceField(choices=exp_type_choices)
+        self.fields['value'].required = False
 
     class Meta:
         model = ExperimentPropNumeric
@@ -129,10 +131,18 @@ class ExperimentImageForm(ModelForm):
         exclude = ['experiment']
 
 
-class ExperimentGenericFileForm(ModelForm):
-    class Meta:
-        model = ExperimentPropGenericFile
-        exclude = ['experiment']
+class ExperimentGenericFileForm(forms.Form):
+    description = forms.CharField(max_length=100)
+    file = forms.FileField(required=False)
+
+    def clean(self):
+        cleaned_data = super(ExperimentGenericFileForm, self).clean()
+        description = cleaned_data.get('description', None)
+        file_ = cleaned_data.get('file', None)
+
+        if description == 'protocol' and file_ is None:
+            print 'hola'
+            self.cleaned_data['description'] = None
 
 
 class ExperimentExcelForm(forms.Form):

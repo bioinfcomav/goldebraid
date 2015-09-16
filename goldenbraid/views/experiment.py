@@ -33,14 +33,17 @@ from goldenbraid.forms.experiment import (ExperimentForm, ExperimentNumForm,
                                           ExperimentSubFeatureForm,
                                           ExperimentSearchForm,
                                           ExperimentExcelForm,
-                                          ExperimentManagementForm)
+                                          ExperimentManagementForm,
+    ExperimentGenericFileForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
                                 Feature, ExperimentFeature,
                                 ExperimentPropImage, ExperimentSubFeature,
-                                ExperimentPropExcel, ExperimentPropGenericFile)
+                                ExperimentPropExcel, ExperimentPropGenericFile,
+                                Cvterm)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
-from goldenbraid.tags import GOLDEN_DB
+from goldenbraid.tags import GOLDEN_DB, EXPERIMENT_TYPES, NUMERIC_TYPES
+from sphinx.addnodes import desc
 
 
 def experiment_view(request, uniquename):
@@ -183,7 +186,9 @@ def _add_experiment(form, user, feat_formset, subfeat_form,
                                                          type=type_,
                                                          value=value)
             if text_formset is not None:
+
                 text_props = text_formset.save(commit=False)
+                print text_props
                 for text_prop in text_props:
                     text_prop.experiment = experiment
                     text_prop.save()
@@ -194,10 +199,15 @@ def _add_experiment(form, user, feat_formset, subfeat_form,
                     image_prop.save()
 
             if generic_file_formset is not None:
-                generic_file_props = generic_file_formset.save(commit=False)
-                for generic_file_prop in generic_file_props:
-                    generic_file_prop.experiment = experiment
-                    generic_file_prop.save()
+                for generic_file_props in generic_file_formset.cleaned_data:
+                    desc = generic_file_props['description']
+                    file_ = generic_file_props['file']
+                    if file_ is None and desc is None:
+                        continue
+                    ExperimentPropGenericFile.objects.create(experiment=experiment,
+                                                             description=desc,
+                                                             file=file_)
+
             if excel_formset is not None:
                 for excel_formdata in excel_formset.cleaned_data:
                     if not excel_formdata:
@@ -218,32 +228,56 @@ def _add_experiment(form, user, feat_formset, subfeat_form,
 def add_experiment_view(request, exp_type=None):
     if exp_type is None:
         return _add_experiment_free(request)
-    elif exp_type == 'luciferasa':
-        return _add_experiment_luciferasa(request)
+    elif exp_type == 'SE_001':
+        return _add_experiment_SE_001(request)
 
 
 @login_required
-def _add_experiment_luciferasa(request):
+def _add_experiment_SE_001(request):
+    exp_type_name = 'SE_001'
+    exp_type = Cvterm.objects.get(cv__name=EXPERIMENT_TYPES,
+                                  name=exp_type_name)
     context = RequestContext(request)
     context.update(csrf(request))
 
     request_data = request.POST if request.method == 'POST' else None
     FeatFormset = formset_factory(ExperimentFeatureForm)
-    NumericFormset = formset_factory(ExperimentNumForm, extra=3)
+    NumericFormset = formset_factory(ExperimentNumForm, extra=8)
+    ImageFormset = modelformset_factory(ExperimentPropImage,
+                                        exclude=('experiment',))
+    GenericFileFormset = formset_factory(ExperimentGenericFileForm)
+    TextFormset = modelformset_factory(ExperimentPropText,
+                                       exclude=('experiment',))
+    ExcelFormset = formset_factory(ExperimentExcelForm)
 
     if request_data:
         form = ExperimentForm(request_data, instance=Experiment())
         feat_formset = FeatFormset(request_data, prefix='feature')
         subfeat_form = ExperimentSubFeatureForm(request_data)
         numeric_formset = NumericFormset(request_data, prefix='numeric')
+        generic_file_formset = GenericFileFormset(request_data, request.FILES,
+                                                  prefix='generic_file')
+        image_formset = ImageFormset(request_data, request.FILES,
+                                     prefix='image')
+        text_formset = TextFormset(request_data, prefix='text')
+        excel_formset = ExcelFormset(request_data, request.FILES,
+                                     prefix='excel')
         if (form.is_valid() and feat_formset.is_valid() and
-                subfeat_form.is_valid() and numeric_formset.is_valid()):
+            subfeat_form.is_valid() and numeric_formset.is_valid() and
+            image_formset.is_valid() and text_formset.is_valid() and
+                generic_file_formset.is_valid() and excel_formset.is_valid()):
+            print text_formset
             try:
                 experiment = _add_experiment(form=form,
                                              feat_formset=feat_formset,
                                              subfeat_form=subfeat_form,
                                              user=request.user,
-                                             numeric_formset=numeric_formset)
+                                             numeric_formset=numeric_formset,
+                                             image_formset=image_formset,
+                                             text_formset=text_formset,
+                                             generic_file_formset=generic_file_formset,
+                                             excel_formset=excel_formset
+                                             )
                 print "valid"
             except IntegrityError as error:
                 print error
@@ -267,12 +301,27 @@ def _add_experiment_luciferasa(request):
         feat_formset = FeatFormset(initial=initial, prefix='feature')
         subfeat_form = ExperimentSubFeatureForm()
         numeric_formset = NumericFormset(prefix='numeric')
+        generic_file_formset = GenericFileFormset(prefix='generic_file')
+        none_image_query = ExperimentPropImage.objects.none()
+        image_formset = ImageFormset(prefix='image', queryset=none_image_query)
+        text_formset = TextFormset(prefix='text',
+                                   queryset=ExperimentPropText.objects.none())
+        excel_formset = ExcelFormset(prefix='excel')
 
     context['form'] = form
     context['feature_formset'] = feat_formset
     context['subfeat_form'] = subfeat_form
     context['numeric_formset'] = numeric_formset
-    template = 'experiment_add_luciferasa.html'
+    context['generic_file_formset'] = generic_file_formset
+    context['image_formset'] = image_formset
+    context['text_formset'] = text_formset
+    context['excel_formset'] = excel_formset
+    context['exp_cv_type'] = exp_type
+    context['plant_species'] = 'Nicotiana bentamiana'
+    context['chassis'] = "Agroinfiltrated leaves"
+    context['quantitative_outputs'] = Cvterm.objects.filter(cv__name=NUMERIC_TYPES,
+                                                            name__icontains='Normalized Fluc/Rluc')
+    template = 'experiment_add_{}.html'.format(exp_type_name)
     return render_to_response(template, context)
 
 

@@ -93,3 +93,11 @@ def jsonify(item):
     return json.dumps(item)
 
 register.filter('jsonify', jsonify)
+
+
+def zip_lists(a, b):
+    return zip(a, b)
+
+register.filter('zip', zip_lists, is_safe=True)
+
+

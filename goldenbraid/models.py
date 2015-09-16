@@ -214,7 +214,6 @@ class Feature(models.Model):
         elif self.vector:
             return self.vector.enzyme_out
 
-
     @property
     def resistance(self):
         'It returns the resistance of the feature'
@@ -556,7 +555,7 @@ class Experiment(models.Model):
     @property
     def numeric_props(self):
         prop_dict = {}
-        props = ExperimentPropNumeric.objects.filter(experiment=self)
+        props = ExperimentPropNumeric.objects.filter(experiment=self).order_by('type__name')
         for prop in props:
             type_ = prop.type.name
             value = prop.value
@@ -581,6 +580,7 @@ class Experiment(models.Model):
 
     @property
     def image_props(self):
+        print ExperimentPropImage.objects.filter(experiment=self)
         return [(image_prop.description, image_prop.image)
                 for image_prop in ExperimentPropImage.objects.filter(experiment=self)]
 
@@ -640,7 +640,7 @@ class ExperimentPropNumeric(models.Model):
     experiment_prop_numeric_id = models.AutoField(primary_key=True)
     experiment = models.ForeignKey(Experiment)
     type = models.ForeignKey(Cvterm)
-    value = models.FloatField()
+    value = models.FloatField(null=True)
 
     class Meta:
         db_table = u'experimentpropnumeric'
