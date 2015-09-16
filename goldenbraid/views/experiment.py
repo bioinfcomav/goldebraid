@@ -319,7 +319,7 @@ def _add_experiment_SE_001(request):
     context['plant_species'] = 'Nicotiana bentamiana'
     context['chassis'] = "Agroinfiltrated leaves"
     context['quantitative_outputs'] = Cvterm.objects.filter(cv__name=NUMERIC_TYPES,
-                                                            name__icontains='Normalized Fluc/Rluc')
+                                                            name__icontains='Normalized Fluc/Rluc').order_by('name')
     template = 'experiment_add_{}.html'.format(exp_type_name)
     return render_to_response(template, context)
 
