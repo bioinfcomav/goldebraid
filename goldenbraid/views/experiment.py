@@ -34,7 +34,7 @@ from goldenbraid.forms.experiment import (ExperimentForm, ExperimentNumForm,
                                           ExperimentSearchForm,
                                           ExperimentExcelForm,
                                           ExperimentManagementForm,
-    ExperimentGenericFileForm)
+                                          ExperimentGenericFileForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
                                 Feature, ExperimentFeature,
@@ -43,7 +43,6 @@ from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 Cvterm)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB, EXPERIMENT_TYPES, NUMERIC_TYPES
-from sphinx.addnodes import desc
 
 
 def experiment_view(request, uniquename):
