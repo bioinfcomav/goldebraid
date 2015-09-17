@@ -57,7 +57,7 @@ class ExperimentNumForm(ModelForm):
         super(ExperimentNumForm, self).__init__(*args, **kwargs)
         cv = Cv.objects.get(name=NUMERIC_TYPES)
         exp_type_choices = [('', '')]
-        for cvterm in Cvterm.objects.filter(cv=cv).filter(definition='SE_001'):
+        for cvterm in Cvterm.objects.filter(cv=cv):
             exp_type_choices.append((cvterm.cvterm_id, cvterm.name))
         self.fields['type'] = forms.ChoiceField(choices=exp_type_choices)
         self.fields['value'].required = False
