@@ -40,12 +40,24 @@ class ExperimentForm(ModelForm):
         return cvterm
 
 
+class BaseExperimentNumFormset(BaseFormSet):
+    def clean(self):
+        if any(self.errors):
+            # Don't bother validating the formset unless each form is valid on its own
+            return
+        values = []
+        for form in self.forms:
+            values.append(form.cleaned_data['value'])
+        if all([True if v is None else False for v in values]):
+            raise ValidationError('At least one quantitative value is needed')
+
+
 class ExperimentNumForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(ExperimentNumForm, self).__init__(*args, **kwargs)
         cv = Cv.objects.get(name=NUMERIC_TYPES)
         exp_type_choices = [('', '')]
-        for cvterm in Cvterm.objects.filter(cv=cv):
+        for cvterm in Cvterm.objects.filter(cv=cv).filter(definition='SE_001'):
             exp_type_choices.append((cvterm.cvterm_id, cvterm.name))
         self.fields['type'] = forms.ChoiceField(choices=exp_type_choices)
         self.fields['value'].required = False

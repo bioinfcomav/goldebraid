@@ -34,7 +34,8 @@ from goldenbraid.forms.experiment import (ExperimentForm, ExperimentNumForm,
                                           ExperimentSearchForm,
                                           ExperimentExcelForm,
                                           ExperimentManagementForm,
-                                          ExperimentGenericFileForm)
+                                          ExperimentGenericFileForm,
+                                          BaseExperimentNumFormset)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
                                 Feature, ExperimentFeature,
@@ -257,10 +258,13 @@ def _add_experiment_SE(request, exp_type_name):
                                   name=exp_type_name)
     context = RequestContext(request)
     context.update(csrf(request))
-
+    quantitative_exp_def = settings.get('quantitative_outputs_def', exp_type)
+    quantitative = Cvterm.objects.filter(cv__name=NUMERIC_TYPES,
+                                         definition=quantitative_exp_def)
     request_data = request.POST if request.method == 'POST' else None
     FeatFormset = formset_factory(ExperimentFeatureForm)
-    NumericFormset = formset_factory(ExperimentNumForm, extra=8)
+    NumericFormset = formset_factory(ExperimentNumForm, extra=len(quantitative),
+                                     formset=BaseExperimentNumFormset)
     ImageFormset = modelformset_factory(ExperimentPropImage,
                                         exclude=('experiment',))
     GenericFileFormset = formset_factory(ExperimentGenericFileForm)
@@ -284,7 +288,6 @@ def _add_experiment_SE(request, exp_type_name):
             subfeat_form.is_valid() and numeric_formset.is_valid() and
             image_formset.is_valid() and text_formset.is_valid() and
                 generic_file_formset.is_valid() and excel_formset.is_valid()):
-            print text_formset
             try:
                 experiment = _add_experiment(form=form,
                                              feat_formset=feat_formset,
@@ -306,7 +309,6 @@ def _add_experiment_SE(request, exp_type_name):
                 return HttpResponseForbidden(msg)
             return redirect(experiment.url)
         else:
-            print numeric_formset.errors
             print "no valid"
 
     else:
@@ -338,9 +340,7 @@ def _add_experiment_SE(request, exp_type_name):
     context['exp_cv_type'] = exp_type
     context['plant_species'] = settings['plant_species']
     context['chassis'] = settings['chassis']
-    quantitative_exp_def = settings.get('quantitative_outputs_def', exp_type)
-    quantitative = Cvterm.objects.filter(cv__name=NUMERIC_TYPES,
-                                         definition=quantitative_exp_def)
+
     context['quantitative_outputs'] = quantitative.order_by('name')
     context['excel_mandatory'] = settings['excel_mandatory']
     return render_to_response('experiment_add_standard.html', context)
