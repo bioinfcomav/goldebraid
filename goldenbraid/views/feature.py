@@ -40,7 +40,7 @@ from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, DERIVES_FROM,
-                              OTHER_TYPE_NAME)
+                              OTHER_TYPE_NAME, MODULE_TYPE_NAME, TU_TYPE_NAME)
 
 from goldenbraid.forms.feature import (FeatureForm, FeatureManagementForm,
                                        get_all_vectors_as_choices, VectorForm,
@@ -183,7 +183,8 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                 prefix, suffix = get_prefix_and_suffix(residues, enzyme)
                 if prefix is None or suffix is None:
                     raise RuntimeError('The given vector is not compatible with this part')
-            if not _check_category(type_.name, prefix, suffix):
+
+            if not _check_category(type_.name, prefix, suffix, vector):
                 msg = 'It looks like yout construct does not match any of the '
                 msg += 'standar GBCloning categories. You should uso Other '
                 msg += 'category for this piece'
@@ -200,16 +201,23 @@ def add_feature(name, type_name, vector, genbank, props, owner,
     return feature
 
 
-def _check_category(type_name, prefix, suffix):
+def _check_category(type_name, prefix, suffix, vector):
+    print vector.name, vector.direction
+    print type_name, prefix, suffix
     if type_name in (OTHER_TYPE_NAME, VECTOR_TYPE_NAME):
         return True
 
     for values in CATEGORIES.values():
         if values == (type_name, prefix, suffix):
             return True
-    for values in CATEGORIES.values():
+    for values in CRYSPER_CATEGORIES.values():
         if values == (type_name, prefix, suffix):
             return True
+    if (type_name, prefix, suffix) in ((TU_TYPE_NAME, 'GGAG', 'GTCA'),
+                                       (TU_TYPE_NAME, 'GTCA', 'CGCT'),
+                                       (MODULE_TYPE_NAME, 'GGAG', 'GTCA'),
+                                       (MODULE_TYPE_NAME, 'GTCA', 'CGCT')):
+        return True
     return False
 
 
