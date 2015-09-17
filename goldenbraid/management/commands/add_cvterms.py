@@ -82,7 +82,7 @@ def run_command(fhand, loader_func, mandatory_fields):
             msg = 'Column %s is required, but not found in header' % req_col
             raise RuntimeError(msg)
 
-    with transaction.commit_on_success():
+    with transaction.atomic():
         reader = csv.DictReader(fhand, fieldnames=col_names, dialect=dialect)
         loader_func(reader)
 
