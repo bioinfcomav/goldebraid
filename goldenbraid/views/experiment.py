@@ -45,6 +45,25 @@ from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB, EXPERIMENT_TYPES, NUMERIC_TYPES
 
 
+EXP_SETTINGS = {'SE_001': {'plant_species': 'Nicotiana bentamiana',
+                           'chassis': "Agroinfiltrated leaves",
+                           'excel_mandatory': True},
+                'SE_002': {'plant_species': 'Nicotiana bentamiana',
+                           'chassis': "Agroinfiltrated leaves",
+                           'quantitative_outputs_def': 'SE_001',
+                           'excel_mandatory': True},
+                'SE_003': {'plant_species': 'Solanum lycopersicum',
+                           'chassis': "Cotyledons",
+                           'excel_mandatory': False},
+                'SE_004': {'plant_species': 'Nicotiana bentamiana',
+                           'chassis': "Agroinfiltrated leaves",
+                           'excel_mandatory': False},
+                'SE_005': {'plant_species': 'Nicotiana bentamiana',
+                           'chassis': "Agroinfiltrated leaves",
+                           'excel_mandatory': False}
+                }
+
+
 def experiment_view(request, uniquename):
     'The feature view'
     try:
@@ -227,13 +246,13 @@ def _add_experiment(form, user, feat_formset, subfeat_form,
 def add_experiment_view(request, exp_type=None):
     if exp_type is None:
         return _add_experiment_free(request)
-    elif exp_type == 'SE_001':
-        return _add_experiment_SE_001(request)
+    else:
+        return _add_experiment_SE(request, exp_type)
 
 
 @login_required
-def _add_experiment_SE_001(request):
-    exp_type_name = 'SE_001'
+def _add_experiment_SE(request, exp_type_name):
+    settings = EXP_SETTINGS[exp_type_name]
     exp_type = Cvterm.objects.get(cv__name=EXPERIMENT_TYPES,
                                   name=exp_type_name)
     context = RequestContext(request)
@@ -315,13 +334,16 @@ def _add_experiment_SE_001(request):
     context['image_formset'] = image_formset
     context['text_formset'] = text_formset
     context['excel_formset'] = excel_formset
+
     context['exp_cv_type'] = exp_type
-    context['plant_species'] = 'Nicotiana bentamiana'
-    context['chassis'] = "Agroinfiltrated leaves"
-    context['quantitative_outputs'] = Cvterm.objects.filter(cv__name=NUMERIC_TYPES,
-                                                            name__icontains='Normalized Fluc/Rluc').order_by('name')
-    template = 'experiment_add_{}.html'.format(exp_type_name)
-    return render_to_response(template, context)
+    context['plant_species'] = settings['plant_species']
+    context['chassis'] = settings['chassis']
+    quantitative_exp_def = settings.get('quantitative_outputs_def', exp_type)
+    quantitative = Cvterm.objects.filter(cv__name=NUMERIC_TYPES,
+                                         definition=quantitative_exp_def)
+    context['quantitative_outputs'] = quantitative.order_by('name')
+    context['excel_mandatory'] = settings['excel_mandatory']
+    return render_to_response('experiment_add_standard.html', context)
 
 
 @login_required

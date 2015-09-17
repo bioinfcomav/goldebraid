@@ -147,21 +147,12 @@
 </fieldset>
 {{ text_formset.management_form }}
 
-<fieldset>
-<legend> Excel File</legend>
-<p>You can upload your experimental data using one of the available excel templates: <a href="/files/excel_templates/columns.xlsx" target="blank"><img src="/static/style/images/column.png" alt="Column Plot Template" style="margin: 0 0 -4px 4px;"></a>
-<a href="/files/excel_templates/scatter.xlsx" target="blank"><img src="/static/style/images/scatter.png" alt="Scatter Plot Template" style="margin: 0 0 -4px 4px;"></a></p><br/>
-<table id='id_generic_file_table' border="0" cellpadding="0" cellspacing="0">
-    <tbody>
-      <tr>
-        <input type='hidden' id="id_excel-0-description" maxlength="100" name="excel-0-description" value="Excel file" />
-        <td>Associated excel file: </td>
-        <td>{{excel_formset.forms.0.excel }}{{excel_formset.forms.0.errors}}</td>
-      </tr>
-    </tbody>
-</table>
-</fieldset>
-{{ excel_formset.management_form }}
+{% if excel_mandatory %}
+    {% include 'excel_mandatory.html'%}
+{% else %}
+    {% include 'excel_optional.html'%}
+{% endif %}
+
 <fieldset>
 <legend>Associated images:</legend>
 <table id='id_image_table' border="0" cellpadding="0" cellspacing="0">
