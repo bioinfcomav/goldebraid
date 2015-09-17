@@ -19,11 +19,6 @@
         });
     })
     $(function() {
-        $('#id_numeric_table tbody tr').formset({
-              prefix: '{{ numeric_formset.prefix }}'
-        });
-    })
-    $(function() {
         $('#id_text_table tbody tr').formset({
               prefix: '{{ text_formset.prefix }}'
         });
@@ -90,20 +85,7 @@
 <legend>Key features:</legend>
 {{subfeat_form}}
 </fieldset>
-<fieldset>
-<legend>Numeric information:</legend>
-<table id='id_numeric_table' border="0" cellpadding="0" cellspacing="0">
-    <tbody>
-    {% for numeric_form in numeric_formset %}
-        <tr>
-            <td>{{numeric_form.type}}</td>
-            <td>{{numeric_form.value}}</td>
-        </tr>{{numeric_form.errors}}
-    {% endfor %}
-    </tbody>
-</table>
-{{ numeric_formset.management_form }}
-</fieldset>
+
 <fieldset>
 <legend>Text information:</legend>
 <table id='id_text_table' border="0" cellpadding="0" cellspacing="0">

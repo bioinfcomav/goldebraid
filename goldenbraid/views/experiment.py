@@ -354,7 +354,6 @@ def _add_experiment_free(request):
 
     request_data = request.POST if request.method == 'POST' else None
     FeatFormset = formset_factory(ExperimentFeatureForm)
-    NumericFormset = formset_factory(ExperimentNumForm)
     TextFormset = modelformset_factory(ExperimentPropText,
                                        exclude=('experiment',))
     ImageFormset = modelformset_factory(ExperimentPropImage,
@@ -366,7 +365,6 @@ def _add_experiment_free(request):
         form = ExperimentForm(request_data, instance=Experiment())
         feat_formset = FeatFormset(request_data, prefix='feature')
         subfeat_form = ExperimentSubFeatureForm(request_data)
-        numeric_formset = NumericFormset(request_data, prefix='numeric')
         text_formset = TextFormset(request_data, prefix='text')
         image_formset = ImageFormset(request_data, request.FILES,
                                      prefix='image')
@@ -375,14 +373,12 @@ def _add_experiment_free(request):
         excel_formset = ExcelFormset(request_data, request.FILES,
                                      prefix='excel')
         # print request_data, request.FILES
-        if (form.is_valid() and numeric_formset.is_valid() and
-            text_formset.is_valid() and feat_formset.is_valid() and
-                subfeat_form.is_valid() and excel_formset.is_valid() and
-                generic_file_formset.is_valid()):
+        if (form.is_valid() and text_formset.is_valid() and
+            feat_formset.is_valid() and subfeat_form.is_valid() and
+                excel_formset.is_valid() and generic_file_formset.is_valid()):
             print "valid"
             try:
                 experiment = _add_experiment(form=form,
-                                             numeric_formset=numeric_formset,
                                              text_formset=text_formset,
                                              image_formset=image_formset,
                                              excel_formset=excel_formset,
@@ -411,7 +407,6 @@ def _add_experiment_free(request):
         feat_formset = FeatFormset(initial=initial, prefix='feature')
 #         feat_formset = FeatFormset(prefix='feature')
         subfeat_form = ExperimentSubFeatureForm()
-        numeric_formset = NumericFormset(prefix='numeric')
         text_formset = TextFormset(prefix='text',
                                    queryset=ExperimentPropText.objects.none())
         none_image_query = ExperimentPropImage.objects.none()
@@ -423,13 +418,12 @@ def _add_experiment_free(request):
     context['form'] = form
     context['feature_formset'] = feat_formset
     context['subfeat_form'] = subfeat_form
-    context['numeric_formset'] = numeric_formset
     context['text_formset'] = text_formset
     context['image_formset'] = image_formset
     context['excel_formset'] = excel_formset
     context['generic_file_formset'] = generic_file_formset
 
-    template = 'experiment_add_template.html'
+    template = 'experiment_add_free.html'
     return render_to_response(template, context)
 
 
