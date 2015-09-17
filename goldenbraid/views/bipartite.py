@@ -167,6 +167,6 @@ def bipartite_view_add(request):
             return HttpResponseServerError()
     except Exception as error:
         print error
-        return HttpResponseServerError()
+        return HttpResponseServerError(error)
     # if everithing os fine we show the just added feature
     return redirect(feature.url)
