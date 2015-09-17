@@ -338,7 +338,6 @@ class Feature(models.Model):
     @property
     def gb_category(self):
         if self.level != LEVEL_0 or self.type.name == VECTOR_TYPE_NAME:
-            print "hola"
             return self.type.name
         type_ = self.type.name
         prefix = self.prefix
@@ -502,7 +501,7 @@ class Experiment(models.Model):
     uniquename = models.CharField(max_length=255, unique=True)
     chasis_1 = models.CharField(max_length=255)
     chasis_2 = models.CharField(max_length=255)
-    description = models.TextField(max_length=255)
+    description = models.TextField(max_length=3000)
     type = models.ForeignKey(Cvterm)
     timecreation = models.DateTimeField(auto_now_add=True)
     dbxref = models.ForeignKey(Dbxref)
@@ -650,7 +649,7 @@ class ExperimentPropText(models.Model):
     experiment_prop_text_id = models.AutoField(primary_key=True)
     experiment = models.ForeignKey(Experiment)
     title = models.CharField(max_length=255)
-    value = models.TextField(max_length=255)
+    value = models.TextField(max_length=3000)
 
     class Meta:
         db_table = u'experimentproptext'
