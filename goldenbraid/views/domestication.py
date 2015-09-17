@@ -31,7 +31,8 @@ from django.db.utils import IntegrityError
 
 from goldenbraid.domestication import (domesticate, domesticate_for_synthesis,
                                        domestication_crispr)
-from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES
+from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES, \
+    DOMESTICATED_VECTOR
 
 from goldenbraid.forms.domestication import (DomesticationForm,
                                              DomesticationCrisprForm)
@@ -318,8 +319,8 @@ def domestication_view_add(request):
              'Reference': [request_data['reference']]}
     try:
         feature = add_feature(name=name, type_name=category_name,
-                              vector='pUPD', genbank=temp_fhand, props=props,
-                              owner=request.user, is_public=False)
+                              vector=DOMESTICATED_VECTOR, genbank=temp_fhand,
+                              props=props, owner=request.user, is_public=False)
 
     except IntegrityError as error:
         print error
