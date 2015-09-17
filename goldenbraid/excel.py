@@ -54,7 +54,7 @@ def search_data(ws):
             if (row_start is not None and column_start == cell.column and
                     cell_content is None):
 
-                row_end = cell.row
+                row_end = cell.row - 1
                 if column_start is None or row_start is None:
                     raise RuntimeError('No data found in excel')
                 return (row_start, row_end,

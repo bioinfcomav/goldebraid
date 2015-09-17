@@ -19,7 +19,7 @@ from unittest import main
 
 from goldenbraid.tests.test_models import TEST_DATA
 from goldenbraid.excel import (parse_xlsx, SCATTER, COLUMNS, YVALUES, XLABEL,
-    draw_columns, XVALUES, draw_scatter)
+                               draw_columns, XVALUES, draw_scatter)
 from tempfile import NamedTemporaryFile
 
 
@@ -55,6 +55,9 @@ class TestExcel(TestCase):
         draw_scatter(labels, data, out_fhand)
         # raw_input(out_fhand.name)
 
+    def test_empty_file_excel(self):
+        _, labels, data = parse_xlsx(os.path.join(TEST_DATA, 'empty_file.xlsx'))
+
 if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'TestExcel.test_draw_scatter']
+    # import sys;sys.argv = ['', 'TestExcel.test_empty_file_excel']
     main()
