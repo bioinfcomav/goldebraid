@@ -202,8 +202,6 @@ def add_feature(name, type_name, vector, genbank, props, owner,
 
 
 def _check_category(type_name, prefix, suffix, vector):
-    print vector.name, vector.direction
-    print type_name, prefix, suffix
     if type_name in (OTHER_TYPE_NAME, VECTOR_TYPE_NAME):
         return True
 

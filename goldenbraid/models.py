@@ -220,7 +220,10 @@ class Feature(models.Model):
         if self.type.name == VECTOR_TYPE_NAME:
             return self.props[RESISTANCE_TYPE_NAME]
         else:
-            return self.vector.resistance
+	    if self.type.name in (TARGET_DICOT, TARGET_MONOCOT):
+		return None
+	    else:
+                return self.vector.resistance
 
     @property
     def description(self):
