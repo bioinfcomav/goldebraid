@@ -365,7 +365,6 @@ class Feature(models.Model):
     @property
     def gb_category_name(self):
         gb_category = self.gb_category
-        print ' aaa', gb_category
         if gb_category == OTHER_TYPE_NAME:
             return gb_category
         if gb_category is not None:

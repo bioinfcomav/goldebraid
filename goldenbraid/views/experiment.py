@@ -434,10 +434,6 @@ def _build_experiment_query(criteria, user=None):
         name_criteria = (Q(uniquename__icontains=text) |
                          Q(description__icontains=text))
         query = query.filter(name_criteria)
-    if 'chasis_1' in criteria and criteria['chasis_1']:
-        query = query.filter(chasis_1__icontains=criteria['chasis_1'])
-    if 'chasis_2' in criteria and criteria['chasis_2']:
-        query = query.filter(chasis_2__icontains=criteria['chasis_2'])
     if 'experiment_type' in criteria and criteria['experiment_type']:
         query = query.filter(type_cvterm_id=criteria['experiment_type'])
     if 'feature' in criteria and criteria['feature']:
@@ -445,14 +441,14 @@ def _build_experiment_query(criteria, user=None):
 
     if user.is_staff:
         if 'only_user' in criteria and criteria['only_user']:
-            query = query.filter(experimentperm__owner=user)
+            query = query.filter(experimentperm__owner=user.id)
 
     else:
         if 'only_user' in criteria and criteria['only_user']:
-            query = query.filter(experimentperm__owner=user)
+            query = query.filter(experimentperm__owner=user.id)
         else:
             query = query.filter(Q(experimentperm__is_public=True) |
-                                 Q(experimentperm__owner=user))
+                                 Q(experimentperm__owner=user.id))
 
     query = query.distinct()
     return query
