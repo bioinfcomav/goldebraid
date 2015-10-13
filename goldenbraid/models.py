@@ -220,9 +220,9 @@ class Feature(models.Model):
         if self.type.name == VECTOR_TYPE_NAME:
             return self.props[RESISTANCE_TYPE_NAME]
         else:
-	    if self.type.name in (TARGET_DICOT, TARGET_MONOCOT):
-		return None
-	    else:
+            if self.type.name in (TARGET_DICOT, TARGET_MONOCOT):
+                return None
+            else:
                 return self.vector.resistance
 
     @property
@@ -365,10 +365,15 @@ class Feature(models.Model):
     @property
     def gb_category_name(self):
         gb_category = self.gb_category
+        print ' aaa', gb_category
         if gb_category == OTHER_TYPE_NAME:
             return gb_category
         if gb_category is not None:
-            return ' '.join(gb_category.split(' ')[:-1]).strip()
+            gb_category_split = ' '.join(gb_category.split(' ')[:-1]).strip()
+            if gb_category_split:
+                return gb_category_split
+            else:
+                return gb_category
 
     @property
     def owner(self):
