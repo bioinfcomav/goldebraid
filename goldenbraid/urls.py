@@ -18,7 +18,8 @@ from goldenbraid.views.feature import (add_feature_view, feature_view,
                                        add_vector_view, search_features_view)
 
 from goldenbraid.views.api import(feature_uniquenames, features_children,
-                                  features_key_elements, excel_image)
+                                  features_key_elements, excel_image,
+                                  experiment_keywords)
 
 from goldenbraid.views.multipartite import (multipartite_view,
                                             multipartite_protocol_view,
@@ -140,5 +141,7 @@ urlpatterns = patterns('',
                            features_key_elements,
                            name='api_feature_key_elements'),
                        url('api/excel_graph/(?P<excel_id>.+)?', excel_image,
-                           name='api_excel_image')
+                           name='api_excel_image'),
+                       url('api/exp_keywords/$', experiment_keywords,
+                           name='api_exp_keywords'),
                        )

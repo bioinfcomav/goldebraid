@@ -11,6 +11,14 @@
 
 <script type="text/javascript">
     $(function() {
+        $('#id_keyword_table tbody tr').formset({
+              prefix: '{{ keyword_formset.prefix }}',
+              added: function(row) {
+                            enableAutocomplete(row, "/api/exp_keywords/");
+                     }
+        });
+    })
+    $(function() {
         $('#id_feature_table tbody tr').formset({
               prefix: '{{ feature_formset.prefix }}',
               added: function(row) {
@@ -18,11 +26,7 @@
           }
         });
     })
-//    $(function() {
-//        $('#id_numeric_table tbody tr').formset({
-//              prefix: '{{ numeric_formset.prefix }}'
-//        });
-//    }) 
+
 //    $(function() {
 //        $('#id_text_table tbody tr').formset({
 //              prefix: '{{ text_formset.prefix }}'
@@ -83,6 +87,21 @@
 <input type='hidden' id="id_chasis_2" name="chasis_2" value="{{chassis}}"> 
 
 </fieldset>
+
+<fieldset>
+<legend>Keywords</legend>
+<table id='id_keyword_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+    {% for keyword_form in keyword_formset %}
+        <tr>
+            <td>{{keyword_form.keyword}}</td>
+        </tr>{{keyword_form.errors}}
+    {% endfor %}
+    </tbody>
+</table>
+{{ keyword_formset.management_form }}
+</fieldset>
+
 <fieldset>
 <legend>Parts used in the Experiment:</legend>
 <table id='id_feature_table' border="0" cellpadding="0" cellspacing="0">

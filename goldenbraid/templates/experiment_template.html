@@ -11,6 +11,7 @@
     <p><span class='key'>Chasis 1:</span> <span class='value'>{{ experiment.chasis_1 }}</span></p>
     <p><span class='key'>Chasis 2:</span> <span class='value'>{{ experiment.chasis_2 }}</span></p>
     <p><span class='key'>Description:</span> <span class='value'>{{ experiment.description }}</span></p>
+    <p><span class='key'>Keywords:</span> <span class='value'>{{ experiment.keywords|join:", " }}</span></p>
     {% if experiment.features_used_in_experiment %}
         <h2>Features used in the experiment</h2>
         {% with features=experiment.features_used_in_experiment %}

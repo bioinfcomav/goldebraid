@@ -25,17 +25,19 @@ class AutocompleteTextInput(TextInput):
                        ,)}
 
     def __init__(self, attrs=None, source=None, min_length=3,
-                 result_limit=100):
+                 result_limit=100, force_check=True):
         '''It inits the widget.
 
         A source url for the json list should be given.
         '''
         super(TextInput, self).__init__(attrs)
+        print attrs
         if source is None:
             raise ValueError('A source url should be given')
         self.source = source
         self.min_length = int(min_length)
         self.result_limit = result_limit
+        self.force_check = force_check
 
     def render(self, name, value, attrs=None):
         'It renders the html and the javascript'
@@ -53,7 +55,18 @@ class AutocompleteTextInput(TextInput):
     def render_js(self, field_id):
         'The javascript that does the autocomplete'
 
-        javascript = u'''<script type="text/javascript">
+        javascript_no_force_check = u'''<script type="text/javascript">
+
+$(function() {
+  $("#%(field_id)s").autocomplete({
+    source: "%(source)s",
+    minLength: %(min_length)i,
+  })
+
+});
+</script>
+'''
+        javascript_force_check = u'''<script type="text/javascript">
 $.expr[':'].textEquals = function (a, i, m) {
   return $(a).text().match("^" + m[3] + "$");
 };
@@ -73,6 +86,11 @@ $(function() {
 });
 </script>
 '''
+        if not self.force_check:
+            javascript = javascript_no_force_check
+        else:
+            javascript = javascript_force_check
+
         javascript %= {'field_id': field_id, 'source': self.source,
                        'min_length': self.min_length,
                        'limit': self.result_limit}

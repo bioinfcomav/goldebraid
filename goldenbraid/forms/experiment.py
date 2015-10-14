@@ -172,6 +172,13 @@ class ExperimentExcelForm(forms.Form):
         return excel
 
 
+class ExperimentKeywordForm(forms.Form):
+    keyword = forms.CharField(max_length=50,
+                              widget=AutocompleteTextInput(source='/api/exp_keywords/',
+                                                           min_length=1,
+                                                           force_check=False))
+
+
 class ExperimentSearchForm(forms.Form):
     help_name = 'Accession or description'
     name_or_description = forms.CharField(max_length=100, required=False,

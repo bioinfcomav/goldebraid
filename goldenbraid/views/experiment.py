@@ -35,13 +35,14 @@ from goldenbraid.forms.experiment import (ExperimentForm, ExperimentNumForm,
                                           ExperimentExcelForm,
                                           ExperimentManagementForm,
                                           ExperimentGenericFileForm,
-                                          BaseExperimentNumFormset)
+                                          BaseExperimentNumFormset,
+    ExperimentKeywordForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
                                 Feature, ExperimentFeature,
                                 ExperimentPropImage, ExperimentSubFeature,
                                 ExperimentPropExcel, ExperimentPropGenericFile,
-                                Cvterm)
+                                Cvterm, ExperimentKeyword)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB, EXPERIMENT_TYPES, NUMERIC_TYPES
 
@@ -144,7 +145,8 @@ def experiment_view(request, uniquename):
 def _add_experiment(form, user, feat_formset, subfeat_form,
                     numeric_formset=None, text_formset=None,
                     image_formset=None, excel_formset=None,
-                    generic_file_formset=None, is_public=False):
+                    generic_file_formset=None, keyword_formset=None,
+                    is_public=False):
     try:
         with transaction.atomic():
             experiment = form.save(commit=False)
@@ -186,6 +188,11 @@ def _add_experiment(form, user, feat_formset, subfeat_form,
                         raise RuntimeError(msg)
                     ExperimentFeature.objects.create(experiment=experiment,
                                                      feature=feat)
+            for keyword in keyword_formset.cleaned_data:
+                if not keyword:
+                    continue
+                ExperimentKeyword.objects.create(experiment=experiment,
+                                                 keyword=keyword['keyword'])
 
             for subfeat_uniquename in subfeat_form.cleaned_data['features']:
                 try:
@@ -207,7 +214,6 @@ def _add_experiment(form, user, feat_formset, subfeat_form,
             if text_formset is not None:
 
                 text_props = text_formset.save(commit=False)
-                print text_props
                 for text_prop in text_props:
                     text_prop.experiment = experiment
                     text_prop.save()
@@ -263,7 +269,8 @@ def _add_experiment_SE(request, exp_type_name):
                                          definition=quantitative_exp_def)
     request_data = request.POST if request.method == 'POST' else None
     FeatFormset = formset_factory(ExperimentFeatureForm)
-    NumericFormset = formset_factory(ExperimentNumForm, extra=len(quantitative),
+    NumericFormset = formset_factory(ExperimentNumForm,
+                                     extra=len(quantitative),
                                      formset=BaseExperimentNumFormset)
     ImageFormset = modelformset_factory(ExperimentPropImage,
                                         exclude=('experiment',))
@@ -271,6 +278,7 @@ def _add_experiment_SE(request, exp_type_name):
     TextFormset = modelformset_factory(ExperimentPropText,
                                        exclude=('experiment',))
     ExcelFormset = formset_factory(ExperimentExcelForm)
+    KeywordFormset = formset_factory(ExperimentKeywordForm)
 
     if request_data:
         form = ExperimentForm(request_data, instance=Experiment())
@@ -284,10 +292,13 @@ def _add_experiment_SE(request, exp_type_name):
         text_formset = TextFormset(request_data, prefix='text')
         excel_formset = ExcelFormset(request_data, request.FILES,
                                      prefix='excel')
+        keyword_formset = KeywordFormset(request_data, prefix='keyword')
+
         if (form.is_valid() and feat_formset.is_valid() and
             subfeat_form.is_valid() and numeric_formset.is_valid() and
             image_formset.is_valid() and text_formset.is_valid() and
-                generic_file_formset.is_valid() and excel_formset.is_valid()):
+                generic_file_formset.is_valid() and excel_formset.is_valid()
+                and keyword_formset.is_valid()):
             try:
                 experiment = _add_experiment(form=form,
                                              feat_formset=feat_formset,
@@ -297,7 +308,8 @@ def _add_experiment_SE(request, exp_type_name):
                                              image_formset=image_formset,
                                              text_formset=text_formset,
                                              generic_file_formset=generic_file_formset,
-                                             excel_formset=excel_formset
+                                             excel_formset=excel_formset,
+                                             keyword_formset=keyword_formset
                                              )
                 print "valid"
             except IntegrityError as error:
@@ -327,6 +339,7 @@ def _add_experiment_SE(request, exp_type_name):
         text_formset = TextFormset(prefix='text',
                                    queryset=ExperimentPropText.objects.none())
         excel_formset = ExcelFormset(prefix='excel')
+        keyword_formset = KeywordFormset(prefix='keyword')
 
     context['form'] = form
     context['feature_formset'] = feat_formset
@@ -336,6 +349,7 @@ def _add_experiment_SE(request, exp_type_name):
     context['image_formset'] = image_formset
     context['text_formset'] = text_formset
     context['excel_formset'] = excel_formset
+    context['keyword_formset'] = keyword_formset
 
     context['exp_cv_type'] = exp_type
     context['plant_species'] = settings['plant_species']

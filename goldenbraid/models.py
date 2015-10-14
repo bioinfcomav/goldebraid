@@ -279,7 +279,6 @@ class Feature(models.Model):
             elif direction == REVERSE:
                 return SBOL_IMAGES[REVERSE].get(self.gb_category, None)
             else:
-                print self.type.name
                 raise RuntimeError('Sequence direction must be forw or rev')
 
     @property
@@ -453,8 +452,6 @@ def _parse_children_relations_from_gb(seq):
         match = re.search('\((.+)\)', definition)
         if match:
             return match.group(1).split(',')
-        else:
-            print definition
     else:
         return None
 
@@ -586,7 +583,6 @@ class Experiment(models.Model):
 
     @property
     def image_props(self):
-        print ExperimentPropImage.objects.filter(experiment=self)
         return [(image_prop.description, image_prop.image)
                 for image_prop in ExperimentPropImage.objects.filter(experiment=self)]
 
@@ -611,6 +607,12 @@ class Experiment(models.Model):
     def generic_file_props(self):
         return [(generic_file_prop.description, generic_file_prop.file)
                 for generic_file_prop in ExperimentPropGenericFile.objects.filter(experiment=self)]
+
+    @property
+    def keywords(self):
+        exp_keywords = ExperimentKeyword.objects.filter(experiment=self)
+        keywords = [exp_keyword.keyword for exp_keyword in exp_keywords]
+        return keywords
 
 
 class ExperimentPerm(models.Model):
@@ -702,3 +704,12 @@ class ExperimentPropGenericFile(models.Model):
 
     class Meta:
         db_table = u'experimentpropgenericfile'
+
+
+class ExperimentKeyword(models.Model):
+    experiment_keyword_id = models.AutoField(primary_key=True)
+    experiment = models.ForeignKey(Experiment)
+    keyword = models.CharField(max_length=50)
+
+    class Meta:
+        db_table = u'experimentkeyword'

@@ -8,7 +8,7 @@ from django.http.response import HttpResponse, Http404, HttpResponseForbidden
 from django.contrib.auth.models import User
 from django.db.models import Q
 
-from goldenbraid.models import Feature, ExperimentPropExcel
+from goldenbraid.models import Feature, ExperimentPropExcel, ExperimentKeyword
 
 
 def feature_uniquenames(request):
@@ -83,3 +83,20 @@ def excel_image(request, excel_id):
         return Http404
     image_content, content_type = exp_excel.drawed_image
     return HttpResponse(image_content, content_type=content_type)
+
+
+def experiment_keywords(request):
+    keywords = []
+    query = ExperimentKeyword.objects.all()
+    if request.method == 'GET':
+        if u'limit' in request.GET:
+            try:
+                limit = int(request.GET[u'limit'])
+                query = query[:limit]
+            except ValueError:
+                pass
+    for exp_keywords in query:
+        keyw = exp_keywords.keyword
+        if keyw not in keywords:
+            keywords.append(keyw)
+    return HttpResponse(json.dumps(keywords), content_type='application/json')
