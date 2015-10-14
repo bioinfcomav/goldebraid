@@ -375,6 +375,8 @@ def _add_experiment_free(request):
     GeneriFileFormset = modelformset_factory(ExperimentPropGenericFile,
                                              exclude=('experiment',))
     ExcelFormset = formset_factory(ExperimentExcelForm)
+    KeywordFormset = formset_factory(ExperimentKeywordForm)
+
     if request_data:
         form = ExperimentForm(request_data, instance=Experiment())
         feat_formset = FeatFormset(request_data, prefix='feature')
@@ -386,6 +388,7 @@ def _add_experiment_free(request):
                                                  prefix='generic_file')
         excel_formset = ExcelFormset(request_data, request.FILES,
                                      prefix='excel')
+        keyword_formset = KeywordFormset(request_data, prefix='keyword')
         # print request_data, request.FILES
         if (form.is_valid() and text_formset.is_valid() and
             feat_formset.is_valid() and subfeat_form.is_valid() and
@@ -399,6 +402,7 @@ def _add_experiment_free(request):
                                              feat_formset=feat_formset,
                                              subfeat_form=subfeat_form,
                                              generic_file_formset=generic_file_formset,
+                                             keyword_formset=keyword_formset,
                                              user=request.user)
             except IntegrityError as error:
                 print error
@@ -429,6 +433,7 @@ def _add_experiment_free(request):
         generic_file_formset = GeneriFileFormset(prefix='generic_file',
                                                  queryset=none_genericf_query)
         excel_formset = ExcelFormset(prefix='excel')
+        keyword_formset = KeywordFormset(prefix='keyword')
     context['form'] = form
     context['feature_formset'] = feat_formset
     context['subfeat_form'] = subfeat_form
@@ -436,7 +441,7 @@ def _add_experiment_free(request):
     context['image_formset'] = image_formset
     context['excel_formset'] = excel_formset
     context['generic_file_formset'] = generic_file_formset
-
+    context['keyword_formset'] = keyword_formset
     template = 'experiment_add_free.html'
     return render_to_response(template, context)
 

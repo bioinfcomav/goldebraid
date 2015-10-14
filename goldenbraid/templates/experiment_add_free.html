@@ -10,6 +10,14 @@
 <script src="/static/jquery.formset.js"></script>
 
 <script type="text/javascript">
+   $(function() {
+        $('#id_keyword_table tbody tr').formset({
+              prefix: '{{ keyword_formset.prefix }}',
+              added: function(row) {
+                            enableAutocomplete_nocheck(row, "/api/exp_keywords/");
+                     }
+        });
+    })
     $(function() {
         $('#id_feature_table tbody tr').formset({
               prefix: '{{ feature_formset.prefix }}',
@@ -67,6 +75,19 @@
 <li id="chasis_2">{{form.chasis_2.errors}}<label for="chasis_2">Chasis 2: </lable>{{form.chasis_2}}</li>
 <li id="description">{{form.description.errors}}<label for="description">Description: </lable>{{form.description}}</li>
 <li id="type">{{form.type.errors}}<label for="type">Type: </lable>{{form.type}}</li></ul>
+</fieldset>
+<fieldset>
+<legend>Keywords</legend>
+<table id='id_keyword_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+    {% for keyword_form in keyword_formset %}
+        <tr>
+            <td>{{keyword_form.keyword}}</td>
+        </tr>{{keyword_form.errors}}
+    {% endfor %}
+    </tbody>
+</table>
+{{ keyword_formset.management_form }}
 </fieldset>
 <fieldset>
 <legend>Parts used in the Experiment:</legend>
