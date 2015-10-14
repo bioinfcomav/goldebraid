@@ -14,7 +14,7 @@
         $('#id_keyword_table tbody tr').formset({
               prefix: '{{ keyword_formset.prefix }}',
               added: function(row) {
-                            enableAutocomplete(row, "/api/exp_keywords/");
+                            enableAutocomplete_nocheck(row, "/api/exp_keywords/");
                      }
         });
     })

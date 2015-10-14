@@ -23,3 +23,9 @@ function enableAutocomplete(context, source) {
         }
       });
 }
+function enableAutocomplete_nocheck(context, source) {
+    $('input', context || null).autocomplete({
+            source: source,
+            minLength: 1,
+    })
+}
