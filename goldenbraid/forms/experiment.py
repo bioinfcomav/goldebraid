@@ -191,7 +191,8 @@ class ExperimentSearchForm(forms.Form):
     help_name = 'Accession or description'
     name_or_description = forms.CharField(max_length=100, required=False,
                                           label=help_name)
-    _choices = [('', '')] + [(cvterm.name, cvterm.name) for cvterm in Cvterm.objects.filter(cv__name=EXPERIMENT_TYPES)]
+    exp_types = Cvterm.objects.filter(cv__name=EXPERIMENT_TYPES).order_by('name')
+    _choices = [('', '')] + [(cvterm.name, cvterm.name) for cvterm in exp_types]
     help_kind = 'Choose the type of the experiment'
     experiment_type = forms.CharField(max_length=200, label=help_kind,
                                       required=False,
