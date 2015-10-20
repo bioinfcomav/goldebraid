@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import operator
 
 from django.shortcuts import render_to_response, redirect
 from django.template.context import RequestContext
@@ -45,6 +46,7 @@ from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 Cvterm, ExperimentKeyword)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB, EXPERIMENT_TYPES, NUMERIC_TYPES
+
 
 
 EXP_SETTINGS = {'SE_001': {'plant_species': 'Nicotiana bentamiana',
@@ -389,11 +391,9 @@ def _add_experiment_free(request):
         excel_formset = ExcelFormset(request_data, request.FILES,
                                      prefix='excel')
         keyword_formset = KeywordFormset(request_data, prefix='keyword')
-        # print request_data, request.FILES
         if (form.is_valid() and text_formset.is_valid() and
             feat_formset.is_valid() and subfeat_form.is_valid() and
                 excel_formset.is_valid() and generic_file_formset.is_valid()):
-            print "valid"
             try:
                 experiment = _add_experiment(form=form,
                                              text_formset=text_formset,
@@ -464,16 +464,16 @@ def _build_experiment_query(criteria, user=None):
         le = criteria['le'] if 'le' in criteria and criteria['le'] else None
         num_criteria = []
         num_type_names = criteria['numeric_types']
-        print type(num_type_names)
         for num_type_name in num_type_names:
-
-            print num_type_name, 'aaaa'
             num_type = Cvterm.objects.get(cv__name=NUMERIC_TYPES,
                                           name=num_type_name)
-            each_criteria = [Q(experimentpropnumeric__type=num_type,
-                               experimentpropnumeric__value_ge=ge,
-                               experimentpropnumeric__value_le=le)]
-        query = query.filter(each_criteria)
+            each_criteria = [Q(experimentpropnumeric__type=num_type)]
+            if ge:
+                each_criteria.append(Q(experimentpropnumeric__value__gte=ge))
+            if le:
+                each_criteria.append(Q(experimentpropnumeric__value__lte=le))
+            num_criteria.append(reduce(operator.and_, each_criteria))
+        query = query.filter(reduce(operator.or_, num_criteria))
 
     if user.is_staff:
         if 'only_user' in criteria and criteria['only_user']:
@@ -487,6 +487,7 @@ def _build_experiment_query(criteria, user=None):
                                  Q(experimentperm__owner=user.id))
 
     query = query.distinct()
+    # print query.query
     return query
 
 
@@ -513,7 +514,6 @@ def search_experiment(request):
                                                           required=False)
         if form.is_valid():
             search_criteria = form.cleaned_data
-            print 'sc', search_criteria
             search_criteria = dict([(key, value) for key, value in
                                     search_criteria.items() if value])
             context['search_criteria'] = search_criteria

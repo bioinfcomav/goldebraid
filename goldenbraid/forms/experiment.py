@@ -153,7 +153,6 @@ class ExperimentGenericFileForm(forms.Form):
         file_ = cleaned_data.get('file', None)
 
         if description == 'protocol' and file_ is None:
-            print 'hola'
             self.cleaned_data['description'] = None
 
 
@@ -201,16 +200,22 @@ class ExperimentSearchForm(forms.Form):
                            widget=AutocompleteTextInput(source='/api/feature_uniquenames/',
                                                         min_length=1))
     num_choices = _get_numeric_choices()
-    print 'nc', num_choices
-    numeric_types = forms.MultipleChoiceField(required=False,
+    numeric_types = DynamicMultipleChoiceField(required=False,
               widget=forms.widgets.CheckboxSelectMultiple(choices=num_choices))
     ge = forms.FloatField(required=False)
     le = forms.FloatField(required=False)
 
     def clean_numeric_types(self):
         num_types = self.cleaned_data['numeric_types']
-        print 'aa', num_types
         return num_types
+
+    def clean(self):
+        cleaned_data = super(ExperimentSearchForm, self).clean()
+        numeric_types = cleaned_data.get('numeric_types', [])
+        ge = cleaned_data.get('ge', None)
+        le = cleaned_data.get('le', None)
+        if not numeric_types and (ge is not None or le is not None):
+            raise ValidationError('You need the numeric type')
 
 
 class ExperimentManagementForm(forms.Form):

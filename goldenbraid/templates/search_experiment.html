@@ -59,6 +59,7 @@
 	   <form action="{% url 'search_experiments' %}" method="post">{% csrf_token %}
            <fieldset>
            <legend>Search criteria:</legend>
+           {{ form.non_field_errors }}
            <p><label for="{{ form.name_or_description.id_for_label }}">Search:</label>{{form.name_or_description}} {{form.name_or_description.errors}}</p>
            <p><label for="{{ form.experiment_type.id_for_label }}">Experiment type:</label>{{form.experiment_type}} {{form.experiment_type.errors}}</p>
            
@@ -108,6 +109,7 @@
                 <p><label for="id_ge">Ge:</label> <input id="id_ge" name="ge" step="any" type="number" /></p>
                 <p><label for="id_le">Le:</label> <input id="id_le" name="le" step="any" type="number" /></p>
            </div>
+           {{form.numeric_types.error}} {{form.ge.errors}} {{form.le.errors}}
            <p><label for="{{ form.feature.id_for_label }}">Features:</label>{{form.feature}} {{form.feature.errors}}</p>
            {% if form.only_user %}
                 <p><label for="{{ form.only_user.id_for_label }}">"Search only in my parts?:"</label>{{form.only_user}} {{form.only_user.errors}}</p>
