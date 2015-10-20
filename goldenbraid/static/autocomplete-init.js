@@ -22,7 +22,7 @@ function enableAutocomplete(context, source) {
           $(this).val('');
         }
       });
-}
+};
 function enableAutocomplete_nocheck(context, source) {
     $('input', context || null).autocomplete({
             source: source,

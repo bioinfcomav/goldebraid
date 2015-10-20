@@ -7,8 +7,22 @@
 <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/smoothness/jquery-ui.css" />
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>
 <script src="/static/autocomplete-init.js"></script>
-{% endblock %}
 
+<script type="text/javascript">
+    $(document).ready(function(){
+        //$('.num_form').hide();
+        $("#id_experiment_type").change(function() {
+            var choosen = $(this).val(); 
+            $('.num_form').hide();
+            if (choosen != ''){
+                $('#' + choosen).show();
+                $('#gt_lt').show();
+            }
+        });
+    });
+</script>
+
+{% endblock %}
 {% block content %}
 	{% if not search_criteria %}
 		<div class='tools'>
@@ -45,7 +59,59 @@
 	   <form action="{% url 'search_experiments' %}" method="post">{% csrf_token %}
            <fieldset>
            <legend>Search criteria:</legend>
-           {{ form.as_p }}
+           <p><label for="{{ form.name_or_description.id_for_label }}">Search:</label>{{form.name_or_description}} {{form.name_or_description.errors}}</p>
+           <p><label for="{{ form.experiment_type.id_for_label }}">Experiment type:</label>{{form.experiment_type}} {{form.experiment_type.errors}}</p>
+           
+           <div class='num_form' id=SE_001 style="display: none;">
+            <label for="id_numeric_types_0">Numeric types:</label> 
+            <ul id="id_numeric_types"><li><label for="id_numeric_types_0"><input id="id_numeric_types_0" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 1" /> Normalized Fluc/Rluc time 1</label></li>
+                <li><label for="id_numeric_types_1"><input id="id_numeric_types_1" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 2" /> Normalized Fluc/Rluc time 2</label></li>
+                <li><label for="id_numeric_types_2"><input id="id_numeric_types_2" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 3" /> Normalized Fluc/Rluc time 3</label></li>
+                <li><label for="id_numeric_types_3"><input id="id_numeric_types_3" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 4" /> Normalized Fluc/Rluc time 4</label></li>
+                <li><label for="id_numeric_types_4"><input id="id_numeric_types_4" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 5" /> Normalized Fluc/Rluc time 5</label></li>
+                <li><label for="id_numeric_types_5"><input id="id_numeric_types_5" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 6" /> Normalized Fluc/Rluc time 6</label></li>
+                <li><label for="id_numeric_types_6"><input id="id_numeric_types_6" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 7" /> Normalized Fluc/Rluc time 7</label></li>
+                <li><label for="id_numeric_types_7"><input id="id_numeric_types_7" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 8" /> Normalized Fluc/Rluc time 8</label></li>
+            </ul>
+           </div>
+           <div class='num_form' id=SE_002 style="display: none;">
+                       <label for="id_numeric_types_0">Numeric types:</label> 
+            <ul id="id_numeric_types"><li><label for="id_numeric_types_0"><input id="id_numeric_types_0" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 1" /> Normalized Fluc/Rluc time 1</label></li>
+                <li><label for="id_numeric_types_1"><input id="id_numeric_types_1" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 2" /> Normalized Fluc/Rluc time 2</label></li>
+                <li><label for="id_numeric_types_2"><input id="id_numeric_types_2" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 3" /> Normalized Fluc/Rluc time 3</label></li>
+                <li><label for="id_numeric_types_3"><input id="id_numeric_types_3" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 4" /> Normalized Fluc/Rluc time 4</label></li>
+                <li><label for="id_numeric_types_4"><input id="id_numeric_types_4" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 5" /> Normalized Fluc/Rluc time 5</label></li>
+                <li><label for="id_numeric_types_5"><input id="id_numeric_types_5" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 6" /> Normalized Fluc/Rluc time 6</label></li>
+                <li><label for="id_numeric_types_6"><input id="id_numeric_types_6" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 7" /> Normalized Fluc/Rluc time 7</label></li>
+                <li><label for="id_numeric_types_7"><input id="id_numeric_types_7" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 8" /> Normalized Fluc/Rluc time 8</label></li>
+            </ul>
+           </div>
+           <div class='num_form' id=SE_003 style="display: none;">
+            <ul>
+                <li><label for="id_numeric_types_0"><input id="id_numeric_types_0" maxlength="100" name="numeric_types" type="checkbox" value="% Transformants" /> % Transformants</label></li>
+            </ul>
+           </div>
+           <div class='num_form' id=SE_004 style="display: none;">
+            <ul>
+                <li><label for="id_numeric_types_0"><input id="id_numeric_types_0" maxlength="100" name="numeric_types" type="checkbox" value="%TSP" /> %TSP</label></li>
+                <li><label for="id_numeric_types_1"><input id="id_numeric_types_1" maxlength="100" name="numeric_types" type="checkbox" value="Micrograms/g FW" /> Micrograms/g FW</label></li>
+                <li><label for="id_numeric_types_2"><input id="id_numeric_types_2" maxlength="100" name="numeric_types" type="checkbox" value="Micrograms/g DW" /> Micrograms/g DW</label></li>
+            </ul>
+           </div>
+           <div class='num_form' id=SE_005 style="display: none;">
+           <ul>
+                <li><label for="id_numeric_types_0"><input id="id_numeric_types_0" maxlength="100" name="numeric_types" type="checkbox" value="Overall mutation efficiency %" /> Overall mutation efficiency %</label></li>
+           </ul>
+           </div>
+           
+           <div class='num_form' id=gt_lt style="display: none;">
+                <p><label for="id_ge">Ge:</label> <input id="id_ge" name="ge" step="any" type="number" /></p>
+                <p><label for="id_le">Le:</label> <input id="id_le" name="le" step="any" type="number" /></p>
+           </div>
+           <p><label for="{{ form.feature.id_for_label }}">Features:</label>{{form.feature}} {{form.feature.errors}}</p>
+           {% if form.only_user %}
+                <p><label for="{{ form.only_user.id_for_label }}">"Search only in my parts?:"</label>{{form.only_user}} {{form.only_user.errors}}</p>
+           {% endif %}
            </fieldset>
 	    <input type="submit" value="Search" />
 	   </form>

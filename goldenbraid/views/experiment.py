@@ -36,7 +36,7 @@ from goldenbraid.forms.experiment import (ExperimentForm, ExperimentNumForm,
                                           ExperimentManagementForm,
                                           ExperimentGenericFileForm,
                                           BaseExperimentNumFormset,
-    ExperimentKeywordForm)
+                                          ExperimentKeywordForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
                                 Feature, ExperimentFeature,
@@ -454,9 +454,26 @@ def _build_experiment_query(criteria, user=None):
                          Q(description__icontains=text))
         query = query.filter(name_criteria)
     if 'experiment_type' in criteria and criteria['experiment_type']:
-        query = query.filter(type_cvterm_id=criteria['experiment_type'])
+        query = query.filter(type__name=criteria['experiment_type'])
     if 'feature' in criteria and criteria['feature']:
+        # TODO, search in all children and parents
         query = query.filter(experimentfeature__feature__feature_id=criteria['feature'])
+
+    if 'numeric_types' in criteria and criteria['numeric_types']:
+        ge = criteria['ge'] if 'ge' in criteria and criteria['ge'] else None
+        le = criteria['le'] if 'le' in criteria and criteria['le'] else None
+        num_criteria = []
+        num_type_names = criteria['numeric_types']
+        print type(num_type_names)
+        for num_type_name in num_type_names:
+
+            print num_type_name, 'aaaa'
+            num_type = Cvterm.objects.get(cv__name=NUMERIC_TYPES,
+                                          name=num_type_name)
+            each_criteria = [Q(experimentpropnumeric__type=num_type,
+                               experimentpropnumeric__value_ge=ge,
+                               experimentpropnumeric__value_le=le)]
+        query = query.filter(each_criteria)
 
     if user.is_staff:
         if 'only_user' in criteria and criteria['only_user']:
@@ -496,11 +513,13 @@ def search_experiment(request):
                                                           required=False)
         if form.is_valid():
             search_criteria = form.cleaned_data
+            print 'sc', search_criteria
             search_criteria = dict([(key, value) for key, value in
                                     search_criteria.items() if value])
             context['search_criteria'] = search_criteria
             experiment_queryset = _build_experiment_query(search_criteria,
                                                           user=request.user)
+
             if experiment_queryset:
                 if experiment_queryset.count() == 1:
                     experiment_uniquename = experiment_queryset[0].uniquename
@@ -521,6 +540,9 @@ def search_experiment(request):
                 context['experiments_page'] = page_object
             else:
                 context['experiments_page'] = None
+        else:
+            print form.errors
+            print "no_valid"
 
     else:
         form = ExperimentSearchForm()

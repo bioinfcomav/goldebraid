@@ -85,11 +85,7 @@
 <input type='hidden' id="id_type" name="type" value={{exp_cv_type.cvterm_id}}>
 <input type='hidden' id="id_chasis_1" name="chasis_1" value="{{plant_species}}">
 <input type='hidden' id="id_chasis_2" name="chasis_2" value="{{chassis}}"> 
-
-</fieldset>
-
-<fieldset>
-<legend>Keywords</legend>
+<p>Keywords</p>
 <table id='id_keyword_table' border="0" cellpadding="0" cellspacing="0">
     <tbody>
     {% for keyword_form in keyword_formset %}
@@ -101,6 +97,7 @@
 </table>
 {{ keyword_formset.management_form }}
 </fieldset>
+
 
 <fieldset>
 <legend>Parts used in the Experiment:</legend>
@@ -115,6 +112,7 @@
 </table>
 {{ feature_formset.management_form }}
 </fieldset>
+
 <fieldset>
 <legend>Key features:</legend>
 {{subfeat_form}}

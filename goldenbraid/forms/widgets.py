@@ -56,10 +56,9 @@ class AutocompleteTextInput(TextInput):
         'The javascript that does the autocomplete'
 
         javascript_no_force_check = u'''<script type="text/javascript">
-
 $(function() {
   $("#%(field_id)s").autocomplete({
-    source: "%(source)s",
+    source: "%(source)s?limit=%(limit)s",
     minLength: %(min_length)i,
   })
 

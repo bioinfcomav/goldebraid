@@ -77,7 +77,6 @@ def features_key_elements(request):
 
 def excel_image(request, excel_id):
     try:
-        print 'ee', excel_id
         exp_excel = ExperimentPropExcel.objects.get(experiment_prop_excel_id=excel_id)
     except ExperimentPropExcel.DoesNotExist:
         return Http404
@@ -86,17 +85,16 @@ def excel_image(request, excel_id):
 
 
 def experiment_keywords(request):
-    keywords = []
     query = ExperimentKeyword.objects.all()
     if request.method == 'GET':
+        if u'term' in request.GET:
+            term = request.GET['term']
+            query = query.filter(keyword__contains=term)
         if u'limit' in request.GET:
             try:
                 limit = int(request.GET[u'limit'])
                 query = query[:limit]
             except ValueError:
                 pass
-    for exp_keywords in query:
-        keyw = exp_keywords.keyword
-        if keyw not in keywords:
-            keywords.append(keyw)
+    keywords = list({exp_keywords.keyword for exp_keywords in query})
     return HttpResponse(json.dumps(keywords), content_type='application/json')

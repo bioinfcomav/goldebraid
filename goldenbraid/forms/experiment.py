@@ -179,6 +179,15 @@ class ExperimentKeywordForm(forms.Form):
                                                            force_check=False))
 
 
+def _get_numeric_choices():
+    choices = []
+    cv = Cv.objects.get(name=NUMERIC_TYPES)
+    for num_types in Cvterm.objects.filter(cv=cv):
+        name = num_types.name
+        choices.append((name, name))
+    return choices
+
+
 class ExperimentSearchForm(forms.Form):
     help_name = 'Accession or description'
     name_or_description = forms.CharField(max_length=100, required=False,
@@ -191,6 +200,17 @@ class ExperimentSearchForm(forms.Form):
     feature = FeatureField(max_length=100, required=False,
                            widget=AutocompleteTextInput(source='/api/feature_uniquenames/',
                                                         min_length=1))
+    num_choices = _get_numeric_choices()
+    print 'nc', num_choices
+    numeric_types = forms.MultipleChoiceField(required=False,
+              widget=forms.widgets.CheckboxSelectMultiple(choices=num_choices))
+    ge = forms.FloatField(required=False)
+    le = forms.FloatField(required=False)
+
+    def clean_numeric_types(self):
+        num_types = self.cleaned_data['numeric_types']
+        print 'aa', num_types
+        return num_types
 
 
 class ExperimentManagementForm(forms.Form):
