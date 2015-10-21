@@ -20,7 +20,7 @@ def feature_uniquenames(request):
     if request.method == 'GET':
         if u'term' in request.GET:
             term = request.GET['term']
-            query = query.filter(uniquename__contains=term)
+            query = query.filter(uniquename__icontains=term)
         if u'limit' in request.GET:
             try:
                 limit = int(request.GET[u'limit'])
@@ -89,7 +89,7 @@ def experiment_keywords(request):
     if request.method == 'GET':
         if u'term' in request.GET:
             term = request.GET['term']
-            query = query.filter(keyword__contains=term)
+            query = query.filter(keyword__icontains=term)
         if u'limit' in request.GET:
             try:
                 limit = int(request.GET[u'limit'])
