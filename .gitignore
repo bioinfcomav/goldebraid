@@ -3,3 +3,4 @@
 *.pyc
 .settings
 dj_goldenbraid/media/genbank_files/GB_UA_8.*.gb
+dj_goldenbraid/media
