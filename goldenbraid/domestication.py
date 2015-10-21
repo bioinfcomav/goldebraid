@@ -78,7 +78,7 @@ def domesticate_for_synthesis(seqrec, category, prefix, suffix, enzymes,
     return seq_for_synthesis, prepared_seq
 
 
-def domesticate(seqrec, category, prefix, suffix, enzymes, with_intron=False):
+def domesticate(seqrec, category, prefix, suffix, enzymes=None, with_intron=False):
     kind = category
     seq = seqrec.seq
     if not with_intron:
@@ -169,7 +169,8 @@ def _get_pcr_segments(seq, rec_sites, fragments):
     segments['starts'].append(0)
 
     acumulated_seq_len = 0
-    overhangs = []
+    # we can not use this hovergangs in our segmnets
+    overhangs = [DOMEST_VECTOR_PREFIX, DOMEST_VECTOR_SUFFIX]
     frag_rec_sites = zip(fragments, rec_sites)
     for index, frag_5_rec_site in enumerate(frag_rec_sites):
         frag_5 = frag_5_rec_site[0]
@@ -260,6 +261,7 @@ def is_dna_palindrome(seq):
 def _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
                                 overhangs):
     change_pos = 0
+    print rec_site
     for letter1, letter2 in zip(rec_site['original'], rec_site['modified']):
         if letter1 != letter2:
             break
@@ -276,11 +278,14 @@ def _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
         overhang = get_overhang(rev_start, fow_end, prev_seq_len, frag_5,
                                 frag_3, rec_site)
     count = 0
-    while overhang in overhangs:
+
+    overhang_rev_comp = str(Seq(overhang).reverse_complement())
+    while overhang in overhangs or overhang_rev_comp in overhangs:
         rev_start += 1
         fow_end += 1
         overhang = get_overhang(rev_start, fow_end, prev_seq_len, frag_5,
                                 frag_3, rec_site)
+        overhang_rev_comp = str(Seq(overhang).reverse_complement())
         if count > 10:
             msg = 'Impossible to domesticate this  sequence\n:'
             msg += 'Domesticated rec site nucleotide is too far from oligo'
@@ -288,7 +293,9 @@ def _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
             raise RuntimeError(msg)
         count += 1
 
+
     overhangs.append(overhang)
+    print overhangs
     return rev_start, fow_end, overhangs
 
 
