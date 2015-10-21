@@ -78,7 +78,7 @@ class DomesticationForm(forms.Form):
                     msg = 'The provided seq must start with start codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-            if category in (CDS, CDS1_CDS2, CTAG):
+            if category in (CDS, CTAG):
                 if not _seq_has_codon_end(seq.seq, with_intron):
                     msg = 'The provided seq must end with a end codon in '
                     msg += 'order to use as choosen category'
