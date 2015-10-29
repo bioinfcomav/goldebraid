@@ -149,7 +149,9 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
     os.path.join(PROJECT_DIR, 'templates'),
 )
-
+TEMPLATE_CONTEXT_PROCESSORS = (
+                               'django.template.context_processors.request',
+                               'django.contrib.auth.context_processors.auth')
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -164,6 +166,7 @@ INSTALLED_APPS = (
     'goldenbraid',
     'gb_genome_domestication',
     'restcmd_client',
+    'django_tables2',
 )
 
 # A sample logging configuration. The only tangible logging

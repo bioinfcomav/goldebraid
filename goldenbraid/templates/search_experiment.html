@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load goldenbraid_extras %}
+{% load render_table from django_tables2 %}
 {% block title %}Experiment search {% endblock title %}
 
 {% block extra_js %}
@@ -12,7 +13,7 @@
     $(document).ready(function(){
         //$('.num_form').hide();
         $("#id_experiment_type").change(function() {
-            var choosen = $(this).val(); 
+            var choosen = $(this).val();
             $('.num_form').hide();
             if (choosen != ''){
                 $('#' + choosen).show();
@@ -24,8 +25,8 @@
 
 {% endblock %}
 {% block content %}
-	{% if not search_criteria %}
-		<div class='tools'>
+  {% if not search_criteria %}
+    <div class='tools'>
 <h1>Search Database<img src='{{STATIC_URL}}style/images/lupa.png' alt="search" style="margin:0 0 -10px 4px;"/></h1>
 <div id='searchmenu'>
 <ul>
@@ -37,34 +38,24 @@
 <li>To get a list of all the existing experiments leave all fields empty.</li></ul>
 </div>
 
-	{% endif %}
-	{% if search_criteria and not experiments_page.paginator.count %}
-	   <p>No experiments found</p>
-	{% endif %}
-	{% if experiments_page.object_list %}
-	  <p>
-	  {% if 'kind' in search_criteria %}
-	      {{ experiments_page.object_list.0.type.name|replaceunderscore|capfirst }}{{ experiments_page.paginator.count|pluralize }} found: {{ features_page.paginator.count }} </p>
-	  {% else %}
-	    Experiments found: {{ experiments_page.paginator.count }} </p>
-	  {% endif%}
-	
-	  {% with experiments=experiments_page.object_list %}
-	    {% include "experiment_table.html" %}
-	  {% endwith %}
-	  {% with search_criteria=search_criteria page=experiments_page %}
-	    {% include "pagination.html" %}
-	  {% endwith %}
-	{% else %}
-	   <form action="{% url 'search_experiments' %}" method="post">{% csrf_token %}
+  {% endif %}
+  {% if search_criteria and not experiments %}
+     <p>No experiments found</p>
+  {% endif %}
+  {% if experiments%}
+          <p> Experiments found: {{ experiments|length }} </p>
+          {% render_table experiments %}
+
+  {% else %}
+     <form action="{% url 'search_experiments' %}" method="post">{% csrf_token %}
            <fieldset>
            <legend>Search criteria:</legend>
            {{ form.non_field_errors }}
            <p><label for="{{ form.name_or_description.id_for_label }}">Search:</label>{{form.name_or_description}} {{form.name_or_description.errors}}</p>
            <p><label for="{{ form.experiment_type.id_for_label }}">Experiment type:</label>{{form.experiment_type}} {{form.experiment_type.errors}}</p>
-           
+
            <div class='num_form' id=SE_001 style="display: none;">
-            <label for="id_numeric_types_0">Numeric types:</label> 
+            <label for="id_numeric_types_0">Numeric types:</label>
             <ul id="id_numeric_types"><li><label for="id_numeric_types_0"><input id="id_numeric_types_0" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 1" /> Normalized Fluc/Rluc time 1</label></li>
                 <li><label for="id_numeric_types_1"><input id="id_numeric_types_1" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 2" /> Normalized Fluc/Rluc time 2</label></li>
                 <li><label for="id_numeric_types_2"><input id="id_numeric_types_2" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 3" /> Normalized Fluc/Rluc time 3</label></li>
@@ -76,7 +67,7 @@
             </ul>
            </div>
            <div class='num_form' id=SE_002 style="display: none;">
-                       <label for="id_numeric_types_0">Numeric types:</label> 
+                       <label for="id_numeric_types_0">Numeric types:</label>
             <ul id="id_numeric_types"><li><label for="id_numeric_types_0"><input id="id_numeric_types_0" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 1" /> Normalized Fluc/Rluc time 1</label></li>
                 <li><label for="id_numeric_types_1"><input id="id_numeric_types_1" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 2" /> Normalized Fluc/Rluc time 2</label></li>
                 <li><label for="id_numeric_types_2"><input id="id_numeric_types_2" maxlength="100" name="numeric_types" type="checkbox" value="Normalized Fluc/Rluc time 3" /> Normalized Fluc/Rluc time 3</label></li>
@@ -104,7 +95,7 @@
                 <li><label for="id_numeric_types_0"><input id="id_numeric_types_0" maxlength="100" name="numeric_types" type="checkbox" value="Overall mutation efficiency %" /> Overall mutation efficiency %</label></li>
            </ul>
            </div>
-           
+
            <div class='num_form' id=gt_lt style="display: none;">
                 <p><label for="id_ge">Ge:</label> <input id="id_ge" name="ge" step="any" type="number" /></p>
                 <p><label for="id_le">Le:</label> <input id="id_le" name="le" step="any" type="number" /></p>
@@ -115,9 +106,9 @@
                 <p><label for="{{ form.only_user.id_for_label }}">"Search only in my parts?:"</label>{{form.only_user}} {{form.only_user.errors}}</p>
            {% endif %}
            </fieldset>
-	    <input type="submit" value="Search" />
-	   </form>
-	   {{ form.kind.errors }}
-	
-	{% endif %}
+      <input type="submit" value="Search" />
+     </form>
+     {{ form.kind.errors }}
+
+  {% endif %}
 {% endblock content %}

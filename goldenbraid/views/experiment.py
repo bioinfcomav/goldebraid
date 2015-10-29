@@ -25,9 +25,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django import forms
 from django.db.models import Q
-from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.forms.models import modelformset_factory
 from django.http.response import HttpResponseForbidden, HttpResponseBadRequest
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
+
+import django_tables2 as tables
+from django_tables2 import RequestConfig
+from django_tables2.utils import A
 
 from goldenbraid.forms.experiment import (ExperimentForm, ExperimentNumForm,
                                           ExperimentFeatureForm,
@@ -46,6 +51,8 @@ from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 Cvterm, ExperimentKeyword)
 from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB, EXPERIMENT_TYPES, NUMERIC_TYPES
+
+
 
 
 
@@ -492,6 +499,35 @@ def _build_experiment_query(criteria, user=None):
     return query
 
 
+class ExperimentTable(tables.Table):
+
+    uniquename = tables.LinkColumn('experiment_view', args=[A('uniquename')],
+                                   verbose_name='Uniquename')
+    description = tables.Column(verbose_name='Description', orderable=False)
+    keywords = tables.Column(verbose_name='Keywords', orderable=False)
+    features_used_in_experiment = tables.Column(verbose_name='GBelements',
+                                                orderable=False)
+    owner = tables.Column(verbose_name='Owner',
+                          accessor='experimentperm.owner')
+    timecreation = tables.DateColumn(verbose_name='Creation Time', short=False)
+
+
+    def render_keywords(self, value):
+        return ", ".join(value)
+
+    def render_features_used_in_experiment(self, value):
+        return mark_safe(", ".join([self._make_url(v.uniquename, 'feature')
+                                    for v in value]))
+
+    def _make_url(self, value, model='experiment'):
+        return mark_safe("<a href='/{1}/{0}'>{0}</a>".format(escape(value), model))
+
+    class Meta:
+        #model = Experiment
+        attrs = {"class": "searchresult"}
+
+
+
 def search_experiment(request):
     'The feature search view'
 
@@ -526,21 +562,14 @@ def search_experiment(request):
                     experiment_uniquename = experiment_queryset[0].uniquename
                     return redirect(experiment_view,
                                     uniquename=experiment_uniquename)
-                paginator = Paginator(experiment_queryset, 25)
-                # Make sure page request is an int. If not, deliver first page.
-                try:
-                    page_number = int(request.POST.get('page', '1'))
-                except ValueError:
-                    page_number = 1
-                # If page request (9999) is out of range, deliver last page of
-                # results.
-                try:
-                    page_object = paginator.page(page_number)
-                except (EmptyPage, InvalidPage):
-                    page_object = paginator.page(paginator.num_pages)
-                context['experiments_page'] = page_object
+                else:
+                    experiment_table = ExperimentTable(experiment_queryset)
+                    RequestConfig(request).configure(experiment_table)
+                    experiment_table.paginate(page=request.GET.get('page', 1),
+                                              per_page=25)
+                    context['experiments'] = experiment_table
             else:
-                context['experiments_page'] = None
+                context['experiments'] = None
         else:
             print form.errors
             print "no_valid"
