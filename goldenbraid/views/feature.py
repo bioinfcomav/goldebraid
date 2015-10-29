@@ -476,7 +476,7 @@ class FeatureTable(tables.Table):
 
     uniquename = tables.LinkColumn('feature_view', args=[A('uniquename')],
                                    verbose_name='Uniquename')
-    gb_category_name = tables.Column(verbose_name='Type')
+    gb_category_name = tables.Column(verbose_name='Type', orderable=False)
     description = tables.Column(verbose_name='Description', orderable=False)
     owner = tables.Column(verbose_name='Owner',
                           accessor='featureperm.owner')
