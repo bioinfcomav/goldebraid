@@ -451,7 +451,8 @@ def _build_experiment_query(criteria, user=None):
     if 'name_or_description' in criteria and criteria['name_or_description']:
         text = criteria['name_or_description']
         name_criteria = (Q(uniquename__icontains=text) |
-                         Q(description__icontains=text))
+                         Q(description__icontains=text) |
+                         Q(experimentkeyword__keyword__icontains=text))
         query = query.filter(name_criteria)
     if 'experiment_type' in criteria and criteria['experiment_type']:
         query = query.filter(type__name=criteria['experiment_type'])
