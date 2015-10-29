@@ -521,6 +521,8 @@ class Experiment(models.Model):
             exp_feats = None
         if exp_feats:
             return [exp_feat.feature for exp_feat in exp_feats]
+        else:
+            return []
 
     @property
     def key_features(self):

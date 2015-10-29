@@ -5,8 +5,8 @@
             <th>Uniquename</th>
              <th>Description</th>
             <th>Type</th>
-            <th>Chassis 1</th>
-            <th>Chassis 2</th>
+            <th>Keywords</th>
+            <th>GB Elements</th>
             <th>Owner</th>
             <th>Entry Date</th>
         </tr>
@@ -17,8 +17,8 @@
             <td>{{ experiment.uniquename|link_if_url:experiment }}</td>
             <td>{{ experiment.description }}</td>
             <td>{{ experiment.type.name }}</td>
-            <td>{{ experiment.chasis_1 }}</td>
-            <td>{{ experiment.chasis_2 }}</td>
+            <td>{{ experiment.keywords|join:", " }}</td>
+            <td>{{ experiment.features_used_in_experiment|join:", " }}</td>
             <td>{{ experiment.owner.username }}</td>
             <td>{{ experiment.timecreation }}</td>
         </tr>
