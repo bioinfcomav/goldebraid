@@ -519,7 +519,7 @@ def search_features_view(request):
             context['search_criteria'] = search_criteria
             feature_queryset = _build_feature_query(search_criteria,
                                                     user=request.user)
-            download_search = search_criteria.get('download_search', False)
+            download_search = request.GET.get('download_search', False)
             if feature_queryset and download_search:
                 context['features'] = feature_queryset
                 template = 'search_feature_download.txt'
@@ -545,5 +545,5 @@ def search_features_view(request):
                                                           label=only_usr_label)
 
     context['form'] = form
-
+    print template
     return render_to_response(template, context, content_type=content_type)

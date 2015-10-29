@@ -73,7 +73,7 @@
   {% render_table features%}
   {% url 'search_features_view' as base_url %}
     {% load urlbuilder %}
-    <p><a href='{% build_url base_url search_criteria download_search=True %}'>Download search result</a>.</p>
+    <p><a href='{% build_url base_url search_criteria download_search=True %}' download>Download search result</a>.</p>
 {% else %}
 
   <form action="{% url 'search_features' %}" method="post">{% csrf_token %}

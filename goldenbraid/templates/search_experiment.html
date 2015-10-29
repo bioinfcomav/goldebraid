@@ -45,7 +45,9 @@
   {% if experiments%}
           <p> Experiments found: {{ experiments.data|length }} </p>
           {% render_table experiments %}
-
+          {% url 'search_experiment_view' as base_url %}
+        {% load urlbuilder %}
+      <p><a href='{% build_url base_url search_criteria download_search=True %}' download>Download search result</a>.</p>
   {% else %}
      <form action="{% url 'search_experiments' %}" method="post">{% csrf_token %}
            <fieldset>

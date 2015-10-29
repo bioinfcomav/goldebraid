@@ -1,0 +1,4 @@
+Uniquename	Type	Description	Keywords	Features Used	Owner
+{% for exp in experiments %}
+{{exp.uniquename}}	{{exp.type}} {{exp.description}} {{exp.keywords|join:", "}}	{{exp.features_used_in_experiment|join:", "}}	{{exp.owner}}
+{% endfor %}

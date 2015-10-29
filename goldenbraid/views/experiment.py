@@ -503,6 +503,7 @@ class ExperimentTable(tables.Table):
 
     uniquename = tables.LinkColumn('experiment_view', args=[A('uniquename')],
                                    verbose_name='Uniquename')
+    type = tables.Column(verbose_name='Type', accessor='type.name')
     description = tables.Column(verbose_name='Description', orderable=False)
     keywords = tables.Column(verbose_name='Keywords', orderable=False)
     features_used_in_experiment = tables.Column(verbose_name='GBelements',
@@ -511,21 +512,18 @@ class ExperimentTable(tables.Table):
                           accessor='experimentperm.owner')
     timecreation = tables.DateColumn(verbose_name='Creation Time', short=False)
 
-
     def render_keywords(self, value):
         return ", ".join(value)
 
     def render_features_used_in_experiment(self, value):
-        return mark_safe(", ".join([self._make_url(v.uniquename, 'feature')
+        return mark_safe(", ".join([self._make_url(v.uniquename)
                                     for v in value]))
 
-    def _make_url(self, value, model='experiment'):
-        return mark_safe("<a href='/{1}/{0}'>{0}</a>".format(escape(value), model))
+    def _make_url(self, value):
+        return mark_safe("<a href='/feature/{0}'>{0}</a>".format(escape(value)))
 
     class Meta:
-        #model = Experiment
         attrs = {"class": "searchresult"}
-
 
 
 def search_experiment(request):
@@ -557,7 +555,13 @@ def search_experiment(request):
             experiment_queryset = _build_experiment_query(search_criteria,
                                                           user=request.user)
 
-            if experiment_queryset:
+            download_search = request.GET.get('download_search', False)
+            if experiment_queryset and download_search:
+                context['experiments'] = experiment_queryset
+                template = 'search_experiment_download.txt'
+                content_type = 'text/plain'
+
+            elif experiment_queryset:
                 if experiment_queryset.count() == 1:
                     experiment_uniquename = experiment_queryset[0].uniquename
                     return redirect(experiment_view,

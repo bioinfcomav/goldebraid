@@ -1,0 +1,4 @@
+Uniquename	Type	Description	Owner		TimeCreation
+{% for feature in features %}
+{{feature.uniquename}}	{{feature.gb_category_name}}	{{feature.description}}	{{feature.owner}}	{{feature.timecreation}}
+{% endfor %}
