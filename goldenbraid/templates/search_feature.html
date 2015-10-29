@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% load goldenbraid_extras %}
+{% load render_table from django_tables2 %}
 {% block title %}Feature search {% endblock title %}
 {% block content %}
-{% if not features_page.paginator.count and not search_criteria %}
+{% if not features and not search_criteria %}
 <h1>Search Database<img src='{{STATIC_URL}}style/images/lupa.png' alt="search" style="margin:0 0 -10px 4px;"/></h1>
 <div id='searchmenu'>
 <ul>
@@ -63,37 +64,26 @@
 </ul>
 </div>
 {% endif %}
-{% if search_criteria and not features_page.paginator.count %}
+{% if search_criteria and not features%}
   <p>No features found</p>
 {% endif %}
-{% if features_page.object_list %}
-  <p>
-  {% if 'kind' in search_criteria %}
-  {{ features_page.object_list.0.type.name|replaceunderscore|capfirst }}{{ features_page.paginator.count|pluralize }} found: {{ features_page.paginator.count }} </p>
-  {% else %}
-  Features found: {{ features_page.paginator.count }} </p>
-  {% endif%}
+{% if features %}
+  <p> Features found: {{features.data|length}}  </p>
 
-  {% with features=features_page.object_list %}
-    {% include "feature_table.html" %}
-  {% endwith %}
-  {% with search_criteria=search_criteria page=features_page %}
-    {% include "pagination.html" %}
-  {% endwith %}
-
+  {% render_table features%}
   {% url 'search_features_view' as base_url %}
     {% load urlbuilder %}
     <p><a href='{% build_url base_url search_criteria download_search=True %}'>Download search result</a>.</p>
 {% else %}
 
-<form action="{% url 'search_features' %}" method="post">{% csrf_token %}
-<fieldset>
-<legend>Search criteria</legend>
-    {{ form.as_p }}
-</fieldset>
-    <input type="submit" value="Search" />
-  </form>
-  {{ form.kind.errors }}
-
+  <form action="{% url 'search_features' %}" method="post">{% csrf_token %}
+  <fieldset>
+  <legend>Search criteria</legend>
+      {{ form.as_p }}
+  </fieldset>
+      <input type="submit" value="Search" />
+    </form>
+    {{ form.kind.errors }}
 {% endif %}
+
 {% endblock content %}

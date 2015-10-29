@@ -34,6 +34,10 @@ from django.db.models import Q
 
 from Bio import SeqIO
 
+import django_tables2 as tables
+from django_tables2 import RequestConfig
+from django_tables2.utils import A
+
 from goldenbraid.models import (Cvterm, Feature, Db, Dbxref, Featureprop,
                                 FeaturePerm, FeatureRelationship)
 from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
@@ -468,6 +472,23 @@ def _build_feature_query(search_criteria, user):
     return query
 
 
+class FeatureTable(tables.Table):
+
+    uniquename = tables.LinkColumn('feature_view', args=[A('uniquename')],
+                                   verbose_name='Uniquename')
+    gb_category_name = tables.Column(verbose_name='Type')
+    description = tables.Column(verbose_name='Description', orderable=False)
+    owner = tables.Column(verbose_name='Owner',
+                          accessor='featureperm.owner')
+    timecreation = tables.DateColumn(verbose_name='Creation Time', short=False)
+    genbank_file = tables.FileColumn(verbose_name='Associated_genbank',
+                                     orderable=False)
+
+    class Meta:
+        # model = Experiment
+        attrs = {"class": "searchresult"}
+
+
 def search_features_view(request):
     'The feature search view'
 
@@ -500,7 +521,7 @@ def search_features_view(request):
                                                     user=request.user)
             download_search = search_criteria.get('download_search', False)
             if feature_queryset and download_search:
-                context['queryset'] = feature_queryset
+                context['features'] = feature_queryset
                 template = 'search_feature_download.txt'
                 content_type = 'text/plain'
             elif feature_queryset and not download_search:
@@ -509,22 +530,12 @@ def search_features_view(request):
                     return redirect(feature_view,
                                     uniquename=feature_uniquename)
 
-                paginator = Paginator(feature_queryset, 25)
-                # Make sure page request is an int. If not, deliver first page.
-                try:
-                    page_number = int(request.POST.get('page', '1'))
-                except ValueError:
-                    page_number = 1
-                # If page request (9999) is out of range, deliver last page of
-                # results.
-                try:
-                    page_object = paginator.page(page_number)
-                except (EmptyPage, InvalidPage):
-                    page_object = paginator.page(paginator.num_pages)
+                feature_table = FeatureTable(feature_queryset)
+                RequestConfig(request).configure(feature_table)
+                context['features'] = feature_table
 
-                context['features_page'] = page_object
             else:
-                context['features_page'] = None
+                context['features'] = None
     else:
         form = SearchFeatureForm()
         if request.user.is_authenticated():
