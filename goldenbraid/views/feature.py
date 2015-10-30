@@ -475,13 +475,14 @@ def _build_feature_query(search_criteria, user):
 class FeatureTable(tables.Table):
 
     uniquename = tables.LinkColumn('feature_view', args=[A('uniquename')],
-                                   verbose_name='Uniquename')
+                                   verbose_name='Accession')
+    name = tables.Column(verbose_name='Name', orderable=False)
     gb_category_name = tables.Column(verbose_name='Type', order_by='type.name')
     description = tables.Column(verbose_name='Description', orderable=False)
     owner = tables.Column(verbose_name='Owner',
                           accessor='featureperm.owner')
-    timecreation = tables.DateColumn(verbose_name='Creation Time', short=False)
-    genbank_file = tables.FileColumn(verbose_name='Associated_genbank',
+    timecreation = tables.DateColumn(verbose_name='Entry Date', short=False)
+    genbank_file = tables.FileColumn(verbose_name='Genbank',
                                      orderable=False)
 
     class Meta:
@@ -545,5 +546,4 @@ def search_features_view(request):
                                                           label=only_usr_label)
 
     context['form'] = form
-    print template
     return render_to_response(template, context, content_type=content_type)
