@@ -53,9 +53,6 @@ from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB, EXPERIMENT_TYPES, NUMERIC_TYPES
 
 
-
-
-
 EXP_SETTINGS = {'SE_001': {'plant_species': 'Nicotiana bentamiana',
                            'chassis': "Agroinfiltrated leaves",
                            'excel_mandatory': True},
@@ -556,7 +553,7 @@ def search_experiment(request):
                                                           user=request.user)
 
             download_search = request.GET.get('download_search', False)
-            if experiment_queryset and download_search:
+            if download_search:
                 context['experiments'] = experiment_queryset
                 template = 'search_experiment_download.txt'
                 content_type = 'text/plain'

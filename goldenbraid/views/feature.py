@@ -29,7 +29,6 @@ from django.http.response import HttpResponseBadRequest
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import MultipleObjectsReturned
 from django import forms
-from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.db.models import Q
 
 from Bio import SeqIO
@@ -521,7 +520,7 @@ def search_features_view(request):
             feature_queryset = _build_feature_query(search_criteria,
                                                     user=request.user)
             download_search = request.GET.get('download_search', False)
-            if feature_queryset and download_search:
+            if download_search:
                 context['features'] = feature_queryset
                 template = 'search_feature_download.txt'
                 content_type = 'text/plain'
