@@ -27,9 +27,11 @@ from goldenbraid.domestication import (domesticate, _join_segments,
                                        _get_segments_from_rec_site,
                                        domesticate_for_synthesis,
                                        get_ret_sites,
-                                       change_nucl_in_intron_rec_site)
+                                       change_nucl_in_intron_rec_site,
+    is_dna_palindrome)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from goldenbraid.settings import MANDATORY_DOMEST_ENZYMES
+from goldenbraid.tags import PROM_5UTR_NTAG
 
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                          'goldenbraid', 'tests', 'data')
@@ -134,6 +136,20 @@ class DomesticationTest(TestCase):
                                                             prev_seq_len,
                                                             overhangs=[])
         assert (51, 54) == (end, start)
+
+    def test_domestication_palindrome(self):
+        frag5 = 'AAGCTTGATACTGCAGTTCTTCAGTTCCAAAATCTTAAGCTATCACAAAAGCTAGAGGCTCAGCAGGTTGAGTGTTCTATTCTTGAGGATAAACTCTCTCAGATCAAGGAA'
+        frag3 = 'AAACAATTACCATACAACTCCAGTTTGAAGACTGTCCATAAGTCTTGGGAAAAGCTTACAGCTTCAGTGGAATCATGCTCTGTTCGTGTGAGTGATTCAAGCAGCGGAGCTCATAGGTTTGTAAACAAGGAGGATGGGTCTTCTCCAGCCGTGAAAAACGATTTCATCAACCGGCTACTTGAAACTGGTGCTACTGAGAGCTCCTCATCCAATATCTGCTCGAATCAGATGGAAGAAAATGGAGTGAATACGTCAAGCCAGATGACGCAAACCTTGTATAATCTAGTAGCCGCGACA'
+        rec_site = {'original': 'GGTCTC', 'modified': 'GGTCTT'}
+        prev_seq_len = 120
+        overhangs = ['CTCG', 'CTCA', 'CTTA']
+        end, start, overhangs = _get_segments_from_rec_site(frag5, frag3,
+                                                            rec_site,
+                                                            prev_seq_len,
+                                                           overhangs=overhangs)
+        for overhang in overhangs:
+            assert not is_dna_palindrome(overhang)
+
 
     def test_get_pcr_segments(self):
 
