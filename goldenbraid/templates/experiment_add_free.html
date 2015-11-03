@@ -66,13 +66,13 @@
 {% endblock %}
 {% block content %}
 <p><span class='emphasis'>Note: User-added GBdatabase entries are private and only accessible to the user who created them.</span></p>
-<p>To add a construct to the database fill out the following form:</p>
+<p>To add a experiment to the database fill out the following form:</p>
 <form action="{% url 'add_experiment' %}"  enctype="multipart/form-data" method="post">{% csrf_token %}
 <fieldset>
 <legend>Experiment information:</legend>
 <ul>
-<li id="chasis_1">{{form.chasis_1.errors}}<label for="chasis_1">Chasis 1: </lable>{{form.chasis_1}}</li>
-<li id="chasis_2">{{form.chasis_2.errors}}<label for="chasis_2">Chasis 2: </lable>{{form.chasis_2}}</li>
+<li id="chasis_1">{{form.chasis_1.errors}}<label for="chasis_1">Plant species: </lable>{{form.chasis_1}}</li>
+<li id="chasis_2">{{form.chasis_2.errors}}<label for="chasis_2">Chassis: </lable>{{form.chasis_2}}</li>
 <li id="description">{{form.description.errors}}<label for="description">Description: </lable>{{form.description}}</li>
 <li id="type">{{form.type.errors}}<label for="type">Type: </lable>{{form.type}}</li></ul>
 </fieldset>
@@ -95,7 +95,7 @@
     <tbody>
     {% for feature_form in feature_formset %}
         <tr>
-            <td>Feature:{{feature_form.feature}}</td>
+            <td><label>GB element:</label> {{feature_form.feature}}</td>
         </tr>{{feature_form.errors}}
     {% endfor %}
     </tbody>
@@ -103,12 +103,12 @@
 {{ feature_formset.management_form }}
 </fieldset>
 <fieldset>
-<legend>Key features:</legend>
+<legend>Key parts:</legend>
 {{subfeat_form}}
 </fieldset>
 
 <fieldset>
-<legend>Text information:</legend>
+<legend>Summary:</legend>
 <table id='id_text_table' border="0" cellpadding="0" cellspacing="0">
     <tbody>
     {% for text_form in text_formset %}
@@ -128,7 +128,7 @@
     <tbody>
     {% for image_form in image_formset %}
         <tr>
-            <td>Figure legend: {{image_form.description}}</td>
+            <td><label>Figure legend:</label> {{image_form.description}}</td>
             <td>{{image_form.image}}</td>
         </tr>{{image_form.errors}}
     {% endfor %}
@@ -145,7 +145,7 @@
     <tbody>
     {% for excel_form in excel_formset %}
         <tr>
-            <td>Legend: {{excel_form.description}}</td>
+            <td><label>Associated excel file:</label> {{excel_form.description}}</td>
             <td>{{excel_form.excel}}</td>
         </tr>{{excel_form.errors}}
     {% endfor %}
@@ -159,7 +159,7 @@
     <tbody>
     {% for generic_file_form in generic_file_formset %}
         <tr>
-            <td>File description: {{generic_file_form.description}}</td>
+            <td><label>File description:</label> {{generic_file_form.description}}</td>
             <td>{{generic_file_form.file}}</td>
         </tr>{{generic_file_form.errors}}
     {% endfor %}

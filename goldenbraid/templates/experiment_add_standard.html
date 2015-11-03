@@ -48,6 +48,7 @@
 //        });
 //    })
 </script>
+
 <style type="text/css">
     .add-row {
         padding-left:18px;
@@ -71,41 +72,61 @@
 
 {% block content %}
 <p><span class='emphasis'>Note: User-added GBdatabase entries are private and only accessible to the user who created them.</span></p>
-<p>To add a construct to the database fill out the following form:</p>
+<p>To add a experiment to the database fill out the following form:</p>
 <form action=""  enctype="multipart/form-data" method="post">{% csrf_token %}
 <fieldset>
 <legend>Experiment information:</legend>
-<ul>
-<li>{{form.type.errors}} Experiment_type: {{exp_cv_type.name}}</li>
-<li>{{form.chasis_1.errors}} Plant species: {{plant_species}}</li>
-<li>{{form.chasis_2.errors}} Chassis: {{chassis}}</li>
-<li > Contitions: {{exp_cv_type.definition}}</li>
-
-<li id="description">{{form.description.errors}}<label for="description">Description: </lable>{{form.description}}</li>
+<table id='id_expinfo' >
+<tbody>
+<tr>
+<td>{{form.type.errors}} <label>Experiment_type:</label></td>
+<td>{{exp_cv_type.name}}</td>
+</tr>
+<tr>
+<td>{{form.chasis_1.errors}} <label>Plant species:</label></td>
+<td><strong>{{plant_species}}</strong></td>
+</tr>
+<tr>
+<td>{{form.chasis_2.errors}} <label>Chassis:</label></td>
+<td>{{chassis}}</td>
+</tr>
+<tr>
+<td><label>Conditions:</label></td>
+<td>{{exp_cv_type.definition}}</td>
+</tr>
+</tbody>
+</table>
 <input type='hidden' id="id_type" name="type" value={{exp_cv_type.cvterm_id}}>
 <input type='hidden' id="id_chasis_1" name="chasis_1" value="{{plant_species}}">
-<input type='hidden' id="id_chasis_2" name="chasis_2" value="{{chassis}}"> 
-<p>Keywords</p>
+<input type='hidden' id="id_chasis_2" name="chasis_2" value="{{chassis}}"> </ul>
+<table id='id_text_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+        <input type='hidden' id="id_text-0-title" name="text-0-title" value="Summary" />
+        <tr>
+            <td>{{form.description.errors}}<label>Description:</label></td> 
+            <td>{{form.description}}</td>
+	     <td><span class="addexp">Write a brief (3000 char max.) description of your experiment including specific experimental conditions.</span>
+        </tr>
+    </tbody>
+</table>
 <table id='id_keyword_table' border="0" cellpadding="0" cellspacing="0">
     <tbody>
     {% for keyword_form in keyword_formset %}
         <tr>
-            <td>{{keyword_form.keyword}}</td>
+            <td><label>Keywords:</label>{{keyword_form.keyword}}</td>
         </tr>{{keyword_form.errors}}
     {% endfor %}
     </tbody>
 </table>
 {{ keyword_formset.management_form }}
 </fieldset>
-
-
 <fieldset>
 <legend>Parts used in the Experiment:</legend>
 <table id='id_feature_table' border="0" cellpadding="0" cellspacing="0">
     <tbody>
     {% for feature_form in feature_formset %}
         <tr>
-            <td>Feature:{{feature_form.feature}}</td>
+            <td><label>GB element:</label>{{feature_form.feature}}</td>
         </tr>{{feature_form.errors}}
     {% endfor %}
     </tbody>
@@ -114,7 +135,7 @@
 </fieldset>
 
 <fieldset>
-<legend>Key features:</legend>
+<legend>Key Parts:</legend>
 {{subfeat_form}}
 </fieldset>
 <fieldset>
@@ -124,7 +145,7 @@
         {%for num_cvterm, numeric_form in quantitative_outputs|zip:numeric_formset %}
         <input type='hidden' id="id_numeric-{{ forloop.counter0 }}-type" name='numeric-{{ forloop.counter0 }}-type' value={{num_cvterm.cvterm_id}}>
         <tr>
-            <td>{{num_cvterm.name}}</td>
+            <td><label>{{num_cvterm.name}}</label></td>
             <td>{{numeric_form.value}}{{numeric_form.errors}}</td>
         </tr>
         {% endfor %}
@@ -142,8 +163,9 @@
     <tbody>
         <input type='hidden' id="id_generic_file-0-description" name="generic_file-0-description" value="protocol" />
         <tr>    
-            <td>Upload protocol:</td> 
+            <td><label>Upload protocol:</label></td> 
             <td>{{generic_file_formset.forms.0.file }}{{generic_file_formset.forms.0.errors}}</td>
+            <td><span class="addexp">(Optional).</span>
             </tr>
     </tbody>
 </table>
@@ -157,8 +179,9 @@
     <tbody>
         <input type='hidden' id="id_text-0-title" name="text-0-title" value="Summary" />
         <tr>
-            <td>Summary:</td> 
+            <td><label>Summary:</label></td> 
             <td>{{text_formset.forms.0.value }}{{text_formset.forms.0.errors}}</td>
+	     <td><span class="addexp">Write a brief (3000 char max.) report summarizing the main results / conclusions of your experiment.</span>
         </tr>
     </tbody>
 </table>
@@ -177,8 +200,9 @@
     <tbody>
     {% for image_form in image_formset %}
         <tr>
-            <td>Figure legend: {{image_form.description}}</td>
+            <td><label>Figure legend: {{image_form.description}}</label></td>
             <td>{{image_form.image}}</td>
+            <td><span class="addexp">(Optional).</span>
         </tr>{{image_form.errors}}
     {% endfor %}
     </tbody>
