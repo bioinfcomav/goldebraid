@@ -74,7 +74,8 @@
 <li id="chasis_1">{{form.chasis_1.errors}}<label for="chasis_1">Chasis 1: </lable>{{form.chasis_1}}</li>
 <li id="chasis_2">{{form.chasis_2.errors}}<label for="chasis_2">Chasis 2: </lable>{{form.chasis_2}}</li>
 <li id="description">{{form.description.errors}}<label for="description">Description: </lable>{{form.description}}</li>
-<li id="type">{{form.type.errors}}<label for="type">Type: </lable>{{form.type}}</li></ul>
+<li>{{form.type.errors}} Experiment_type: {{exp_cv_type.name}}</li>
+<input type='hidden' id="id_type" name="type" value={{exp_cv_type.cvterm_id}}>
 </fieldset>
 <fieldset>
 <legend>Keywords</legend>
@@ -136,7 +137,7 @@
 </table>
 {{ image_formset.management_form }}
 </fieldset>
-     
+
 <fieldset>
 <legend>Associated excel files:</legend>
 <p>You can upload your experimental data using one of the available excel templates: <a href="/files/excel_templates/columns.xlsx" target="blank"><img src="/static/style/images/column.png" alt="Column Plot Template" style="margin: 0 0 -4px 4px;"></a>
