@@ -60,15 +60,11 @@ EXP_SETTINGS = {'SE_001': {'plant_species': 'Nicotiana bentamiana',
                            'chassis': "Agroinfiltrated leaves",
                            'quantitative_outputs_def': 'SE_001',
                            'excel_mandatory': True},
-                'SE_003': {'plant_species': 'Solanum lycopersicum',
-                           'chassis': "Cotyledons",
-                           'excel_mandatory': False},
+                'SE_003': {'excel_mandatory': False},
                 'SE_004': {'plant_species': 'Nicotiana bentamiana',
                            'chassis': "Agroinfiltrated leaves",
                            'excel_mandatory': False},
-                'SE_005': {'plant_species': 'Nicotiana bentamiana',
-                           'chassis': "Agroinfiltrated leaves",
-                           'excel_mandatory': False}
+                'SE_005': {'excel_mandatory': False}
                 }
 
 
@@ -358,8 +354,8 @@ def _add_experiment_SE(request, exp_type_name):
     context['keyword_formset'] = keyword_formset
 
     context['exp_cv_type'] = exp_type
-    context['plant_species'] = settings['plant_species']
-    context['chassis'] = settings['chassis']
+    context['plant_species'] = settings.get('plant_species', None)
+    context['chassis'] = settings.get('chassis', None)
 
     context['quantitative_outputs'] = quantitative.order_by('name')
     context['excel_mandatory'] = settings['excel_mandatory']
@@ -369,8 +365,12 @@ def _add_experiment_SE(request, exp_type_name):
 @login_required
 def _add_experiment_free(request):
     'The add feature view'
+    exp_type_name = 'NS_000'
     context = RequestContext(request)
     context.update(csrf(request))
+
+    exp_type = Cvterm.objects.get(cv__name=EXPERIMENT_TYPES,
+                                  name=exp_type_name)
 
     request_data = request.POST if request.method == 'POST' else None
     FeatFormset = formset_factory(ExperimentFeatureForm)
@@ -446,6 +446,7 @@ def _add_experiment_free(request):
     context['excel_formset'] = excel_formset
     context['generic_file_formset'] = generic_file_formset
     context['keyword_formset'] = keyword_formset
+    context['exp_cv_type'] = exp_type
     template = 'experiment_add_free.html'
     return render_to_response(template, context)
 

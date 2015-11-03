@@ -261,7 +261,6 @@ def is_dna_palindrome(seq):
 def _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
                                 overhangs):
     change_pos = 0
-    print rec_site
     for letter1, letter2 in zip(rec_site['original'], rec_site['modified']):
         if letter1 != letter2:
             break
@@ -280,7 +279,8 @@ def _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
     count = 0
 
     overhang_rev_comp = str(Seq(overhang).reverse_complement())
-    while overhang in overhangs or overhang_rev_comp in overhangs:
+    while (overhang in overhangs or overhang_rev_comp in overhangs or
+           is_dna_palindrome(overhang)):
         rev_start += 1
         fow_end += 1
         overhang = get_overhang(rev_start, fow_end, prev_seq_len, frag_5,
@@ -293,9 +293,7 @@ def _get_segments_from_rec_site(frag_5, frag_3, rec_site, prev_seq_len,
             raise RuntimeError(msg)
         count += 1
 
-
     overhangs.append(overhang)
-    print overhangs
     return rev_start, fow_end, overhangs
 
 
