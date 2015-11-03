@@ -60,15 +60,11 @@ EXP_SETTINGS = {'SE_001': {'plant_species': 'Nicotiana bentamiana',
                            'chassis': "Agroinfiltrated leaves",
                            'quantitative_outputs_def': 'SE_001',
                            'excel_mandatory': True},
-                'SE_003': {'plant_species': 'Solanum lycopersicum',
-                           'chassis': "Cotyledons",
-                           'excel_mandatory': False},
+                'SE_003': {'excel_mandatory': False},
                 'SE_004': {'plant_species': 'Nicotiana bentamiana',
                            'chassis': "Agroinfiltrated leaves",
                            'excel_mandatory': False},
-                'SE_005': {'plant_species': 'Nicotiana bentamiana',
-                           'chassis': "Agroinfiltrated leaves",
-                           'excel_mandatory': False}
+                'SE_005': {'excel_mandatory': False}
                 }
 
 
@@ -358,8 +354,8 @@ def _add_experiment_SE(request, exp_type_name):
     context['keyword_formset'] = keyword_formset
 
     context['exp_cv_type'] = exp_type
-    context['plant_species'] = settings['plant_species']
-    context['chassis'] = settings['chassis']
+    context['plant_species'] = settings.get('plant_species', None)
+    context['chassis'] = settings.get('chassis', None)
 
     context['quantitative_outputs'] = quantitative.order_by('name')
     context['excel_mandatory'] = settings['excel_mandatory']
