@@ -30,6 +30,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import MultipleObjectsReturned
 from django import forms
 from django.db.models import Q
+from django.utils.safestring import mark_safe
 
 from Bio import SeqIO
 
@@ -481,8 +482,10 @@ class FeatureTable(tables.Table):
     owner = tables.Column(verbose_name='Owner',
                           accessor='featureperm.owner')
     timecreation = tables.DateColumn(verbose_name='Entry Date', short=False)
-    genbank_file = tables.FileColumn(verbose_name='Genbank',
-                                     orderable=False)
+    genbank_file = tables.Column(verbose_name='Genbank', orderable=False)
+
+    def render_genbank_file(self, value):
+        return mark_safe("<a href='{}' download>Download</a>".format(value))
 
     class Meta:
         # model = Experiment
