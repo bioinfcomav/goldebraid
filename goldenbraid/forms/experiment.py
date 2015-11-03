@@ -116,7 +116,8 @@ class DynamicMultipleChoiceField(forms.MultipleChoiceField):
 class ExperimentSubFeatureForm(forms.Form):
     _widget = DinamicSelectMultiple(source='/api/features_key_elements/',
                                     parent_class='ui-autocomplete-input')
-    features = DynamicMultipleChoiceField(widget=_widget)
+    features = DynamicMultipleChoiceField(widget=_widget,
+                                          label='GB Elements')
 
     def clean_features(self):
         feature_uniquenames = self.cleaned_data['features']

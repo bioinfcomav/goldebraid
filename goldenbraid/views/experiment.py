@@ -53,15 +53,15 @@ from goldenbraid.settings import EXPERIMENT_ID_PREFIX
 from goldenbraid.tags import GOLDEN_DB, EXPERIMENT_TYPES, NUMERIC_TYPES
 
 
-EXP_SETTINGS = {'SE_001': {'plant_species': 'Nicotiana bentamiana',
+EXP_SETTINGS = {'SE_001': {'plant_species': 'Nicotiana benthamiana',
                            'chassis': "Agroinfiltrated leaves",
                            'excel_mandatory': True},
-                'SE_002': {'plant_species': 'Nicotiana bentamiana',
+                'SE_002': {'plant_species': 'Nicotiana benthamiana',
                            'chassis': "Agroinfiltrated leaves",
                            'quantitative_outputs_def': 'SE_001',
                            'excel_mandatory': True},
                 'SE_003': {'excel_mandatory': False},
-                'SE_004': {'plant_species': 'Nicotiana bentamiana',
+                'SE_004': {'plant_species': 'Nicotiana benthamiana',
                            'chassis': "Agroinfiltrated leaves",
                            'excel_mandatory': False},
                 'SE_005': {'excel_mandatory': False}
