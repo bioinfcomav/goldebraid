@@ -70,11 +70,26 @@
 <form action="{% url 'add_experiment' %}"  enctype="multipart/form-data" method="post">{% csrf_token %}
 <fieldset>
 <legend>Experiment information:</legend>
-<ul>
-<li id="chasis_1">{{form.chasis_1.errors}}<label for="chasis_1">Plant species: </lable>{{form.chasis_1}}</li>
-<li id="chasis_2">{{form.chasis_2.errors}}<label for="chasis_2">Chassis: </lable>{{form.chasis_2}}</li>
-<li id="description">{{form.description.errors}}<label for="description">Description: </lable>{{form.description}}</li>
-<li>{{form.type.errors}} Experiment_type: {{exp_cv_type.name}}</li>
+<table id='id_expinfo' >
+<tbody>
+<tr>
+<td>{{form.type.errors}} <label>Experiment_type: </label></td><td> {{exp_cv_type.name}} </td>
+</tr>
+<tr>
+<td>{{form.chasis_1.errors}}<label for="chasis_1">Plant species: </lable></td><td> {{form.chasis_1}} </td>
+</tr>
+<tr>
+<td>{{form.chasis_2.errors}}<label for="chasis_2">Chassis: </lable></td><td> {{form.chasis_2}} </td>
+</tr>
+</tbody>
+</table>
+<table id='id_text_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+<tr>
+<td>{{form.description.errors}}<label for="description">Description: </lable></td><td>{{form.description}}</td><td><span class="addexp">Write a brief (3000 char max.) description of your experiment including specific experimental conditions.</span>
+        </tr>
+    </tbody>
+</table>
 <input type='hidden' id="id_type" name="type" value={{exp_cv_type.cvterm_id}}>
 </fieldset>
 <fieldset>
@@ -96,7 +111,7 @@
     <tbody>
     {% for feature_form in feature_formset %}
         <tr>
-            <td><label>GB element:</label> {{feature_form.feature}}</td>
+            <td><label>GB Element:</label> {{feature_form.feature}}</td>
         </tr>{{feature_form.errors}}
     {% endfor %}
     </tbody>
@@ -114,8 +129,9 @@
     <tbody>
     {% for text_form in text_formset %}
         <tr>
-            <td>{{text_form.title}}</td>
-            <td>{{text_form.value}}</td>
+            <td><label>Title:</label>{{text_form.title}}</td>
+            <td><label>Text:</label>{{text_form.value}}</td>
+            <td><span class="addexp">Write a brief (3000 char max.) report summarizing the main results / conclusions of your experiment.</span>
         </tr>{{text_form.errors}}
     {% endfor %}
     </tbody>
@@ -156,6 +172,7 @@
 </fieldset>
 <fieldset>
 <legend>Associated generic files:</legend>
+<p>You can upload here any other supporting files you wish:</p>
 <table id='id_generic_file_table' border="0" cellpadding="0" cellspacing="0">
     <tbody>
     {% for generic_file_form in generic_file_formset %}
