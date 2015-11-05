@@ -452,6 +452,7 @@ def _add_experiment_free(request):
 
 
 def _get_experiments_for_feature(feature_id):
+    # It returns the experiments of the parents of the given feature
     sql_recursive = '''WITH RECURSIVE subparts (subpart, part) AS(
         SELECT subject_id as subpart, object_id as part
         FROM feature_relationship
@@ -468,16 +469,15 @@ AND experimentfeature.experiment_id=experiment.experiment_id);
         '''
     cursor = connection.cursor()
     cursor.execute(sql_recursive, [feature_id])
-    exps = [ e[0] for e in cursor.fetchall()]
-    return exps
+    return [e[0] for e in cursor.fetchall()]
 
 
 def _build_experiment_query(criteria, user=None):
     query = Experiment.objects
     if 'feature' in criteria and criteria['feature']:
-	# With this sql we get the experiment_ids where
+        # With this sql we get the experiment_ids where
         exp_ids = _get_experiments_for_feature(criteria['feature'])
-	query = query.filter(Q(experiment_id__in=exp_ids) |
+        query = query.filter(Q(experiment_id__in=exp_ids) |
                              Q(experimentfeature__feature__feature_id=criteria['feature']))
 
     if 'name_or_description' in criteria and criteria['name_or_description']:
