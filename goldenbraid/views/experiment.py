@@ -19,7 +19,7 @@ from django.shortcuts import render_to_response, redirect
 from django.template.context import RequestContext
 from django.forms.formsets import formset_factory
 from django.core.context_processors import csrf
-from django.db import transaction
+from django.db import transaction, connection
 from django.db.utils import IntegrityError
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -451,8 +451,35 @@ def _add_experiment_free(request):
     return render_to_response(template, context)
 
 
+def _get_experiments_for_feature(feature_id):
+    sql_recursive = '''WITH RECURSIVE subparts (subpart, part) AS(
+        SELECT subject_id as subpart, object_id as part
+        FROM feature_relationship
+        WHERE type_id=34
+   UNION
+        SELECT subparts.subpart, feature_relationship.object_id
+        FROM feature_relationship, subparts
+        WHERE subparts.part = feature_relationship.subject_id
+)
+SELECT experiment.experiment_id
+FROM subparts, experimentfeature, experiment
+where (experimentfeature.feature_id= subparts.part AND subparts.subpart=%s
+AND experimentfeature.experiment_id=experiment.experiment_id);
+        '''
+    cursor = connection.cursor()
+    cursor.execute(sql_recursive, [feature_id])
+    exps = [ e[0] for e in cursor.fetchall()]
+    return exps
+
+
 def _build_experiment_query(criteria, user=None):
     query = Experiment.objects
+    if 'feature' in criteria and criteria['feature']:
+	# With this sql we get the experiment_ids where
+        exp_ids = _get_experiments_for_feature(criteria['feature'])
+	query = query.filter(Q(experiment_id__in=exp_ids) |
+                             Q(experimentfeature__feature__feature_id=criteria['feature']))
+
     if 'name_or_description' in criteria and criteria['name_or_description']:
         text = criteria['name_or_description']
         name_criteria = (Q(uniquename__icontains=text) |
@@ -461,9 +488,6 @@ def _build_experiment_query(criteria, user=None):
         query = query.filter(name_criteria)
     if 'experiment_type' in criteria and criteria['experiment_type']:
         query = query.filter(type__name=criteria['experiment_type'])
-    if 'feature' in criteria and criteria['feature']:
-        # TODO, search in all children and parents
-        query = query.filter(experimentfeature__feature__feature_id=criteria['feature'])
 
     if 'numeric_types' in criteria and criteria['numeric_types']:
         ge = criteria['ge'] if 'ge' in criteria and criteria['ge'] else None
