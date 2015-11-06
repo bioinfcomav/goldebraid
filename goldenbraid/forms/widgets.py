@@ -31,7 +31,6 @@ class AutocompleteTextInput(TextInput):
         A source url for the json list should be given.
         '''
         super(TextInput, self).__init__(attrs)
-        print attrs
         if source is None:
             raise ValueError('A source url should be given')
         self.source = source
