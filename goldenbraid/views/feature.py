@@ -533,10 +533,12 @@ def search_features_view(request):
                     return redirect(feature_view,
                                     uniquename=feature_uniquename)
 
-                feature_table = FeatureTable(feature_queryset)
+                feature_table = FeatureTable(feature_queryset,
+                                             template='table.html')
                 RequestConfig(request).configure(feature_table)
                 context['features'] = feature_table
-
+                context['criteria'] = "".join([';{}={}'.format(k, v)
+                                               for k, v in search_criteria.items()])
             else:
                 context['features'] = None
     else:

@@ -589,11 +589,14 @@ def search_experiment(request):
                     return redirect(experiment_view,
                                     uniquename=experiment_uniquename)
                 else:
-                    experiment_table = ExperimentTable(experiment_queryset)
+                    experiment_table = ExperimentTable(experiment_queryset,
+                                                       template='table.html')
                     RequestConfig(request).configure(experiment_table)
                     experiment_table.paginate(page=request.GET.get('page', 1),
                                               per_page=25)
                     context['experiments'] = experiment_table
+                    context['criteria'] = "".join([';{}={}'.format(k, v)
+                                                   for k, v in search_criteria.items()])
             else:
                 context['experiments'] = None
         else:
