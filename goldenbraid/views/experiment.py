@@ -42,7 +42,8 @@ from goldenbraid.forms.experiment import (ExperimentForm, ExperimentNumForm,
                                           ExperimentManagementForm,
                                           ExperimentGenericFileForm,
                                           BaseExperimentNumFormset,
-                                          ExperimentKeywordForm)
+                                          ExperimentKeywordForm,
+    ExperimentProtocolForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
                                 Feature, ExperimentFeature,
@@ -148,7 +149,7 @@ def _add_experiment(form, user, feat_formset, subfeat_form,
                     numeric_formset=None, text_formset=None,
                     image_formset=None, excel_formset=None,
                     generic_file_formset=None, keyword_formset=None,
-                    is_public=False):
+                    is_public=False, protocol_form=None):
     try:
         with transaction.atomic():
             experiment = form.save(commit=False)
@@ -227,6 +228,8 @@ def _add_experiment(form, user, feat_formset, subfeat_form,
 
             if generic_file_formset is not None:
                 for generic_file_props in generic_file_formset.cleaned_data:
+                    if not generic_file_props:
+                        continue
                     desc = generic_file_props['description']
                     file_ = generic_file_props['file']
                     if file_ is None and desc is None:
@@ -244,6 +247,12 @@ def _add_experiment(form, user, feat_formset, subfeat_form,
                     ExperimentPropExcel.objects.create(experiment=experiment,
                                                        description=description,
                                                        excel=excel_file)
+            if protocol_form is not None:
+                file_ = protocol_form.cleaned_data['protocol']
+                ExperimentPropGenericFile.objects.create(experiment=experiment,
+                                                         description='Protocol',
+                                                         file=file_)
+                pass
 
     except (IntegrityError, RuntimeError):
         transaction.rollback()
@@ -295,12 +304,13 @@ def _add_experiment_SE(request, exp_type_name):
         excel_formset = ExcelFormset(request_data, request.FILES,
                                      prefix='excel')
         keyword_formset = KeywordFormset(request_data, prefix='keyword')
+        protocol_form = ExperimentProtocolForm(request_data, request.FILES)
 
         if (form.is_valid() and feat_formset.is_valid() and
             subfeat_form.is_valid() and numeric_formset.is_valid() and
             image_formset.is_valid() and text_formset.is_valid() and
                 generic_file_formset.is_valid() and excel_formset.is_valid()
-                and keyword_formset.is_valid()):
+                and keyword_formset.is_valid() and protocol_form.is_valid()):
             try:
                 experiment = _add_experiment(form=form,
                                              feat_formset=feat_formset,
@@ -311,8 +321,8 @@ def _add_experiment_SE(request, exp_type_name):
                                              text_formset=text_formset,
                                              generic_file_formset=generic_file_formset,
                                              excel_formset=excel_formset,
-                                             keyword_formset=keyword_formset
-                                             )
+                                             keyword_formset=keyword_formset,
+                                             protocol_form=protocol_form)
                 print "valid"
             except IntegrityError as error:
                 print error
@@ -342,6 +352,7 @@ def _add_experiment_SE(request, exp_type_name):
                                    queryset=ExperimentPropText.objects.none())
         excel_formset = ExcelFormset(prefix='excel')
         keyword_formset = KeywordFormset(prefix='keyword')
+        protocol_form = ExperimentProtocolForm()
 
     context['form'] = form
     context['feature_formset'] = feat_formset
@@ -352,7 +363,7 @@ def _add_experiment_SE(request, exp_type_name):
     context['text_formset'] = text_formset
     context['excel_formset'] = excel_formset
     context['keyword_formset'] = keyword_formset
-
+    context['protocol_form'] = protocol_form
     context['exp_cv_type'] = exp_type
     context['plant_species'] = settings.get('plant_species', None)
     context['chassis'] = settings.get('chassis', None)

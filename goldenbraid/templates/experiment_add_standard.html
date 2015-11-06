@@ -42,11 +42,11 @@
               prefix: '{{ excel_formset.prefix }}'
         });
     })
-//     $(function() {
-//        $('#id_generic_file_table tbody tr').formset({
-//              prefix: '{{ generic_file_formset.prefix }}'
-//        });
-//    })
+    $(function() {
+        $('#id_generic_file_table tbody tr').formset({
+              prefix: '{{ generic_file_formset.prefix }}'
+        });
+    })
 </script>
 
 <style type="text/css">
@@ -127,6 +127,7 @@
     </tbody>
 </table>
 {{ keyword_formset.management_form }}
+
 </fieldset>
 <fieldset>
 <legend>Parts used in the Experiment:</legend>
@@ -167,17 +168,9 @@
 
 <fieldset>
 <legend>Protocol</legend>
-<table id='id_generic_file_table' border="0" cellpadding="0" cellspacing="0">
-    <tbody>
-        <input type='hidden' id="id_generic_file-0-description" name="generic_file-0-description" value="protocol" />
-        <tr>
-            <td><label>Upload protocol:</label></td>
-            <td>{{generic_file_formset.forms.0.file }}{{generic_file_formset.forms.0.errors}}</td>
-            <td><span class="addexp">(Optional).</span>
-            </tr>
-    </tbody>
-</table>
+{{protocol_form}}
 </fieldset>
+
 {{ generic_file_formset.management_form }}
 
 
@@ -218,6 +211,21 @@
 </fieldset>
 {{ image_formset.management_form }}
 
+<fieldset>
+<legend>Associated generic files:</legend>
+<p>You can upload here any other supporting files you wish:</p>
+<table id='id_generic_file_table' border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+    {% for generic_file_form in generic_file_formset %}
+        <tr>
+            <td><label>File description:</label> {{generic_file_form.description}}</td>
+            <td>{{generic_file_form.file}}</td>
+        </tr>{{generic_file_form.errors}}
+    {% endfor %}
+    </tbody>
+</table>
+{{ generic_file_formset.management_form }}
+</fieldset>
 
 <input type="submit" value="Add" />
 </form>

@@ -5,8 +5,7 @@ from django.forms.models import ModelForm
 
 from goldenbraid.models import (Cvterm, Feature, Experiment,
                                 ExperimentPropNumeric, ExperimentPropText, Cv,
-                                ExperimentPropImage, ExperimentPropExcel,
-                                ExperimentPropGenericFile)
+                                ExperimentPropImage)
 from goldenbraid.tags import (EXPERIMENT_TYPES, NUMERIC_TYPES)
 from goldenbraid.forms.widgets import (AutocompleteTextInput,
                                        DinamicSelectMultiple)
@@ -177,6 +176,10 @@ class ExperimentKeywordForm(forms.Form):
                               widget=AutocompleteTextInput(source='/api/exp_keywords/',
                                                            min_length=1,
                                                            force_check=False))
+
+
+class ExperimentProtocolForm(forms.Form):
+    protocol = forms.FileField(label='Upload protocol')
 
 
 def _get_numeric_choices():

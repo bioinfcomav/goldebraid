@@ -1,3 +1,4 @@
+{% load staticfiles %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 
@@ -6,7 +7,7 @@
 <meta name="robots" content="index, follow" />
 <meta name="keywords" content="GoldenBraid, DNA Assembly, Plant Synhetic Biology, Multigene Engineering"/>
 <title>{% block title %}{% endblock %}</title>
-<link href="{{ STATIC_URL }}style/style.css" rel="stylesheet" type="text/css"/>
+<link href={% static "style/style.css"%} rel="stylesheet" type="text/css"/>
 {% block extra_js %}{% endblock %}
 <script language="javascript">
 function toggle() {
