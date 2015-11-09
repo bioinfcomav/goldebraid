@@ -261,9 +261,9 @@ def _add_experiment(form, user, feat_formset, subfeat_form,
 
 
 @login_required
-def add_experiment_view(request, exp_type=None):
-    if exp_type is None:
-        return _add_experiment_free(request)
+def add_experiment_view(request, exp_type):
+    if exp_type == 'NS_000':
+        return _add_experiment_free(request, exp_type)
     else:
         return _add_experiment_SE(request, exp_type)
 
@@ -374,7 +374,7 @@ def _add_experiment_SE(request, exp_type_name):
 
 
 @login_required
-def _add_experiment_free(request):
+def _add_experiment_free(request, exp_type_name):
     'The add feature view'
     exp_type_name = 'NS_000'
     context = RequestContext(request)
