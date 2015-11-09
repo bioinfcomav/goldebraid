@@ -179,7 +179,7 @@ class ExperimentKeywordForm(forms.Form):
 
 
 class ExperimentProtocolForm(forms.Form):
-    protocol = forms.FileField(label='Upload protocol')
+    protocol = forms.FileField(label='Upload protocol', required=False)
 
 
 def _get_numeric_choices():
