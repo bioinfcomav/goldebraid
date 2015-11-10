@@ -690,7 +690,7 @@ class ExperimentPropExcel(models.Model):
     def drawed_image(self):
         temp_fhand = NamedTemporaryFile()
         plot_from_excel(self.excel.path, temp_fhand)
-        content_type = 'image/png'
+        content_type = 'image/svg+xml'
         return open(temp_fhand.name).read(), content_type
 
     @property

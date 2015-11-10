@@ -37,27 +37,45 @@ class TestExcel(TestCase):
 
         assert labels[XLABEL] == 'xlabel1'
 
-        try:
-            parse_xlsx('/home/peio/tomato_gbs.xlsx')
-            self.fail('runtimeerror expected')
-        except RuntimeError:
-            pass
+#         try:
+#             parse_xlsx('/home/peio/tomato_gbs.xlsx')
+#             self.fail('runtimeerror expected')
+#         except RuntimeError:
+#             pass
 
     def test_draw_columns(self):
         _, labels, data = parse_xlsx(os.path.join(TEST_DATA, 'columns.xlsx'))
-        out_fhand = NamedTemporaryFile(suffix='.png')
+        out_fhand = NamedTemporaryFile(suffix='.svg')
         draw_columns(labels, data, out_fhand)
-        # raw_input(out_fhand.name)
+        raw_input(out_fhand.name)
+
+    def test_draw_1column(self):
+        _, labels, data = parse_xlsx(os.path.join(TEST_DATA, '1column.xlsx'))
+        out_fhand = NamedTemporaryFile(suffix='.svg')
+        draw_columns(labels, data, out_fhand)
+        raw_input(out_fhand.name)
+
+    def test_draw_3columns(self):
+        _, labels, data = parse_xlsx(os.path.join(TEST_DATA, '3columns.xlsx'))
+        out_fhand = NamedTemporaryFile(suffix='.svg')
+        draw_columns(labels, data, out_fhand)
+        raw_input(out_fhand.name)
+
+    def test_draw_10columns(self):
+        _, labels, data = parse_xlsx(os.path.join(TEST_DATA, '10columns.xlsx'))
+        out_fhand = NamedTemporaryFile(suffix='.svg')
+        draw_columns(labels, data, out_fhand)
+        raw_input(out_fhand.name)
 
     def test_draw_scatter(self):
         _, labels, data = parse_xlsx(os.path.join(TEST_DATA, 'scatter.xlsx'))
-        out_fhand = NamedTemporaryFile(suffix='.png')
+        out_fhand = NamedTemporaryFile(suffix='.svg')
         draw_scatter(labels, data, out_fhand)
-        # raw_input(out_fhand.name)
+        raw_input(out_fhand.name)
 
     def test_empty_file_excel(self):
         _, labels, data = parse_xlsx(os.path.join(TEST_DATA, 'empty_file.xlsx'))
 
 if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'TestExcel.test_empty_file_excel']
+    import sys;sys.argv = ['', 'TestExcel.test_draw_scatter']
     main()

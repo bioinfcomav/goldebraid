@@ -18,10 +18,11 @@ from __future__ import division
 from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string
 
+from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
-FIGURE_SIZE = (15.0, 11.0)  # inche
+plt.style.use('ggplot')
 
 KEY_CELL_NAME = 'plot_type'
 COLUMNS = 'columns'
@@ -116,33 +117,34 @@ def parse_xlsx(fpath_or_fhand):
 
 
 def draw_columns(labels, data, out_fhand):
-    canvas, axes = get_canvas_and_axes()
-    x_vals = data[XVALUES]
+    canvas, axes, fig = get_canvas_and_axes()
+    x_labels = data[XVALUES]
     y_vals = data[YVALUES]
     y_stdev = data.get(YSTDEV, None)
-    bar_width = 0.8
-
-    half_width = bar_width / 2
-    xlabel_pos = list(range(len(x_vals)))
-    left = [i - half_width for i in xlabel_pos]
-    bottom = [0] * len(x_vals)
+    bar_width = 0.8 if len(x_labels) > 1 else 0.4
+    xlabel_pos = [xval + 0.5 for xval in range(len(x_labels))]
+    left = [i - (bar_width/2) for i in xlabel_pos]
     height = y_vals
     kwargs = {}
     if y_stdev:
         kwargs['yerr'] = y_stdev
         kwargs['ecolor'] = 'red'
-        # kwargs['capsize'] = 8
-    axes.bar(left=left, width=bar_width, bottom=bottom, height=height,
-             **kwargs)
+        capsize = 36 - (len(x_labels) * 4)
+        kwargs['capsize'] = 8 if capsize < 8  else capsize
+
+    axes.bar(left=left, height=height, width=bar_width, **kwargs)
+    axes.set_xlim(left=0, right=len(x_labels))
     axes.set_title(labels[TITLE])
     axes.set_ylabel(labels[YLABEL])
-    axes.set_xlabel(labels[XLABEL], clip_on=False)
-    axes.set_xticklabels([''] + data[XVALUES])
-    canvas.print_figure(out_fhand, plot_format='png')
+    axes.set_xlabel(labels[XLABEL])
+    axes.set_xticks(xlabel_pos)
+    axes.set_xticklabels(data[XVALUES])
+    fig.tight_layout()
+    canvas.print_figure(out_fhand, format='svg')
 
 
 def draw_scatter(labels, data, out_fhand):
-    canvas, axes = get_canvas_and_axes()
+    canvas, axes, fig = get_canvas_and_axes()
     x_vals = data[XVALUES]
     y_vals = data[YVALUES]
     y_stdev = data.get(YSTDEV, None)
@@ -153,7 +155,7 @@ def draw_scatter(labels, data, out_fhand):
     axes.set_title(labels[TITLE])
     axes.set_ylabel(labels[YLABEL])
     axes.set_xlabel(labels[XLABEL], clip_on=False)
-    canvas.print_figure(out_fhand, plot_format='png')
+    canvas.print_figure(out_fhand, format='svg')
 
 
 def plot_from_excel(fpath_or_fhand, out_fhand):
@@ -169,7 +171,7 @@ def plot_from_excel(fpath_or_fhand, out_fhand):
 def get_canvas_and_axes():
     'It returns a matplotlib canvas and axes instance'
     fig = Figure()
+    fig.clf()
     canvas = FigureCanvas(fig)
     axes = fig.add_subplot(111)
-    # fig.subplots_adjust(left=left, right=right, top=top, bottom=bottom)
-    return canvas, axes
+    return canvas, axes, fig
