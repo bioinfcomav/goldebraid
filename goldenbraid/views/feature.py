@@ -485,7 +485,7 @@ class FeatureTable(tables.Table):
     genbank_file = tables.Column(verbose_name='Genbank', orderable=False)
 
     def render_genbank_file(self, value):
-        return mark_safe("<a href='{}' download>Download</a>".format(value))
+        return mark_safe("<a href='/media/{}' download>Download</a>".format(value))
 
     class Meta:
         # model = Experiment
