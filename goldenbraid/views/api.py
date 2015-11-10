@@ -81,7 +81,6 @@ def excel_image(request, excel_id):
     except ExperimentPropExcel.DoesNotExist:
         return Http404
     image_content, content_type = exp_excel.drawed_image
-    print content_type
     return HttpResponse(image_content, content_type=content_type)
 
 

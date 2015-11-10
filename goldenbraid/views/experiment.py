@@ -43,7 +43,7 @@ from goldenbraid.forms.experiment import (ExperimentForm, ExperimentNumForm,
                                           ExperimentGenericFileForm,
                                           BaseExperimentNumFormset,
                                           ExperimentKeywordForm,
-    ExperimentProtocolForm)
+                                          ExperimentProtocolForm)
 from goldenbraid.models import (Experiment, Count, Db, Dbxref, ExperimentPerm,
                                 ExperimentPropNumeric, ExperimentPropText,
                                 Feature, ExperimentFeature,

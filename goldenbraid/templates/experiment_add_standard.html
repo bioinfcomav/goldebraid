@@ -76,19 +76,19 @@
 <tbody>
 <tr>
 <th><img class='exp_descrip' src='{{STATIC_URL}}style/images/SE_001.PNG' alt="SE_001"/></th>
-<td>Standard experiments type 1 (SE_001) aim is to characterize promoter strengths with relative promoter units (RPUs) measured 
-as luciferase/renilla ratios. The nopaline synthase promoter (pNOS) is our reference standard promoter. These experiments can 
+<td>Standard experiments type 1 (SE_001) aim is to characterize promoter strengths with relative promoter units (RPUs) measured
+as luciferase/renilla ratios. The nopaline synthase promoter (pNOS) is our reference standard promoter. These experiments can
 involve a chemical or physical induction and are performed in <em>N. benthamiana</em> <b>leaf discs</b> following the conditions specified below.</td>
 </tr>
 </tbody></table>
 {% elif exp_cv_type.name = 'SE_002' %}
-<h1>SE_002 Promoter strength tested in leaves</h1> 
+<h1>SE_002 Promoter strength tested in leaves</h1>
 <table class="fig_exp_descrip">
 <tbody>
 <tr>
 <th><img class='exp_descrip'src='{{STATIC_URL}}style/images/SE_002.PNG' alt="SE_002" style="margin:0 0 -10px 4px;"/></th>
-<td>Standard experiments type 2 (SE_002) were designed for promoter characterization with relative promoter units (RPUs) measured 
-as luciferase/renilla ratios as measurement standard. The nopaline synthase promoter (pNOS) is our reference standard promoter. 
+<td>Standard experiments type 2 (SE_002) were designed for promoter characterization with relative promoter units (RPUs) measured
+as luciferase/renilla ratios as measurement standard. The nopaline synthase promoter (pNOS) is our reference standard promoter.
 These experiments are performed in <em>N. benthamiana</em> <b>leaves</b> following the conditions specified below.</td>
 </tr>
 </tbody></table>
@@ -102,7 +102,7 @@ These experiments are performed in <em>N. benthamiana</em> <b>leaves</b> followi
 </tr>
 </tbody></table>
 {% elif exp_cv_type.name = 'SE_004' %}
-<h1>SE_004 Recombinant protein yield</h1> 
+<h1>SE_004 Recombinant protein yield</h1>
 <table class="fig_exp_descrip">
 <tbody>
 <tr>
@@ -111,7 +111,7 @@ These experiments are performed in <em>N. benthamiana</em> <b>leaves</b> followi
 </tr>
 </tbody></table>
 {% else %}
-<h1>SE_005 CRISPR target efficiency</h1> 
+<h1>SE_005 CRISPR target efficiency</h1>
 <table class="fig_exp_descrip">
 <tbody>
 <tr>
@@ -135,6 +135,7 @@ These experiments are performed in <em>N. benthamiana</em> <b>leaves</b> followi
 <td>{{form.chasis_1.errors}} <label>Plant species:</label></td>
 {% if plant_species %}
 <td><strong>{{plant_species}}</strong></td>
+<input type='hidden' id="id_chasis_1" name="chasis_1" value="{{plant_species}}">
 {% else %}
 <td><strong>{{form.chasis_1}}</strong></td>
 {% endif %}
@@ -143,6 +144,7 @@ These experiments are performed in <em>N. benthamiana</em> <b>leaves</b> followi
 <td>{{form.chasis_2.errors}} <label>Chassis:</label></td>
 {% if chassis %}
 <td>{{chassis}}</td>
+<input type='hidden' id="id_chasis_2" name="chasis_2" value="{{chassis}}"> </ul>
 {% else %}
 <td><strong>{{form.chasis_2}}</strong></td>
 {% endif %}
@@ -154,8 +156,6 @@ These experiments are performed in <em>N. benthamiana</em> <b>leaves</b> followi
 </tbody>
 </table>
 <input type='hidden' id="id_type" name="type" value={{exp_cv_type.cvterm_id}}>
-<input type='hidden' id="id_chasis_1" name="chasis_1" value="{{plant_species}}">
-<input type='hidden' id="id_chasis_2" name="chasis_2" value="{{chassis}}"> </ul>
 <table id='id_text_table' border="0" cellpadding="0" cellspacing="0">
     <tbody>
         <input type='hidden' id="id_text-0-title" name="text-0-title" value="Summary" />
