@@ -488,7 +488,6 @@ class FeatureTable(tables.Table):
 
     def render_genbank_file(self, value):
         media_root = settings.MEDIA_URL
-        print media_root
         link = "<a href='{}{}' download>Download</a>"
         return mark_safe(link.format(media_root, value))
 
