@@ -31,6 +31,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django import forms
 from django.db.models import Q
 from django.utils.safestring import mark_safe
+from django.conf import settings
 
 from Bio import SeqIO
 
@@ -52,6 +53,7 @@ from goldenbraid.forms.feature import (FeatureForm, FeatureManagementForm,
                                        SPECIAL_SEARCH_CATEGORIES)
 from goldenbraid.utils import get_prefix_and_suffix_index
 from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES
+
 
 
 def get_prefix_and_suffix(seq, enzyme):
@@ -485,7 +487,10 @@ class FeatureTable(tables.Table):
     genbank_file = tables.Column(verbose_name='Genbank', orderable=False)
 
     def render_genbank_file(self, value):
-        return mark_safe("<a href='{}' download>Download</a>".format(value))
+        media_root = settings.MEDIA_URL
+        print media_root
+        link = "<a href='{}{}' download>Download</a>"
+        return mark_safe(link.format(media_root, value))
 
     class Meta:
         # model = Experiment
