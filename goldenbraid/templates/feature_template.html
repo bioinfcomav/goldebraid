@@ -21,6 +21,9 @@
 	</div>
 {% endif %}
 <div id='featuregeneral'>
+{% if feature.description %}
+<div id='description'><table class="featdes"><tr><th>Description:</th><td>{{ feature.description }}</td></tr></table></div>
+     {% endif %}
  <div class='col_left'>
    <table class='featuretable'>
     <thead><tr><th colspan='2'>General Information</th></tr>
@@ -55,9 +58,6 @@
      {% endif %}  
      <tr><th>Owner</th><td>{{ feature.owner }}</td></tr>
      <tr><th>Public</th><td>{{ feature.is_public }}</td></tr>
-     {% if feature.description %}
-     <tr><th>Description</th><td>{{ feature.description }}</td></tr>
-     {% endif %}
      <tr><th>Genbank_file</th><td><a href="{{feature.genbank_file.url}}">{{ feature.uniquename }}</a></td></tr>
    </tbody>
   </table>

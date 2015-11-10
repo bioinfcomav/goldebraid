@@ -4,59 +4,8 @@
 {% block title %}Feature search {% endblock title %}
 {% block content %}
 {% if not features and not search_criteria %}
-<h1>Search Database<img src='{{STATIC_URL}}style/images/lupa.png' alt="search" style="margin:0 0 -10px 4px;"/></h1>
-<div id='searchmenu'>
-<ul>
-<li class='current'><a href="/search/features">GB_Elements</a></li>
-<li><a href="/search/experiment">Experiments</a></li>
-</ul>
-</div>
-<h4>Browse the GB Collection</h4>
-<p>Browse the GB collection by selecting a <strong>GB Category</strong> from the diagram below, or use the <a href="#advancedsearch">Advanced Search</a> for more filtering options.</p>
-<img src='{{STATIC_URL}}style/images/template_search_icons.png' border="0" Style="margin-left:140px;" usemap="#mapa"/>
-<map name="mapa" id="mapa">
-<area shape="rect" coords="29,77,74,122"  href='/search/features/?category=PROM,GGAG,TGAC' alt="DIST"/>
-<area shape="rect" coords="82,77,132,122"  href='/search/features/?category=OP,TGAC,TCCC' alt="PROX"/>
-<area shape="rect" coords="144,77,190,122"  href='/search/features/?category=CORE,TCCC,TACT' alt="CORE"/>
-<area shape="rect" coords="212,77,257,122"  href='/search/features/?category=5UTR,TACT,CCAT' alt="5UTR"/>
-<area shape="rect" coords="272,77,317,122"  href='/search/features/?category=NT,CCAT,AATG' alt="NTAG"/>
-<area shape="rect" coords="335,77,380,122"  href='/search/features/?category=SP,AATG,AGCC' alt="CDS1"/>
-<area shape="rect" coords="398,77,443,122"  href='/search/features/?category=CDS2,AGCC,TTCG' alt="CDS2"/>
-<area shape="rect" coords="457,77,503,122"  href='/search/features/?category=CT,TTCG,GCTT' alt="CTAG"/>
-<area shape="rect" coords="522,77,568,122"  href='/search/features/?category=3UTR,GCTT,GGTA' alt="3UTR"/>
-<area shape="rect" coords="583,77,638,122"  href='/search/features/?category=TERM,GGTA,CGCT' alt="TERM"/>
-<area shape="rect" coords="29,166,316,210"  href='/search/features/?category=PROM+UTR+ATG,GGAG,AATG' alt="PROM+5UTR+NTAG"/>
-<area shape="rect" coords="29,218,256,262"  href='/search/features/?category=PROM+5UTR,GGAG,CCAT' alt="PROM+5UTR(f)"/>
-<area shape="rect" coords="265,218,315,262"  href='/search/features/?category=NT,CCAT,AATG' alt="NTAG"/>
-<area shape="rect" coords="29,270,135,314"  href='/search/features/?category=OP,GGAG,TCCC' alt="DIST+PROX"/>
-<area shape="rect" coords="29,321,74,366"  href='/search/features/?category=PROM,GGAG,TGAC' alt="DIST"/>
-<area shape="rect" coords="85,321,134,366"  href='/search/features/?category=OP,TGAC,TCCC' alt="PROX"/>
-<area shape="rect" coords="144,295,315,342"  href='/search/features/?category=MinPROM,TCCC,AATG' alt="CORE+5UTR"/>
-<area shape="rect" coords="29,373,315,418"  href='/search/features/?category=INTERACTION ADAPTOR,GGAG,AATG' alt="Interaction Adaptor"/>
-<area shape="rect" coords="333,218,503,262"  href='/search/features/?category=CDS,AATG,GCTT' alt="CDS"/>
-<area shape="rect" coords="333,269,379,314"  href='/search/features/?category=SP,AATG,AGCC' alt="CDS1"/>
-<area shape="rect" coords="388,269,502,314"  href='/search/features/?category=CDS,AGCC,GCTT' alt="CDS2+CTAG"/>
-<area shape="rect" coords="334,322,448,366"  href='/search/features/?category=CDS,AATG,TTCG' alt="CDS1+CDS2"/>
-<area shape="rect" coords="457,322,502,367"  href='/search/features/?category=CT,TTCG,GCTT' alt="CTAG"/>
-<area shape="rect" coords="522,269,638,314"  href='/search/features/?category=TER,GCTT,CGCT' alt="TERM"/>
-<area shape="rect" coords="29,487,256,532"  href='/search/features/?category=PROM+UTR+mir173,GGAG,CCAT' alt="PROM+5UTR+mir173"/>
-<area shape="rect" coords="272,434,373,479"  href='/search/features/?category=goi,CCAT,AGCC' alt="GOI"/>
-<area shape="rect" coords="383,434,447,479"  href='/search/features/?category=int,AGCC,TTCG' alt="Int"/>
-<area shape="rect" coords="457,434,506,479"  href='/search/features/?category=iog,TTCG,GCTT' alt="IOG"/>
-<area shape="rect" coords="272,486,505,531"  href='/search/features/?category=goi,CCAT,GCTT' alt="fGOI"/>
-<area shape="rect" coords="271,551,373,595"  href="/search/features/?category=5'FS,CCAT,GTAG" alt="5'FS"/>
-<area shape="rect" coords="382,551,447,595"  href='/search/features/?category=Target,GTAG,TCTC' alt="Target"/>
-<area shape="rect" coords="457,550,506,594"  href="/search/features/?category=3'FS,TCTC,GCTT" alt="3'FS"/>
-<area shape="rect" coords="32,728,252,773"  href="/search/features/?category=PROM MPolIII (A1-A2-A3-B1-B2d),GGAG,GGCA" alt="PROM MONOCOT"/>
-<area shape="rect" coords="32,796,252,841"  href="/search/features/?category=PROM DPolIII (A1-A2-A3-B1-B2c),GGAG,ATTG" alt="PROM Dicot"/>
-<area shape="rect" coords="269,728,502,773"  href="/search/features/?category=M Target (B3d-B4-B5d),GGCA,GTTT" alt="Target Monocot"/>
-<area shape="rect" coords="269,796,502,841"  href="/search/features/?category=D Target (B3c-B4-B5c),ATTG,GTTT" alt="Target Dicot"/>
-<area shape="rect" coords="523,762,631,807"  href="/search/features/?category=sgRNA (B6b-C1),GTTT,CGCT" alt="sgRNA"/>
-<area shape="rect" coords="28,922,641,967"  href="/search/features/?category=TU, None,None" alt="TU"/>
-<area shape="rect" coords="28,982,641,1027"  href="/search/features/?category=Module, None,None" alt="Module"/>
-</map>
+<h1>Search GB Elements<img src='{{STATIC_URL}}style/images/lupa.png' alt="search" style="margin:0 0 -10px 4px;"/></h1>
 <div class='tools'>
-<a id="advancedsearch"><h1>Advanced Search</h1></a>
 <ul class="search">
 <li>Use the first option to search for GB elements with a GoldenBraid ID_number/name/description containing what you typed in.</li>
 <li>You can use the second option to limit your search results to a specific GB category. In the drop-down menu you will see a list of the different categories that make up the GB collection.</li>
