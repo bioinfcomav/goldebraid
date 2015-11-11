@@ -55,7 +55,6 @@ from goldenbraid.utils import get_prefix_and_suffix_index
 from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES
 
 
-
 def get_prefix_and_suffix(seq, enzyme):
     'it gets the prefix and the suffix of the feature seq'
     try:
@@ -496,15 +495,30 @@ class FeatureTable(tables.Table):
         attrs = {"class": "searchresult"}
 
 
+def _querify_search_criteria(search_criteria, fields):
+    print fields.keys(), search_criteria
+    already_used = set()
+    query = ''
+    for key, value in search_criteria.items():
+        print key, value
+        if key in fields and key not in already_used:
+            query += ';{}={}'.format(key, value)
+            already_used.add(key)
+
+    return query
+
+
 def search_features_view(request):
     'The feature search view'
 
     context = RequestContext(request)
     context.update(csrf(request))
+    getdata = False
     if request.method == 'POST':
         request_data = request.POST
     elif request.method == 'GET':
         request_data = request.GET
+        getdata = True
     else:
         request_data = None
 
@@ -541,8 +555,11 @@ def search_features_view(request):
                                              template='table.html')
                 RequestConfig(request).configure(feature_table)
                 context['features'] = feature_table
-                context['criteria'] = "".join([';{}={}'.format(k, v)
-                                               for k, v in search_criteria.items()])
+                # we only have to write the criteria in the form the first
+                # time we search
+                if not getdata:
+                    context['criteria'] = ''.join([";{}={}".format(k, v)
+                                        for k, v in search_criteria.items()])
             else:
                 context['features'] = None
     else:

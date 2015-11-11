@@ -564,10 +564,12 @@ def search_experiment(request):
 
     context = RequestContext(request)
     context.update(csrf(request))
+    getdata = False
     if request.method == 'POST':
         request_data = request.POST
     elif request.method == 'GET':
         request_data = request.GET
+        getdata = True
     else:
         request_data = None
 
@@ -606,8 +608,9 @@ def search_experiment(request):
                     experiment_table.paginate(page=request.GET.get('page', 1),
                                               per_page=25)
                     context['experiments'] = experiment_table
-                    context['criteria'] = "".join([';{}={}'.format(k, v)
-                                                   for k, v in search_criteria.items()])
+                    if not getdata:
+                        context['criteria'] = "".join([';{}={}'.format(k, v)
+                                          for k, v in search_criteria.items()])
             else:
                 context['experiments'] = None
         else:
