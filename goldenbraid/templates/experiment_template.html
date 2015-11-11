@@ -84,10 +84,9 @@
     {% if experiment.numeric_props %}
         <h9>Quantitative Output</h9>
  <table class="expdes">
-        {% for key, values in experiment.numeric_props.items %}
+        {% for key, values in experiment.numeric_props %}
 <tbody>
-
-                <tr> <td>{{ key|capfirst|replaceunderscore }}:</td> <td>{{ values|first}}</td> </tr>
+        <tr> <td>{{ key|capfirst|replaceunderscore }}:</td> <td>{{ values|first}}</td> </tr>
         {% endfor %}</tbody></table>
     {%endif%}
 <div id='space'> </div>

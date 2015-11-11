@@ -567,8 +567,8 @@ class Experiment(models.Model):
             if type_ not in prop_dict:
                 prop_dict[type_] = []
             prop_dict[type_].append(value)
-
-        return ReadOnlyDict(prop_dict)
+        return sorted(prop_dict.iteritems())
+        #return ReadOnlyDict(prop_dict)
 
     @property
     def text_props(self):
