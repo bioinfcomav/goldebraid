@@ -537,7 +537,6 @@ class ExperimentTable(tables.Table):
     uniquename = tables.LinkColumn('experiment_view', args=[A('uniquename')],
                                    verbose_name='Uniquename')
     type = tables.Column(verbose_name='Type', accessor='type.name')
-    description = tables.Column(verbose_name='Description', orderable=False)
     keywords = tables.Column(verbose_name='Keywords', orderable=False)
     features_used_in_experiment = tables.Column(verbose_name='GBelements',
                                                 orderable=False)
