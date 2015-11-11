@@ -44,9 +44,12 @@ from goldenbraid.views.domestication import (domestication_view,
                                              crispr_view_add)
 from goldenbraid.views.experiment import (search_experiment,
                                           add_experiment_view, experiment_view)
+from goldenbraid.views.user import user_view
 
 
 urlpatterns = patterns('',
+                       url(r'^user/(?P<username>.+)/$', user_view,
+                           name='user_view'),
                        url(r'^do/domestication/add/$', domestication_view_add,
                            name='domestication_view_add'),
                        url(r'^do/domestication/genbank/$',
