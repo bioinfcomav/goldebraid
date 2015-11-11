@@ -17,11 +17,11 @@
   <p>No features found</p>
 {% endif %}
 {% if features %}
-  <p> Features found: {{features.data|length}}   </p>
+  <p> GB Elements found: {{features.data|length}}   </p>
 
   {% render_table features%}
   {% url 'search_features_view' as base_url %}
-    {% load urlbuilder %} 
+    {% load urlbuilder %}
     <p><a href='{% build_url base_url search_criteria download_search=True %}' download>Download search result</a>.</p>
 {% else %}
 
