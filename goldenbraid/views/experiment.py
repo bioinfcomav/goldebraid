@@ -123,7 +123,7 @@ def experiment_view(request, uniquename):
                                               context_instance=req_context)
 
             elif action in 'make_public' or 'make_private':
-                if request.user.is_staff:
+                if request.user.is_staff or request.user == experiment.owner:
                     if action == 'make_public' and not experiment.is_public:
                         experiment.is_public = True
                     elif action == 'make_private' and experiment.is_public:
@@ -132,10 +132,10 @@ def experiment_view(request, uniquename):
                         raise RuntimeError('bad conbinations of input request')
                     return render_to_response('experiment_template.html',
                                               {'experiment': experiment,
-                                               'info': 'Feature modified'},
+                                               'info': 'Experiment modified'},
                                               context_instance=req_context)
                 else:
-                    info_text = 'You are not allowed to modify this feature'
+                    info_text = 'You are not allowed to modify this experiment'
                     return render_to_response('Goldenbraid_info.html',
                                               {'title': 'Not Allowed',
                                                'info': info_text},

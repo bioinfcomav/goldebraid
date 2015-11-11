@@ -46,10 +46,10 @@
     <th>Name</th>
     <th>Type</th>
     </tr>
-	</thead>
+  </thead>
     {% for feature in features %}
-	<tbody>
-    <tr>   
+  <tbody>
+    <tr>
     <td>{{ feature.uniquename|link_if_url:feature }}</td>
     <td>{{ feature.name }}</td>
     <td>{{ feature.type.name }}</td>
@@ -69,9 +69,9 @@
     <tr><th>ID</th>
     <th>Name</th>
     <th>Type</th></tr>
-	</thead>
+  </thead>
     {% for feature in features %}
-	<tbody>
+  <tbody>
     <tr> <td>{{ feature.uniquename|link_if_url:feature }}</td>
     <td>{{ feature.name }}</td>
     <td>{{ feature.type.name }}</td> </tr>
@@ -135,7 +135,7 @@
         <h6>Result images</h6>
         {% for title, image in experiment.image_props %}
              <img class='resize' src={{image.url}} alt={{title}}>
-		<div class="caption">{{ title|capfirst|replaceunderscore }}</div>
+    <div class="caption">{{ title|capfirst|replaceunderscore }}</div>
         {% endfor %}
     {% endif %}
  {% if experiment.excel_props%}
@@ -149,7 +149,7 @@
        {% if experiment.generic_file_props %}
         <h6>Associated Generic_files</h6>
         {% for title, file_ in experiment.generic_file_props %}
-             <p><span class='key'>{{ title|capfirst|replaceunderscore }}:</span> 
+             <p><span class='key'>{{ title|capfirst|replaceunderscore }}:</span>
                 <a href={{file_.url}}>Download file</a>
              </p>
         {% endfor %}
@@ -168,8 +168,6 @@
     <p>You can delete this experiment from the database, this step can not be undone.
     <INPUT type="submit" value="Delete"></p>
   </form>
-{% endif %}
-{% if user.is_staff%}
   <form action='' method='POST'>{% csrf_token %}
     <INPUT type="hidden" name="experiment" value="{{experiment.uniquename }}">
     {% if experiment.is_public %}
