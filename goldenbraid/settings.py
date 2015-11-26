@@ -181,7 +181,7 @@ SBOL_IMAGES = {FORWARD: {PROM_5UTR_NTAG: 'prom_5utr_ntag.png',
                          TARGET_MONOCOT: 'target_monocot.png',
                          PROM_DICOT: 'prom_dicot.png',
                          PROM_MONOCOT: 'prom_monocot.png',
-                         TER_CRYSPER: ''},
+                         TER_CRYSPER: 'sgrna.png'},
                REVERSE: {PROM_5UTR_NTAG: 'prom_5utr_ntag.rev.png',
                          PROX: 'prox.rev.png',
                          CORE_5UTR: 'core_5utr.rev.png',
@@ -208,5 +208,5 @@ SBOL_IMAGES = {FORWARD: {PROM_5UTR_NTAG: 'prom_5utr_ntag.png',
                          TARGET_MONOCOT: 'target_monocot.rev.png',
                          PROM_DICOT: 'prom_dicot.rev.png',
                          PROM_MONOCOT: 'prom_monocot.rev.png',
-                         TER_CRYSPER: ''}
+                         TER_CRYSPER: 'sgrna.rev.png'}
                }
