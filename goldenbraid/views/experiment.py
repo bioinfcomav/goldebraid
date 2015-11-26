@@ -247,11 +247,12 @@ def _add_experiment(form, user, feat_formset, subfeat_form,
                     ExperimentPropExcel.objects.create(experiment=experiment,
                                                        description=description,
                                                        excel=excel_file)
-            if protocol_form.cleaned_data['protocol'] is not None:
-                file_ = protocol_form.cleaned_data['protocol']
-                ExperimentPropGenericFile.objects.create(experiment=experiment,
-                                                         description='Protocol',
-                                                         file=file_)
+            if protocol_form is not None:
+  	        if protocol_form.cleaned_data['protocol'] is not None:
+                    file_ = protocol_form.cleaned_data['protocol']
+                    ExperimentPropGenericFile.objects.create(experiment=experiment,
+                                                             description='Protocol',
+                                                             file=file_)
                 pass
 
     except (IntegrityError, RuntimeError):
