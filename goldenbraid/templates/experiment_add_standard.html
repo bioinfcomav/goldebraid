@@ -77,7 +77,7 @@
 {% elif exp_cv_type.name = 'SE_003' %}
 <h1>SE_003 Transformation efficiency</h1>
 {% elif exp_cv_type.name = 'SE_004' %}
-<h1>SE_004 Recombinant protein yield</h1>
+<h1>SE_004 Recombinant protein production</h1>
 {% else %}
 <h1>SE_005 CRISPR target efficiency</h1>
 {% endif %}
@@ -90,20 +90,20 @@
 {% if exp_cv_type.name = 'SE_001' %}
 <td>Standard experiments type 1 (SE_001) aim is to characterize promoter strengths with relative promoter units (RPUs) measured
 as luciferase/renilla ratios. The nopaline synthase promoter (pNOS) is our reference standard promoter. These experiments can
-involve a chemical or physical induction and are performed in <em>N. benthamiana</em> <b>leaf discs</b> following the conditions specified below.</td>
+involve a chemical or physical induction and are performed in <b><em>N. benthamiana</em></b> leaf discs following the conditions specified below.</td>
 {% elif exp_cv_type.name = 'SE_002' %}
 <td>Standard experiments type 2 (SE_002) were designed for promoter characterization with relative promoter units (RPUs) measured
 as luciferase/renilla ratios as measurement standard. The nopaline synthase promoter (pNOS) is our reference standard promoter.
-These experiments are performed in <em>N. benthamiana</em> <b>leaves</b> following the conditions specified below.</td>
+These experiments are performed in <b><em>N. benthamiana</em></b> leaves following the conditions specified below.</td>
 {% elif exp_cv_type.name = 'SE_003' %}
 <td>Standard experiments type 3 (SE_003) aim is to provide an estimation of the transformation efficiency of different GBelements.</td>
 {% elif exp_cv_type.name = 'SE_004' %}
-<td>Standard experiments type 4 (SE_004) aim is to estimate the yield of recombinant proteins expression.</td>
+<td>Standard experiments type 4 (SE_004) aim is to estimate the yield of recombinant proteins.</td>
 {% else %}
 <td>Standard experiments type 5 (SE_005) aim is to provide an estimation of the mutation efficiency of different CRISPR/Cas9 targets.</td>
 {% endif %}
 </tr>
-</tbody></table
+</tbody></table>
 
 <form action=""  enctype="multipart/form-data" method="post">{% csrf_token %}
 <fieldset>
@@ -127,14 +127,14 @@ These experiments are performed in <em>N. benthamiana</em> <b>leaves</b> followi
 <td>{{form.chasis_2.errors}} <label>Chassis:</label></td>
 {% if chassis %}
 <td>{{chassis}}</td>
-<input type='hidden' id="id_chasis_2" name="chasis_2" value="{{chassis}}"> </ul>
+<input type='hidden' id="id_chasis_2" name="chasis_2" value="{{chassis}}"> 
 {% else %}
 <td><strong>{{form.chasis_2}}</strong></td>
 {% endif %}
 </tr>
 <tr>
 <td><label>Conditions:</label></td>
-<td>{{exp_cv_type.definition}}</td>
+<td>{{ value|striptags }}{{exp_cv_type.definition|linebreaksbr}}</td>
 </tr>
 </tbody>
 </table>

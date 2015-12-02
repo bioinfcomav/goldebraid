@@ -1,13 +1,13 @@
 cv	name	definition
-numeric_types	Normalized Fluc/Rluc time 1	SE_001
-numeric_types	Normalized Fluc/Rluc time 2	SE_001
-numeric_types	Normalized Fluc/Rluc time 3	SE_001
-numeric_types	Normalized Fluc/Rluc time 4	SE_001
+numeric_types	RPU; t1=0h	SE_001
+numeric_types	RPU; t2=4h	SE_001
+numeric_types	RPU; t3=8h	SE_001
+numeric_types	RPU; t4=12h	SE_001
 
-numeric_types	Normalized Fluc/Rluc time 5	SE_001
-numeric_types	Normalized Fluc/Rluc time 6	SE_001
-numeric_types	Normalized Fluc/Rluc time 7	SE_001
-numeric_types	Normalized Fluc/Rluc time 8	SE_001
+numeric_types	RPU; t5=18h	SE_001
+numeric_types	RPU; t6=24h	SE_001
+numeric_types	RPU; t7=36h	SE_001
+numeric_types	RPU; t8=48h	SE_001
 numeric_types	% Transformants	SE_003
 numeric_types	%TSP	SE_004
 numeric_types	Micrograms/g FW	SE_004

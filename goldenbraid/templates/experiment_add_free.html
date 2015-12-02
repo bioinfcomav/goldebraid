@@ -65,8 +65,15 @@
 </style>
 {% endblock %}
 {% block content %}
-<p><span class='emphasis'>Note: User-added GBdatabase entries are private and only accessible to the user who created them.</span></p>
-<p>To add a experiment to the database fill out the following form:</p>
+<h1>NS_000 Non-standard experiment</h1>
+<table class="fig_exp_descrip">
+<tbody>
+<tr>
+<th><img class='exp_descrip' src='{{STATIC_URL}}style/images/{{exp_cv_type.name}}.jpg' alt="{{exp_cv_type.name}}"/></th>
+<td>Non-standard experiments are those that do not adjust to any of the 5 defined standards. Use this form if you have changed the defined experimental conditions, or if you are performing a completely different experiment.</td>
+</tr>
+</tbody></table>
+
 <form action=""  enctype="multipart/form-data" method="post">{% csrf_token %}
 <fieldset>
 <legend>Experiment information:</legend>
@@ -185,6 +192,7 @@
 </table>
 {{ generic_file_formset.management_form }}
 </fieldset>
+<p><span class='emphasis'>Note: User-added GBdatabase entries are private and only accessible to the user who created them.</span></p>
 <input type="submit" value="Add" />
 </form>
 

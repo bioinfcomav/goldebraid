@@ -3,12 +3,15 @@
 {% block content %}
 <div class='tools'>
 <h1>GB TU Assembler</h1>
-<p><span class="warning"><strong>IMPORTANT NOTICE:</strong> We have introduced some changes in the GB syntax to accommodate to the common standard agreed by several Plant laboratories (see <a href="http://onlinelibrary.wiley.com/doi/10.1111/nph.13532/full" title="New Phytologists"target="_blank"> Patron et al., New Phytologist 2015</a>). These changes affect the B4 and B5 positions of the GB grammar in CT-fusions and hpRNA TUs. <strong>The GB tools work now with the New Grammar</strong>.</span></p> 
-<p><span class="warning">We encourage GB users to adapt to the new standard where possible. However, we understand you may still want to use your previously built GBparts that do not adapt to the new standard. You can do this by means of the "Custom Domestication" and "Free Assembler" options following the instructions provided at <a href="/customCT" target="_blank" >Custom CT fusions</a> and <a href="/customhpRNA" target="_blank" >Custom hpRNA</a></span></p> 
-<p><span class='tools'>Once you have domesticated and incorporated to the GB database the new  GBparts/superparts conforming your TU, you can combine them with any other GBpart/superpart of the GBcollection with this tool. To start using it click on the type of transcriptional unit you wish to built.</span></p>
+<div id="domwarning">
+<p><span class="domwarning"><strong><font color="red">IMPORTANT NOTICE:</font></strong> We have introduced some changes in the GB syntax to accommodate to the common standard agreed by several Plant laboratories (see <a href="http://onlinelibrary.wiley.com/doi/10.1111/nph.13532/full" title="New Phytologists"target="_blank"> Patron et al., New Phytologist 2015</a>). These changes affect the B4 and B5 positions of the GB grammar in CT-fusions and hpRNA TUs. <strong>The GB tools work now with the New Grammar</strong>.</span></p> 
+<p><span class="domwarning">We encourage GB users to adapt to the new standard where possible. However, we understand you may still want to use your previously built GBparts that do not adapt to the new standard. You can do this by means of the "Custom Domestication" and "Free Assembler" options following the instructions provided at <a href="/customCT" target="_blank" >Custom CT fusions</a> and <a href="/customhpRNA" target="_blank" >Custom hpRNA</a></span></p> 
+<p><span class="domwarning"><strong>Remember that parts assembled in the former pUPD can be combined with those assembled in the <a href="/pUPD" target="_blank" >pUPD2</a>.</strong></span></p>
+</div>
+<br/>
+<p>Once you have domesticated and incorporated to the GB database the new  GBparts/superparts conforming your TU, you can combine them with any other GBpart/superpart of the GBcollection with this tool. To start using it click on the type of transcriptional unit you wish to built.</span></p>
 </div>
 {% load goldenbraid_extras %}
-
 <div id='multitype'>
 <table id='multi_link_table'>
 <thead>
