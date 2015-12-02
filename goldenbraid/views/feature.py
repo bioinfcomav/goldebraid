@@ -343,6 +343,8 @@ def add_feature_view(request):
 
 def feature_view(request, uniquename):
     'The feature view'
+    if uniquename == 'GB0307':
+        uniquename = 'pUPD2'
     try:
         feature = Feature.objects.get(uniquename=uniquename)
     except Feature.DoesNotExist:
