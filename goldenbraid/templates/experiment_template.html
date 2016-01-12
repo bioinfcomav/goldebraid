@@ -6,8 +6,13 @@
    <h1> This experiment does not exist</h1>
 {% else %}
 <h1>{{ experiment.type.name|capfirst|replaceunderscore }} {{ experiment.uniquename }}</h1>
-<h9>General Information</h9>
+<div class="col_left">
 <table class="expdes">
+<thead>
+<tr>
+<th colspan="2">General Information</th>
+</tr>
+</thead>
 <tbody>
 <tr>
 <th>Name:</th>
@@ -30,29 +35,31 @@
 <td>{{ experiment.keywords|join:", " }}</td>
 </tr>
 <tr>
-<th>Description:</th>
-<td>{{ experiment.description }}</td>
-</tr>
-<tr>
 <th>Owner:</th>
 <td><a href='/user/{{experiment.owner}}/' >{{experiment.owner}}</a></td>
 </tr>
+<tr>
+<th>Description:</th>
+<td><textarea readonly name="styled-textarea" id="styled" rows="8" >{{ experiment.description }}</textarea></td>
+</tr>
 </tbody>
 </table>
-<div id='space'> </div>
-<div id='space'> </div>
+</div>
   {% if experiment.features_used_in_experiment %}
 {% with features=experiment.features_used_in_experiment %}
-<h9>GB_Elements used in the experiment </h9>
-<table class="expdes">
-    <thead>
+<div class="col_right">
+<table class="componenttable">
+<thead>
+<tr>
+<th colspan="3">GB_Elements used in the experiment</th>
+</tr>
+</thead>
+<tbody>
     <tr><th>ID</th>
     <th>Name</th>
     <th>Type</th>
     </tr>
-  </thead>
     {% for feature in features %}
-  <tbody>
     <tr>
     <td>{{ feature.uniquename|link_if_url:feature }}</td>
     <td>{{ feature.name }}</td>
@@ -63,103 +70,93 @@
    </table>
   {% endwith %}
   {%endif%}
-<div id='space'> </div>
-<div id='space'> </div>
 {% if experiment.key_features %}
 {% with features=experiment.key_features %}
-<h9>Key components</h9>
-  <table class="expdes">
-    <thead>
+<table class="componenttable">
+<thead>
+<tr>
+<th colspan="3">Key components</th>
+</tr>
+</thead>
+    <tbody>
     <tr><th>ID</th>
     <th>Name</th>
     <th>Type</th></tr>
-  </thead>
     {% for feature in features %}
-  <tbody>
     <tr> <td>{{ feature.uniquename|link_if_url:feature }}</td>
     <td>{{ feature.name }}</td>
     <td>{{ feature.type.name }}</td> </tr>
     {% endfor %}
     </tbody>
-   </table>  {% endwith %}
+   </table></div>  {% endwith %}
   {%endif%}
+<div style='clear:both;'>&nbsp;</div>
 <div id='space'> </div>
+<div id="featwrap">
 <div id='space'> </div>
+<h6 align="center">Experimental Results</h6>
     {% if experiment.numeric_props %}
-        <h9>Quantitative Output</h9>
+<div class ="col_left">
  <table class="expdes">
+<thead>
+<tr>
+<th colspan="2">Quantitative Output</th>
+<tr>
+</thead>
         {% for key, values in experiment.numeric_props %}
 <tbody>
         <tr> <td>{{ key|capfirst|replaceunderscore }}:</td> <td>{{ values|first}}</td> </tr>
-        {% endfor %}</tbody></table>
+        {% endfor %}</tbody></table></div>
     {%endif%}
-<div id='space'> </div>
-<div id='space'> </div>
- {% if experiment.text_props %}
-<h9>Results summary</h9>
-<table class="expdes">
-<tr>
-<th>Experiment Summary:</th>
-<td>{% for key, values in experiment.text_props.items %}
-            {% if values|length > 1 %}
-                <p><span class='key'>{{ key|capfirst|replaceunderscore}}{{values|pluralize }}:</span></p>
-                <ul class='property'>
-                {% for value in values %}
-                    <li><p><span class='value'>{{ value|capfirst|replaceunderscore}}</span></p></li>
-                {% endfor %}
-                </ul>
-            {% else %}
-                {{ values|first}}
-            {% endif %}
-        {% endfor %}
-    {%endif%}
-</td>
-</tr>
-</table>
-
-
-   <!-- {% if experiment.text_props %}
-        <h2>Text values</h2>
-        {% for key, values in experiment.text_props.items %}
-            {% if values|length > 1 %}
-                <p><span class='key'>{{ key|capfirst|replaceunderscore}}{{values|pluralize }}:</span></p>
-                <ul class='property'>
-                {% for value in values %}
-                    <li><p><span class='value'>{{ value|capfirst|replaceunderscore}}</span></p></li>
-                {% endfor %}
-                </ul>
-            {% else %}
-                <p><span class='key'>{{ key|capfirst|replaceunderscore }}:</span> <span class='value'>{{ values|first}}</span></p>
-            {% endif %}
-        {% endfor %}
-    {%endif%}-->
-<div id="expimage">
-    {% if experiment.image_props%}
-        <h6>Result images</h6>
-        {% for title, image in experiment.image_props %}
-             <img class='resize' src={{image.url}} alt={{title}}>
-    <div class="caption">{{ title|capfirst|replaceunderscore }}</div>
-        {% endfor %}
-    {% endif %}
  {% if experiment.excel_props%}
                 {% for exp_excel in experiment.excel_props %}
-                           <p><a href={{exp_excel.excel.url}}>Excel File</a></p>
-                <img class='resize' src={{exp_excel.image_url}} alt={{exp_excel.description}}>
-<div class="caption">{{ exp_excel.description|capfirst|replaceunderscore }}</div>
+<div class ="col_right">
+                <img class='resize1' src={{exp_excel.image_url}} alt={{exp_excel.description}}>
+<div class="caption"><a href={{exp_excel.excel.url}}>{{ exp_excel.description|capfirst|replaceunderscore }}</a></div>
+</div>        
+	{% endfor %}
+    {% endif %}
+<div style='clear:both;'>&nbsp;</div>
+{% if experiment.text_props %}
+<div class="resultsummary">
+<h9>Results summary</h9>
+{% for key, values in experiment.text_props.items %}
+            {% if values|length > 1 %}
+                <p><span class='key'>{{ key|capfirst|replaceunderscore}}{{values|pluralize }}:</span></p>
+                {% for value in values %}
+                    <p><span class='value'>{{ value|capfirst|replaceunderscore}}</span></p>
+                {% endfor %}
+                            {% else %}
+                <p>{{ values|first}}</p>
+            {% endif %}
+        {% endfor %}
+    {%endif%}
+</div>
+<div id='space'> </div>
+    {% if experiment.image_props%}
+<div id="titel"><h10>Additional Figures</h10></div>
+                {% for title, image in experiment.image_props %}
+  <div id="expimagef">
+             <img class='resize2' src={{image.url}} alt={{title}}>
+	<span class="captionf">{{ title|capfirst|replaceunderscore }}</span>
+</div>
         {% endfor %}
     {% endif %}
-</div>
-       {% if experiment.generic_file_props %}
-        <h6>Associated Generic_files</h6>
+<div id='space'> </div>
+<div id='space'> </div>
+        {% if experiment.generic_file_props %}
+<div id="titel"><h10>Additional Files</h10></div>
         {% for title, file_ in experiment.generic_file_props %}
+<div id="file">
              <p><span class='key'>{{ title|capfirst|replaceunderscore }}:</span>
                 <a href={{file_.url}}>Download file</a>
              </p>
+</div>
         {% endfor %}
     {% endif %}
 {% endif %}
 <div id='space'> </div>
-<div id='space'> </div>
+</div>
 {% if experiment.owner == user or user.is_staff %}
 <p></p>
   <h2> Experiment Management Tools (only if permission granted)</h2>
