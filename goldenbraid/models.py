@@ -339,7 +339,8 @@ class Feature(models.Model):
 
     @property
     def gb_category(self):
-        if self.level != LEVEL_0 or self.type.name == VECTOR_TYPE_NAME:
+        if (self.level != LEVEL_0 or  self.type.name == VECTOR_TYPE_NAME or 
+                self.type.name== OTHER_TYPE_NAME):
             return self.type.name
         type_ = self.type.name
         prefix = self.prefix
@@ -434,7 +435,7 @@ class Feature(models.Model):
         return experiments
 
     @property
-    def experiment_images(self):
+    def experiment_images(self, user):
         experiments = self.ordered_experiments
         image_urls = []
         for experiment in experiments:
