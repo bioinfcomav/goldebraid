@@ -25,7 +25,8 @@ from goldenbraid.tags import (MODULE_TYPE_NAME, TU_TYPE_NAME, TARGET_DICOT,
                               DIST_PROX, CORE_5UTR, DIST, INTERACTION_ADAPTOR,
                               PROM_5UTR_MIR173, NTAG, CDS, CDS2_CTAG,
                               CDS1_CDS2, CTAG, FS5, TARGET, FS3, GOI, INT, IOG,
-                              FGOI, UTR3_TERM, CDS1, FORWARD, REVERSE)
+                              FGOI, UTR3_TERM, CDS1, FORWARD, REVERSE,
+			      OTHER_TYPE_NAME)
 
 
 GENBANK_DIR = getattr(settings, 'GOLDENBRAID_GENBANK_DIR', 'genbank_files')
@@ -177,6 +178,7 @@ SBOL_IMAGES = {FORWARD: {PROM_5UTR_NTAG: 'prom_5utr_ntag.png',
                          FS5: '5fs.png',
                          TARGET: 'target.png',
                          FS3: '3fs.png',
+			 OTHER_TYPE_NAME: 'other.png',
                          TARGET_DICOT: 'target_dicot.png',
                          TARGET_MONOCOT: 'target_monocot.png',
                          PROM_DICOT: 'prom_dicot.png',
@@ -204,6 +206,7 @@ SBOL_IMAGES = {FORWARD: {PROM_5UTR_NTAG: 'prom_5utr_ntag.png',
                          FS5: '5fs.rev.png',
                          TARGET: 'targetv.png',
                          FS3: '3fs.rev.png',
+			 OTHER_TYPE_NAME: 'other.rev.png',
                          TARGET_DICOT: 'target_dicotv.png',
                          TARGET_MONOCOT: 'target_monocot.rev.png',
                          PROM_DICOT: 'prom_dicot.rev.png',
