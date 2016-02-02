@@ -428,7 +428,7 @@ class Feature(models.Model):
             exp = featsubexpe.experiment
             if exp not in experiments:
                 experiments.append(exp)
-        for featexpe in ExperimentSubFeature.objects.filter(feature=self):
+        for featexpe in ExperimentFeature.objects.filter(feature=self):
             exp = featexpe.experiment
             if exp not in experiments:
                 experiments.append(exp)
