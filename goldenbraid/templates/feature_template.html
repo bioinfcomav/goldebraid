@@ -100,50 +100,41 @@
   {% endwith %}
   {%endif%}
 {% if feature.ordered_experiments %}
-{% if experiment.owner == user or user.is_staff %}
+  {% with exps=feature.ordered_experiments|filter_private_exps:user %}
    <table class='componenttable'>
-    <thead><tr><th colspan='2'>Experiments</th></tr>
-    </thead>
+    <thead><tr><th colspan='2'>Experiments</th></tr></thead>
     <tbody>
-    <tr><th>ID</th>
-    <th>Type</th>
+    <tr>
+      <th>ID</th>
+      <th>Type</th>
     </tr>
-  {% for experiment in feature.ordered_experiments|filter_private_exps:user %}
-          <tr>
-           <td>{{ experiment.uniquename|link_if_url:experiment }}</td>
-            <td>{{ experiment.type.name }}</td>
-          </tr>
-          {% endfor %}
+    {% for experiment in exps %}
+      <tr>
+        <td>{{ experiment.uniquename|link_if_url:experiment }}</td>
+        <td>{{ experiment.type.name }}</td>
+      </tr>
+    {% endfor %}
     </tbody>
    </table>
-{%endif%}
+  {% endwith %}
 {% endif %}
 </div>
 <div style='clear:both;'>&nbsp;</div>
 
 </div>
 <div id="expimage">
-	{% with exps=feature.ordered_experiments|filter_private_exps:user %}
-      {% with urls=exps|filter_2best_images %}
-        {% if urls%}
-          <h6>Experimental Images</h6>
-          {% for url in urls%}
-   		    <img class='resize' src={{url|first}} alt={{alt|last}}>
-   		  {% endfor %}
-	    {% endif %}
-	  {% endwith %}
-	{% endwith %}
-   
-   
-{#   {% if feature.experiment_images %}#}
-{#{% if experiment.owner == user or user.is_staff %}#}
-{#         <h6>Experimental Images</h6>#}
-{#          {% for url, alt in feature.experiment_images %}#}
-{#        <img class='resize' src={{url}} alt={{alt}}>#}
-{#        {% endfor %}#}
-{#   {% endif %}#}
-{#{% endif %}#}
+  {% with exps=feature.ordered_experiments|filter_private_exps:user %}
+    {% with urls=exps|filter_2best_images %}
+      {% if urls%}
+        <h6>Experimental Images</h6>
+        {% for url in urls%}
+          <img class='resize' src={{url|first}} alt={{alt|last}}>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  {% endwith %}
 </div>
+
 <div id='space'> </div>
 </div>
 <p>You can use your favorite sequence viewer to open the genbank file. We suggest to use <a href="http://benchling.com" target="blank">Benchling</a></p>.

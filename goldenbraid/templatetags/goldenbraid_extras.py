@@ -9,7 +9,7 @@ from django.utils.functional import allow_lazy
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 import json
-
+from django.contrib.auth.models import User, AnonymousUser
 
 register = template.Library()
 
@@ -102,11 +102,18 @@ register.filter('zip', zip_lists, is_safe=True)
 
 
 def filter_private_exps(experiments, user):
-    print user
+    try:
+        user = User.objects.get(username=user)
+    except User.DoesNotExist:
+        user = AnonymousUser()
+    print(user)
     public_experiments = []
+    print(experiments)
     for experiment in experiments:
+        print(experiment.uniquename)
         if experiment.owner == user or user.is_staff or experiment.is_public:
             public_experiments.append(experiment)
+    print public_experiments
     return public_experiments
 
 register.filter('filter_private_exps', filter_private_exps, is_safe=True)
