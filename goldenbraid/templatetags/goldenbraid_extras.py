@@ -101,3 +101,24 @@ def zip_lists(a, b):
 register.filter('zip', zip_lists, is_safe=True)
 
 
+def filter_private_exps(experiments, user):
+    print user
+    public_experiments = []
+    for experiment in experiments:
+        if experiment.owner == user or user.is_staff or experiment.is_public:
+            public_experiments.append(experiment)
+    return public_experiments
+
+register.filter('filter_private_exps', filter_private_exps, is_safe=True)
+
+def filter_2best_images(experiments):
+    urls = []
+    for exp in experiments:
+        exp_urls = exp.image_urls
+        if exp_urls:
+            urls.append(exp_urls[0])
+        if len(urls) >= 2:
+            break
+    return urls
+            
+register.filter('filter_2best_images', filter_2best_images, is_safe=True)
