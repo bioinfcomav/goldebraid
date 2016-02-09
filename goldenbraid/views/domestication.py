@@ -122,8 +122,14 @@ def _domestication_view(request, kind):
             with_intron = form.cleaned_data['with_intron']
             with_intron_str = '1' if with_intron else '0'
             if kind == 'domestication':
-                pcr = domesticate(seq, category, prefix, suffix, enzymes,
-                                  with_intron)[0]
+                try:
+                    pcr = domesticate(seq, category, prefix, suffix, enzymes,
+                                      with_intron)[0]
+                except RuntimeError as error:
+                    return render_to_response('goldenbraid_info.html',
+                                              {'title': 'Can not domesticate sequence',
+                                               'info': error},
+                                              context_instance=RequestContext(request))
 
                 return render_to_response('domestication_result.html',
                                           {'category': category,
@@ -136,12 +142,18 @@ def _domestication_view(request, kind):
                                            'with_intron': with_intron_str},
                                       context_instance=RequestContext(request))
             elif kind == 'synthesis':
-                seq_for_syn, prepared_seq = domesticate_for_synthesis(seq,
-                                                                      category,
-                                                                      prefix,
-                                                                      suffix,
-                                                                      enzymes,
-                                                                      with_intron)
+                try:
+                    seq_for_syn, prepared_seq = domesticate_for_synthesis(seq,
+                                                                          category,
+                                                                          prefix,
+                                                                          suffix,
+                                                                          enzymes,
+                                                                          with_intron)
+                except RuntimeError as error:
+                    return render_to_response('goldenbraid_info.html',
+                                              {'title': 'Can not domesticate sequence',
+                                               'info': error},
+                                              context_instance=RequestContext(request))
                 return render_to_response('synthesis_result.html',
                                           {'category': category,
                                            'prefix': prefix,
