@@ -106,17 +106,14 @@ def filter_private_exps(experiments, user):
         user = User.objects.get(username=user)
     except User.DoesNotExist:
         user = AnonymousUser()
-    print(user)
     public_experiments = []
-    print(experiments)
     for experiment in experiments:
-        print(experiment.uniquename)
         if experiment.owner == user or user.is_staff or experiment.is_public:
             public_experiments.append(experiment)
-    print public_experiments
     return public_experiments
 
 register.filter('filter_private_exps', filter_private_exps, is_safe=True)
+
 
 def filter_2best_images(experiments):
     urls = []
@@ -127,5 +124,5 @@ def filter_2best_images(experiments):
         if len(urls) >= 2:
             break
     return urls
-            
+
 register.filter('filter_2best_images', filter_2best_images, is_safe=True)

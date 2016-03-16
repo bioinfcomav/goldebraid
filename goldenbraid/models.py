@@ -297,7 +297,8 @@ class Feature(models.Model):
             if sub_children:
                 if self.direction == REVERSE:
                     sub_children = sub_children[::-1]
-                images.extend([child._get_sbol_image(self.direction) for child in sub_children])
+                images.extend([child._get_sbol_image(self.direction)
+                               for child in sub_children])
 
         images = list(self._flatten_list(images))
         # Sometimes we have old pieces and we can not know the type
@@ -339,8 +340,8 @@ class Feature(models.Model):
 
     @property
     def gb_category(self):
-        if (self.level != LEVEL_0 or  self.type.name == VECTOR_TYPE_NAME or 
-                self.type.name== OTHER_TYPE_NAME):
+        if (self.level != LEVEL_0 or  self.type.name == VECTOR_TYPE_NAME or
+                self.type.name == OTHER_TYPE_NAME):
             return self.type.name
         type_ = self.type.name
         prefix = self.prefix
@@ -569,7 +570,7 @@ class Experiment(models.Model):
                 prop_dict[type_] = []
             prop_dict[type_].append(value)
         return sorted(prop_dict.iteritems())
-        #return ReadOnlyDict(prop_dict)
+        # return ReadOnlyDict(prop_dict)
 
     @property
     def text_props(self):
