@@ -122,15 +122,17 @@
 <div style='clear:both;'>&nbsp;</div>
 
 </div>
-<div id="expimage">
+
     {% with exp_images=feature.combined_experiment_images %}
         {% if exp_images %}
+        <div id="expimage">
             {% for url in exp_images%}
                 <img class='resize' src={{url}}>
-        {% endfor %}
+            {% endfor %}
+        </div>
         {% endif %}
     {% endwith %}
-</div>
+
 
 <div id='space'> </div>
 </div>

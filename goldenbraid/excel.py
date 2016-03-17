@@ -215,13 +215,20 @@ def _filter_data(data, max_experiments):
     return {exp: data[exp] for exp in non_filtered_exp}
 
 
+def _to_int(val):
+    try:
+        val = int(val)
+    except ValueError:
+        pass
+    return val
+
 def _prepare_data(data):
     xvalues = set()
     new_data = OrderedDict()
     for exp_name, exp_data in data.items():
         xvalues.update(exp_data[1]['X-values'])
         new_data[exp_name] = {'values': [], 'stdev': []}
-    xvalues = sorted(list(xvalues))
+    xvalues = sorted(list(xvalues), key=_to_int)
 
     for exp_name, exp_data in data.items():
         for xvalue in xvalues:
@@ -242,7 +249,7 @@ def draw_combined_graph(data, out_fhand):
     canvas, axes, fig = get_canvas_and_axes()
     data = _filter_data(data, max_experiments=MAX_EXPERIMENTS)
     times, data = _prepare_data(data)
-    color_scale = ['r', 'b', 'g', 'c', 'm']
+    color_scale = ['r', 'b', 'g', 'c', 'm', 'k', 'y', 'w']
 
     bar_width = 1
     exp_width = bar_width * len(times) + 1
@@ -294,5 +301,3 @@ def draw_combined_graph(data, out_fhand):
     axes.legend(rects[:len(times)], times)
     fig.tight_layout()
     canvas.print_figure(out_fhand, format='svg')
-
-

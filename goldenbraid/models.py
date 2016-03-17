@@ -461,7 +461,7 @@ class Feature(models.Model):
             return excel_data
 
     @property
-    def combined_experiment_images(self, user):
+    def combined_experiment_images(self):
         exp_types = self.experiments_by_type.keys()
         for exp_type in exp_types:
             kwargs = {'uniquename': self.uniquename, 'exp_type': exp_type}
