@@ -123,16 +123,13 @@
 
 </div>
 <div id="expimage">
-  {% with exps=feature.ordered_experiments|filter_private_exps:user %}
-    {% with urls=exps|filter_2best_images %}
-      {% if urls%}
-        <h6>Experimental Images</h6>
-        {% for url in urls%}
-          <img class='resize' src={{url|first}} alt={{alt|last}}>
+    {% with exp_images=feature.combined_experiment_images %}
+        {% if exp_images %}
+            {% for url in exp_images%}
+                <img class='resize' src={{url}}>
         {% endfor %}
-      {% endif %}
+        {% endif %}
     {% endwith %}
-  {% endwith %}
 </div>
 
 <div id='space'> </div>

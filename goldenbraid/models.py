@@ -26,7 +26,7 @@ from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
                               FORWARD, REVERSE, DERIVES_FROM, OTHER_TYPE_NAME,
                               TARGET_DICOT, TARGET_MONOCOT)
-from goldenbraid.excel import plot_from_excel
+from goldenbraid.excel import plot_from_excel, parse_xlsx, COLUMNS
 from django.core.files.temp import NamedTemporaryFile
 from django.core.urlresolvers import reverse
 from goldenbraid.settings import (DOMESTICATION_VECTORS_IN_GB, CATEGORIES,
@@ -434,6 +434,38 @@ class Feature(models.Model):
             if exp not in experiments:
                 experiments.append(exp)
         return experiments
+
+    @property
+    def experiments_by_type(self):
+        exp_by_type = {}
+        for experiment in self.ordered_experiments:
+            exp_type = experiment.type.name
+            if exp_type not in exp_by_type:
+                exp_by_type[exp_type] = []
+            exp_by_type[exp_type].append(experiment)
+        return exp_by_type
+
+    def combined_experiment_excel_data(self, exp_type):
+        for type_name, exps in self.experiments_by_type.items():
+            if type_name != exp_type:
+                continue
+            excel_data = {}
+            for exp in exps:
+                for excel_prop in exp.excel_props:
+                    exp_name = excel_prop.experiment.uniquename
+                    plot_type, labels, data = parse_xlsx(excel_prop.excel.path)
+                    if plot_type != COLUMNS:
+                        continue
+                    excel_data[exp_name] = labels, data
+
+            return excel_data
+
+    @property
+    def combined_experiment_images(self, user):
+        exp_types = self.experiments_by_type.keys()
+        for exp_type in exp_types:
+            kwargs = {'uniquename': self.uniquename, 'exp_type': exp_type}
+            yield reverse('api_combined_excel_images', kwargs=kwargs)
 
     @property
     def experiment_images(self, user):

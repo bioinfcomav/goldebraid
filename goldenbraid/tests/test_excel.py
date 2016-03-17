@@ -19,7 +19,8 @@ from unittest import main
 
 from goldenbraid.tests.test_models import TEST_DATA
 from goldenbraid.excel import (parse_xlsx, SCATTER, COLUMNS, YVALUES, XLABEL,
-                               draw_columns, XVALUES, draw_scatter)
+                               draw_columns, draw_scatter,
+                               draw_combined_graph)
 from tempfile import NamedTemporaryFile
 
 
@@ -76,6 +77,41 @@ class TestExcel(TestCase):
     def test_empty_file_excel(self):
         _, labels, data = parse_xlsx(os.path.join(TEST_DATA, 'empty_file.xlsx'))
 
+
+COMBINED_DATA = {u'GB_EXP_69': ({u'X-label': u'fill in x axis label',
+                                 u'Y-label': u'fill in y axis label',
+                                 u'title': u'fill in your graph title'},
+                                {u'Y-values': [1.0, 3.0, 5.0, 5.0],
+                                 u'Y-stdev': [0.1, 0.1, 0.1, 0.1],
+                                 u'X-values': ['time1', 'time2', 'time4', 'time5']}),
+                 u'GB_EXP_68': ({u'X-label': u'fill in x axis label',
+                                 u'Y-label': u'fill in y axis label',
+                                 u'title': u'fill in your graph title'},
+                                {u'Y-values': [4.0, 5.0, 5.0],
+                                 u'Y-stdev': [0.1, 0.1, 0.1],
+                                 u'X-values': ['time3', 'time4', 'time5']}),
+                 u'GB_EXP_52': ({u'X-label': u'xlabel2',
+                                 u'Y-label': u'ylabel2',
+                                 u'title': u'title2'},
+                                {u'Y-values': [5.0],
+                                 u'Y-stdev': [0.1],
+                                 u'X-values': ['time3']}),
+                 u'GB_EXP_64': ({u'X-label': u'fill in x axis label',
+                                 u'Y-label': u'fill in y axis label',
+                                 u'title': u'fill in your graph title'},
+                                {u'Y-values': [2.0, 3.0, 4.0, 5.0, 5.0],
+                                 u'Y-stdev': [0.1, 0.1, 0.1, 0.1, 0.1],
+                                 u'X-values': ['time1', 'time2', 'time3', 'time4', 'time5']})
+                 }
+
+
+class TestExcelCombined(TestCase):
+    def test_combined(self):
+        fhand = NamedTemporaryFile(suffix='.svg')
+        draw_combined_graph(COMBINED_DATA, fhand)
+        raw_input(fhand.name)
+
+
 if __name__ == "__main__":
-    import sys;sys.argv = ['', 'TestExcel.test_draw_scatter']
+    import sys;sys.argv = ['', 'TestExcelCombined']
     main()
