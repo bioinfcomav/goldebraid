@@ -26,7 +26,8 @@ from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
                               FORWARD, REVERSE, DERIVES_FROM, OTHER_TYPE_NAME,
                               TARGET_DICOT, TARGET_MONOCOT)
-from goldenbraid.excel import plot_from_excel, parse_xlsx, COLUMNS
+from goldenbraid.excel import (plot_from_excel, parse_xlsx, COLUMNS,
+                               draw_combined_graph)
 from django.core.files.temp import NamedTemporaryFile
 from django.core.urlresolvers import reverse
 from goldenbraid.settings import (DOMESTICATION_VECTORS_IN_GB, CATEGORIES,
@@ -466,6 +467,16 @@ class Feature(models.Model):
         for exp_type in exp_types:
             kwargs = {'uniquename': self.uniquename, 'exp_type': exp_type}
             yield reverse('api_combined_excel_images', kwargs=kwargs)
+
+    @property
+    def combined_svg(self):
+        exp_types = self.experiments_by_type.keys()
+        for exp_type in exp_types:
+            excel_datas = self.combined_experiment_excel_data(exp_type)
+            out_fhand = NamedTemporaryFile(suffix='.svg')
+            draw_combined_graph(excel_datas, out_fhand)
+            yield exp_type, open(out_fhand.name).read()
+            out_fhand.close()
 
     @property
     def experiment_images(self, user):
