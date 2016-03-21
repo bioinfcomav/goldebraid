@@ -14,7 +14,7 @@
 # limitations under the License.
 import re
 import os
-
+from StringIO import StringIO
 from Bio import SeqIO
 
 from django.db import models
@@ -26,8 +26,9 @@ from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
                               FORWARD, REVERSE, DERIVES_FROM, OTHER_TYPE_NAME,
                               TARGET_DICOT, TARGET_MONOCOT)
-from goldenbraid.excel import plot_from_excel, parse_xlsx, COLUMNS
-from django.core.files.temp import NamedTemporaryFile
+from goldenbraid.excel import (plot_from_excel, parse_xlsx, COLUMNS,
+                               draw_combined_graph)
+
 from django.core.urlresolvers import reverse
 from goldenbraid.settings import (DOMESTICATION_VECTORS_IN_GB, CATEGORIES,
                                   SBOL_IMAGES, CRYSPER_CATEGORIES,
@@ -466,6 +467,15 @@ class Feature(models.Model):
         for exp_type in exp_types:
             kwargs = {'uniquename': self.uniquename, 'exp_type': exp_type}
             yield reverse('api_combined_excel_images', kwargs=kwargs)
+
+    @property
+    def combined_svg(self):
+        exp_types = self.experiments_by_type.keys()
+        for exp_type in exp_types:
+            excel_datas = self.combined_experiment_excel_data(exp_type)
+            out_fhand = StringIO()
+            draw_combined_graph(excel_datas, out_fhand)
+            yield exp_type, out_fhand.getvalue()
 
     @property
     def experiment_images(self, user):

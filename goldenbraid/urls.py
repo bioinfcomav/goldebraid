@@ -148,6 +148,6 @@ urlpatterns = patterns('',
                            name='api_excel_image'),
                        url('api/exp_keywords/$', experiment_keywords,
                            name='api_exp_keywords'),
-                       url('api/excel_combined/(?P<uniquename>.+)?/(?P<exp_type>.+)?/$', combined_excel_image,
+                       url('api/excel_combined/(?P<uniquename>.+)?/(?P<exp_type>.+)?/.svg', combined_excel_image,
                            name='api_combined_excel_images'),
                        )

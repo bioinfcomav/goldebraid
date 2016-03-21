@@ -123,11 +123,12 @@
 
 </div>
 
-    {% with exp_images=feature.combined_experiment_images %}
+    {% with exp_images=feature.combined_svg %}
         {% if exp_images %}
         <div id="expimage">
-            {% for url in exp_images%}
-                <img class='resize' src={{url}}>
+            {% for item in exp_images %}
+                <p>{{item|first}}</p>
+                {{item|last|safe|escape }}
             {% endfor %}
         </div>
         {% endif %}
