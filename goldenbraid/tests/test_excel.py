@@ -81,9 +81,10 @@ class TestExcel(TestCase):
 COMBINED_DATA = {u'GB_EXP_69': ({u'X-label': u'fill in x axis label',
                                  u'Y-label': u'fill in y axis label',
                                  u'title': u'title GB_EXP_69'},
-                                {u'Y-values': [1.0, 3.0, 5.0, 5.0],
-                                 u'Y-stdev': [0.1, 0.1, 0.1, 0.1],
-                                 u'X-values': ['time1', 'time2', 'time4', 'time5']}),
+                                {u'Y-values': [1.0, 3.0, 5.0, 5.0, 3.0, 7.0],
+                                 u'Y-stdev': [0.1, 0.1, 0.1, 0.1, 0.1, 0.2],
+                                 u'X-values': ['time1', 'time2', 'time4',
+                                               'time5', 'time6', 'time7']}),
                  u'GB_EXP_68': ({u'X-label': u'fill in x axis label',
                                  u'Y-label': u'fill in y axis label',
                                  u'title': u'title GB_EXP_68'},
@@ -101,13 +102,14 @@ COMBINED_DATA = {u'GB_EXP_69': ({u'X-label': u'fill in x axis label',
                                  u'title': u'title GB_EXP_64'},
                                 {u'Y-values': [2.0, 3.0, 4.0, 5.0, 5.0],
                                  u'Y-stdev': [0.1, 0.1, 0.1, 0.1, 0.1],
-                                 u'X-values': ['time1', 'time2', 'time3', 'time4', 'time5']})
+                                 u'X-values': ['time1', 'time2', 'time3',
+                                               'time4', 'time5']})
                  }
 
 
 class TestExcelCombined(TestCase):
     def test_combined(self):
-        # fhand = NamedTemporaryFile(suffix='.svg')
+        fhand = NamedTemporaryFile(suffix='.svg')
         fhand = open('/tmp/tmpf.svg', 'w')
         draw_combined_graph(COMBINED_DATA, fhand)
         # raw_input(fhand.name)
@@ -115,5 +117,5 @@ class TestExcelCombined(TestCase):
 
 
 if __name__ == "__main__":
-    import sys;sys.argv = ['', 'TestExcelCombined']
+    # import sys;sys.argv = ['', 'TestExcelCombined']
     main()

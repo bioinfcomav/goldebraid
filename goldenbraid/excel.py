@@ -203,15 +203,14 @@ def _filter_data(data, max_experiments):
 
     exp_names = data.keys()[:]
 
-    non_filtered_exp = [min_exp]
+    non_filtered_exp = set([min_exp])
     exp_names.pop(exp_names.index(min_exp))
     if max_exp != min_exp:
-        non_filtered_exp.append(max_exp)
+        non_filtered_exp.add(max_exp)
         exp_names.pop(exp_names.index(max_exp))
 
     while len(non_filtered_exp) < max_experiments:
-        non_filtered_exp.append(random.choice(exp_names))
-
+        non_filtered_exp.add(random.choice(exp_names))
     return {exp: data[exp] for exp in non_filtered_exp}
 
 
@@ -232,13 +231,15 @@ def _prepare_data(data):
         new_data[exp_name] = {'values': [], 'stdev': []}
         titles.append(exp_data[0]['title'])
     xvalues = sorted(list(xvalues), key=_to_int)
-
     for exp_name, exp_data in data.items():
         for xvalue in xvalues:
             try:
                 index = exp_data[1]['X-values'].index(xvalue)
                 yval = exp_data[1]['Y-values'][index]
-                stdev = exp_data[1]['Y-stdev'][index]
+                try:
+                    stdev = exp_data[1]['Y-stdev'][index]
+                except IndexError:
+                    stdev = 0
             except ValueError:
                 yval = 0
                 stdev = 0
@@ -254,7 +255,6 @@ def draw_combined_graph(data, out_fhand):
     data = _filter_data(data, max_experiments=MAX_EXPERIMENTS)
     times, data, titles = _prepare_data(data)
     color_scale = ['r', 'b', 'g', 'c', 'm', 'k', 'y', 'w']
-
     bar_width = 1
     exp_width = bar_width * len(times) + 1
     bar_left_pos = []
@@ -277,6 +277,7 @@ def draw_combined_graph(data, out_fhand):
         else:
             odd = True
             exp_color.append('#E6E6E6')
+            # exp_color.append('#464646')
 
         for bar_index, (val, stdev) in enumerate(zip(exp_values, exp_stdev)):
             bar_stdev.append(stdev)
@@ -287,19 +288,18 @@ def draw_combined_graph(data, out_fhand):
             bar_color.append(color_scale[bar_index])
 
     kwargs = {}
-    if bar_stdev:
+    if any(bar_stdev):
         kwargs['yerr'] = bar_stdev
         kwargs['ecolor'] = 'red'
 #         capsize = 36 - (len(times) * 4)
 #         kwargs['capsize'] = 8 if capsize < 8  else capsize
     rects = axes.bar(left=bar_left_pos, height=bar_values, width=bar_width,
-             color=bar_color, zorder=-1, **kwargs)
+                     color=bar_color, zorder=-1, **kwargs)
     top_lim = axes.get_ylim()[1]
     exp_bars = [top_lim] * len(experiment_labels)
     axes.bar(left=exp_left_pos, height=exp_bars, width=exp_width,
              color=exp_color, zorder=-2)
 
-    axes.grid(b=False)
     axes.set_xticks(xlabel_pos)
     xticklabels = axes.set_xticklabels(experiment_labels)
     for xticklabel in xticklabels:
@@ -312,15 +312,20 @@ def draw_combined_graph(data, out_fhand):
 
     # this is only to paint almost invisible bar to put urls on it
     foreground_rects = axes.bar(left=exp_left_pos, height=exp_bars,
-                                width=exp_width, alpha=0.01, color='w')
+                                width=exp_width, alpha=0.1, color='w')
     for frects, experiment_label in zip(foreground_rects, experiment_labels):
         url = '/experiment/{}'.format(experiment_label)
         frects.set_url(url)
 
-    axes2.grid(b=False)
+    axes.set_xlim(left=0)
+    left, right = axes.get_xlim()
+    axes2.set_xlim(left=left, right=right)
     axes2.set_xticks(xlabel_pos)
     axes2.set_xticklabels(titles)
 
     axes.legend(rects[:len(times)], times)
+    axes2.grid(b=False)
+    axes.grid(b=False)
     fig.tight_layout()
     canvas.print_figure(out_fhand, format='svg')
+
