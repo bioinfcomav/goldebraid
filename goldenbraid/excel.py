@@ -222,12 +222,15 @@ def _to_int(val):
         pass
     return val
 
+
 def _prepare_data(data):
     xvalues = set()
     new_data = OrderedDict()
+    titles = []
     for exp_name, exp_data in data.items():
         xvalues.update(exp_data[1]['X-values'])
         new_data[exp_name] = {'values': [], 'stdev': []}
+        titles.append(exp_data[0]['title'])
     xvalues = sorted(list(xvalues), key=_to_int)
 
     for exp_name, exp_data in data.items():
@@ -242,13 +245,14 @@ def _prepare_data(data):
             new_data[exp_name]['values'].append(yval)
             new_data[exp_name]['stdev'].append(stdev)
 
-    return xvalues, new_data
+    return xvalues, new_data, titles
 
 
 def draw_combined_graph(data, out_fhand):
     canvas, axes, fig = get_canvas_and_axes()
+    axes2 = axes.twiny()
     data = _filter_data(data, max_experiments=MAX_EXPERIMENTS)
-    times, data = _prepare_data(data)
+    times, data, titles = _prepare_data(data)
     color_scale = ['r', 'b', 'g', 'c', 'm', 'k', 'y', 'w']
 
     bar_width = 1
@@ -277,7 +281,8 @@ def draw_combined_graph(data, out_fhand):
         for bar_index, (val, stdev) in enumerate(zip(exp_values, exp_stdev)):
             bar_stdev.append(stdev)
             bar_values.append(val)
-            left_pos = (exp_index * exp_width) + bar_width * bar_index
+            left_pos = ((exp_index * exp_width) + bar_width * bar_index +
+                        bar_width / 2)
             bar_left_pos.append(left_pos)
             bar_color.append(color_scale[bar_index])
 
@@ -297,7 +302,16 @@ def draw_combined_graph(data, out_fhand):
 
     axes.grid(b=False)
     axes.set_xticks(xlabel_pos)
-    axes.set_xticklabels(experiment_labels)
+    xticklabels = axes.set_xticklabels(experiment_labels)
+    for xticklabel in xticklabels:
+        url = '/experiment/{}'.format(xticklabel.get_text())
+        xticklabel.set_url(url)
+
+
+    axes2.grid(b=False)
+    axes2.set_xticks(xlabel_pos)
+    axes2.set_xticklabels(titles)
+
     axes.legend(rects[:len(times)], times)
     fig.tight_layout()
     canvas.print_figure(out_fhand, format='svg')
