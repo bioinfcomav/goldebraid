@@ -286,11 +286,6 @@ def draw_combined_graph(data, out_fhand):
             bar_left_pos.append(left_pos)
             bar_color.append(color_scale[bar_index])
 
-    # background for exp
-    exp_bars = [max(bar_values) + 1] * len(experiment_labels)
-    axes.bar(left=exp_left_pos, height=exp_bars, width=exp_width,
-             color=exp_color, zorder=-2)
-
     kwargs = {}
     if bar_stdev:
         kwargs['yerr'] = bar_stdev
@@ -298,7 +293,11 @@ def draw_combined_graph(data, out_fhand):
 #         capsize = 36 - (len(times) * 4)
 #         kwargs['capsize'] = 8 if capsize < 8  else capsize
     rects = axes.bar(left=bar_left_pos, height=bar_values, width=bar_width,
-                     color=bar_color, zorder=-1, **kwargs)
+             color=bar_color, zorder=-1, **kwargs)
+    top_lim = axes.get_ylim()[1]
+    exp_bars = [top_lim] * len(experiment_labels)
+    axes.bar(left=exp_left_pos, height=exp_bars, width=exp_width,
+             color=exp_color, zorder=-2)
 
     axes.grid(b=False)
     axes.set_xticks(xlabel_pos)
