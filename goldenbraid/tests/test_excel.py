@@ -80,25 +80,25 @@ class TestExcel(TestCase):
 
 COMBINED_DATA = {u'GB_EXP_69': ({u'X-label': u'fill in x axis label',
                                  u'Y-label': u'fill in y axis label',
-                                 u'title': u'fill in your graph title'},
+                                 u'title': u'title GB_EXP_69'},
                                 {u'Y-values': [1.0, 3.0, 5.0, 5.0],
                                  u'Y-stdev': [0.1, 0.1, 0.1, 0.1],
                                  u'X-values': ['time1', 'time2', 'time4', 'time5']}),
                  u'GB_EXP_68': ({u'X-label': u'fill in x axis label',
                                  u'Y-label': u'fill in y axis label',
-                                 u'title': u'fill in your graph title'},
+                                 u'title': u'title GB_EXP_68'},
                                 {u'Y-values': [4.0, 5.0, 5.0],
                                  u'Y-stdev': [0.1, 0.1, 0.1],
                                  u'X-values': ['time3', 'time4', 'time5']}),
                  u'GB_EXP_52': ({u'X-label': u'xlabel2',
                                  u'Y-label': u'ylabel2',
-                                 u'title': u'title2'},
+                                 u'title': u'title GB_EXP_52'},
                                 {u'Y-values': [5.0],
                                  u'Y-stdev': [0.1],
                                  u'X-values': ['time3']}),
                  u'GB_EXP_64': ({u'X-label': u'fill in x axis label',
                                  u'Y-label': u'fill in y axis label',
-                                 u'title': u'fill in your graph title'},
+                                 u'title': u'title GB_EXP_64'},
                                 {u'Y-values': [2.0, 3.0, 4.0, 5.0, 5.0],
                                  u'Y-stdev': [0.1, 0.1, 0.1, 0.1, 0.1],
                                  u'X-values': ['time1', 'time2', 'time3', 'time4', 'time5']})
@@ -107,9 +107,11 @@ COMBINED_DATA = {u'GB_EXP_69': ({u'X-label': u'fill in x axis label',
 
 class TestExcelCombined(TestCase):
     def test_combined(self):
-        fhand = NamedTemporaryFile(suffix='.svg')
+        # fhand = NamedTemporaryFile(suffix='.svg')
+        fhand = open('/tmp/tmpf.svg', 'w')
         draw_combined_graph(COMBINED_DATA, fhand)
-        raw_input(fhand.name)
+        # raw_input(fhand.name)
+        fhand.close()
 
 
 if __name__ == "__main__":

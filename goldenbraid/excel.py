@@ -307,6 +307,16 @@ def draw_combined_graph(data, out_fhand):
         url = '/experiment/{}'.format(xticklabel.get_text())
         xticklabel.set_url(url)
 
+    # we have to paint something to get xlabels on top with the same coords
+    axes2.bar(left=exp_left_pos, height=exp_bars, width=exp_width,
+              alpha=0, color='w')
+
+    # this is only to paint almost invisible bar to put urls on it
+    foreground_rects = axes.bar(left=exp_left_pos, height=exp_bars,
+                                width=exp_width, alpha=0.01, color='w')
+    for frects, experiment_label in zip(foreground_rects, experiment_labels):
+        url = '/experiment/{}'.format(experiment_label)
+        frects.set_url(url)
 
     axes2.grid(b=False)
     axes2.set_xticks(xlabel_pos)
