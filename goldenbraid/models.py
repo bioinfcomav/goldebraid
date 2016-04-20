@@ -34,6 +34,7 @@ from goldenbraid.settings import (DOMESTICATION_VECTORS_IN_GB, CATEGORIES,
                                   SBOL_IMAGES, CRYSPER_CATEGORIES,
                                   MOCLO_INCOMPATIBLE_RESISTANCES)
 from goldenbraid.utils import has_rec_sites, get_prefix_and_suffix_index
+from tempfile import NamedTemporaryFile
 
 LEVEL_0 = '0'
 LEVEL_1ALPHA = '1-alpha'
@@ -735,7 +736,9 @@ class ExperimentPropExcel(models.Model):
         temp_fhand = NamedTemporaryFile()
         plot_from_excel(self.excel.path, temp_fhand)
         content_type = 'image/svg+xml'
-        return open(temp_fhand.name).read(), content_type
+        image_content = open(temp_fhand.name).read()
+        temp_fhand.close() 
+        return image_content, content_type
 
     @property
     def image_url(self):
