@@ -254,7 +254,8 @@ def draw_combined_graph(data, out_fhand):
     axes2 = axes.twiny()
     data = _filter_data(data, max_experiments=MAX_EXPERIMENTS)
     times, data, titles = _prepare_data(data)
-    color_scale = ['r', 'b', 'g', 'c', 'm', 'k', 'y', 'w']
+    color_scale = ['#80B0BA', '#77F0FD', '#37ACFF', '#426EEA', '#323F9E',
+                   '#0F0ADC', '#C974F8', '#8811FF']
     bar_width = 1
     exp_width = bar_width * len(times) + 1
     bar_left_pos = []
