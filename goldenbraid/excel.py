@@ -291,7 +291,7 @@ def draw_combined_graph(data, out_fhand):
     kwargs = {}
     if any(bar_stdev):
         kwargs['yerr'] = bar_stdev
-        kwargs['ecolor'] = 'red'
+        kwargs['ecolor'] = '#3B383F'
 #         capsize = 36 - (len(times) * 4)
 #         kwargs['capsize'] = 8 if capsize < 8  else capsize
     rects = axes.bar(left=bar_left_pos, height=bar_values, width=bar_width,
@@ -302,6 +302,7 @@ def draw_combined_graph(data, out_fhand):
              color=exp_color, zorder=-2)
 
     axes.set_xticks(xlabel_pos)
+    # print(experiment_labels)
     xticklabels = axes.set_xticklabels(experiment_labels)
     for xticklabel in xticklabels:
         url = '/experiment/{}'.format(xticklabel.get_text())
