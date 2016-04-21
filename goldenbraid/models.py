@@ -475,7 +475,7 @@ class Feature(models.Model):
         for exp_type in exp_types:
             excel_datas = self.combined_experiment_excel_data(exp_type)
             out_fhand = StringIO()
-            draw_combined_graph(excel_datas, out_fhand)
+            draw_combined_graph(excel_datas, out_fhand, exp_type)
             yield exp_type, out_fhand.getvalue()
 
     @property

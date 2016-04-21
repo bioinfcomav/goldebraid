@@ -111,8 +111,8 @@ class TestExcelCombined(TestCase):
     def test_combined(self):
         fhand = NamedTemporaryFile(suffix='.svg')
         fhand = open('/tmp/tmpf.svg', 'w')
-        draw_combined_graph(COMBINED_DATA, fhand)
-        # raw_input(fhand.name)
+        draw_combined_graph(COMBINED_DATA, fhand, 'SE_001')
+        raw_input(fhand.name)
         fhand.close()
 
 

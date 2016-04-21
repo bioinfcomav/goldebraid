@@ -248,8 +248,15 @@ def _prepare_data(data):
 
     return xvalues, new_data, titles
 
+COMBINED_Y_LABELS = {'SE_001': 'Y-axes: RTA (relative Fluc/Rluc)',
+                     'SE_002': 'Y-axes: RTA (relative Fluc/Rluc)',
+                     'SE_003': 'Y-axes: % transformants',
+                     'SE_004': 'Y-axes:  recombinant protein yield.',
+                     'SE_005': 'Y-axes: overall mutation efficiency (%)'}
 
-def draw_combined_graph(data, out_fhand):
+
+def draw_combined_graph(data, out_fhand, exp_type):
+
     canvas, axes, fig = get_canvas_and_axes()
     axes2 = axes.twiny()
     data = _filter_data(data, max_experiments=MAX_EXPERIMENTS)
@@ -325,6 +332,7 @@ def draw_combined_graph(data, out_fhand):
     axes2.set_xticks(xlabel_pos)
     axes2.set_xticklabels(titles)
 
+    axes.set_ylabel(COMBINED_Y_LABELS[exp_type])
     axes.legend(rects[:len(times)], times)
     axes2.grid(b=False)
     axes.grid(b=False)
