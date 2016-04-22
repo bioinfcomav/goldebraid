@@ -248,11 +248,11 @@ def _prepare_data(data):
 
     return xvalues, new_data, titles
 
-COMBINED_Y_LABELS = {'SE_001': 'Y-axes: RTA (relative Fluc/Rluc)',
-                     'SE_002': 'Y-axes: RTA (relative Fluc/Rluc)',
-                     'SE_003': 'Y-axes: % transformants',
-                     'SE_004': 'Y-axes:  recombinant protein yield.',
-                     'SE_005': 'Y-axes: overall mutation efficiency (%)'}
+COMBINED_Y_LABELS = {'SE_001': 'RTA (relative Fluc/Rluc)',
+                     'SE_002': 'RTA (relative Fluc/Rluc)',
+                     'SE_003': '% transformants',
+                     'SE_004': 'recombinant protein yield.',
+                     'SE_005': 'overall mutation efficiency (%)'}
 
 
 def draw_combined_graph(data, out_fhand, exp_type):

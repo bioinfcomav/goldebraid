@@ -473,6 +473,8 @@ class Feature(models.Model):
     def combined_svg(self):
         exp_types = self.experiments_by_type.keys()
         for exp_type in exp_types:
+            if not exp_type.startswith('SE'):
+                continue
             excel_datas = self.combined_experiment_excel_data(exp_type)
             out_fhand = StringIO()
             draw_combined_graph(excel_datas, out_fhand, exp_type)
