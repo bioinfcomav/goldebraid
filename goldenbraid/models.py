@@ -471,6 +471,7 @@ class Feature(models.Model):
 
     @property
     def combined_svg(self):
+	combined_svgs = []
         exp_types = self.experiments_by_type.keys()
         for exp_type in exp_types:
             if not exp_type.startswith('SE'):
@@ -478,7 +479,8 @@ class Feature(models.Model):
             excel_datas = self.combined_experiment_excel_data(exp_type)
             out_fhand = StringIO()
             draw_combined_graph(excel_datas, out_fhand, exp_type)
-            yield exp_type, out_fhand.getvalue()
+            combined_svgs.append((exp_type, out_fhand.getvalue()))
+	return combined_svgs
 
     @property
     def experiment_images(self, user):

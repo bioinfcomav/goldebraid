@@ -119,20 +119,36 @@
   {% endwith %}
 {% endif %}
 </div>
+
 <div style='clear:both;'>&nbsp;</div>
-
 </div>
-
-    {% with exp_images=feature.combined_svg %}
-        {% if exp_images %}
-        <div id="expimage">
-            {% for item in exp_images %}
-                <p>{{item|first}}</p>
-                {{item|last|safe|escape }}
-            {% endfor %}
-        </div>
+       
+{% if feature.combined_svg %}
+  {% with exp_images=feature.combined_svg %}
+    <div id="expimage">
+    <h6>Experimental Image</h6>
+    {% for item in exp_images %}
+      <h2>{{item|first}}</h2>
+      {{item|last|safe|escape }}
+    {% endfor %}
+    </div>
+  {% endwith %}
+{% else %}
+  {% with exps=feature.ordered_experiments|filter_private_exps:user %}
+    {% if exps %}
+      {% with urls=exps|filter_2best_images %}
+        {% if urls %}
+          <div id="expimage">
+          <h6>Experimental Images</h6>
+          {% for url in urls%}
+            <img class='resize' src={{url|first}} alt={{alt|last}}>
+          {% endfor %}
+          </div>
         {% endif %}
-    {% endwith %}
+      {% endwith %}
+    {% endif %}
+  {% endwith %}
+{% endif %}
 
 
 <div id='space'> </div>
