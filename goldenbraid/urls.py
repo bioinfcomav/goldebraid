@@ -45,6 +45,7 @@ from goldenbraid.views.domestication import (domestication_view,
 from goldenbraid.views.experiment import (search_experiment,
                                           add_experiment_view, experiment_view)
 from goldenbraid.views.user import user_view
+from goldenbraid.views.api import combined_excel_image
 
 
 urlpatterns = patterns('',
@@ -147,4 +148,6 @@ urlpatterns = patterns('',
                            name='api_excel_image'),
                        url('api/exp_keywords/$', experiment_keywords,
                            name='api_exp_keywords'),
+                       url('api/excel_combined/(?P<uniquename>.+)?/(?P<exp_type>.+)?/.svg', combined_excel_image,
+                           name='api_combined_excel_images'),
                        )

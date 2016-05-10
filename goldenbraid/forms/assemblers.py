@@ -29,16 +29,12 @@ from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX,
                                   BIPARTITE_ALLOWED_PARTS)
 from goldenbraid.forms.feature import (features_to_choices,
                                        create_feature_validator)
+from goldenbraid.utils import filter_feature_by_user_perms
 
 
 def get_vector_choices(user):
     vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
-    if user.is_authenticated():
-        vectors = vectors.filter(Q(featureperm__owner__username=user) |
-                                 Q(featureperm__is_public=True))
-    else:
-        vectors = vectors.filter(featureperm__is_public=True)
-
+    vectors = filter_feature_by_user_perms(vectors, user)
     vector_choices = _vectors_to_choice(vectors)
     return vector_choices
 
@@ -66,13 +62,7 @@ def get_multipartite_form(multi_type, user):
         features = Feature.objects.filter(type__name=parts[0],
                                           prefix=parts[1],
                                           suffix=parts[2])
-        if user.is_authenticated():
-            features = features.filter(Q(featureperm__owner__username=user) |
-                                       Q(featureperm__is_public=True))
-
-        else:
-            features = features.filter(featureperm__is_public=True)
-
+        features = filter_feature_by_user_perms(features, user)
         choices = features_to_choices(features)
         name = parts[0]
         form_fields[name] = forms.CharField(max_length=100,
@@ -124,12 +114,8 @@ def get_multipartite_free_form(feat_uniquenames):
 def get_part1_choice(user):
     _bi_parts = Feature.objects.filter(type__name__in=BIPARTITE_ALLOWED_PARTS)
     _parts = _bi_parts.filter(prefix=SITE_A, suffix=SITE_C)
-    if user.is_authenticated():
-        _parts = _parts.filter(Q(featureperm__owner__username=user) |
-                               Q(featureperm__is_public=True))
+    _parts = filter_feature_by_user_perms(_parts, user)
 
-    else:
-        _parts = _parts.filter(featureperm__is_public=True)
     parts_forw = _parts.filter(vector__prefix=SITE_B, vector__suffix=SITE_A)
     parts_rev = _parts.filter(vector__prefix=Seq(SITE_A).reverse_complement(),
                               vector__suffix=Seq(SITE_B).reverse_complement())
@@ -182,11 +168,7 @@ def get_part2_choices(part1_uniquename, user):
     part1_enzyme_out = part1.enzyme_out
     bi_parts = Feature.objects.filter(type__name__in=BIPARTITE_ALLOWED_PARTS)
     parts = bi_parts.filter(prefix=SITE_C, suffix=SITE_B)
-    if user.is_authenticated():
-        parts = parts.filter(Q(featureperm__owner__username=user) |
-                             Q(featureperm__is_public=True))
-    else:
-        parts = parts.filter(featureperm__is_public=True)
+    parts = filter_feature_by_user_perms(parts, user)
 
     parts_forw = parts.filter(vector__prefix=SITE_B, vector__suffix=SITE_A)
     parts_rev = parts.filter(vector__prefix=Seq(SITE_A).reverse_complement(),
@@ -227,10 +209,6 @@ def get_bipart_vector_choices(part_uniquename, user):
     vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
     vectors = vectors.filter(featureprop__type__name=ENZYME_IN_TYPE_NAME,
                              featureprop__value=part_enzyme_out)
-    if user.is_authenticated():
-        vectors = vectors.filter(Q(featureperm__owner__username=user) |
-                                 Q(featureperm__is_public=True))
-    else:
-        vectors = vectors.filter(featureperm__is_public=True)
+    vectors = filter_feature_by_user_perms(vectors, user)
 
     return _vectors_to_choice(vectors)

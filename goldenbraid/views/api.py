@@ -9,6 +9,8 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 
 from goldenbraid.models import Feature, ExperimentPropExcel, ExperimentKeyword
+from tempfile import NamedTemporaryFile
+from goldenbraid.excel import draw_combined_graph
 
 
 def feature_uniquenames(request):
@@ -98,3 +100,13 @@ def experiment_keywords(request):
                 pass
     keywords = list({exp_keywords.keyword for exp_keywords in query})
     return HttpResponse(json.dumps(keywords), content_type='application/json')
+
+
+def combined_excel_image(request, uniquename, exp_type):
+    feat = Feature.objects.get(uniquename=uniquename)
+    excel_datas = feat.combined_experiment_excel_data(exp_type)
+    out_fhand = NamedTemporaryFile(suffix='.svg')
+    draw_combined_graph(excel_datas, out_fhand)
+    image_content = open(out_fhand.name).read()
+    content_type = 'image/svg+xml'
+    return HttpResponse(image_content, content_type=content_type)

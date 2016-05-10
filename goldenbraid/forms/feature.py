@@ -11,6 +11,7 @@ from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES
 from goldenbraid.tags import (TU_TYPE_NAME, MODULE_TYPE_NAME, OTHER_TYPE_NAME,
                               VECTOR_TYPE_NAME)
 from goldenbraid import settings
+from goldenbraid.utils import filter_feature_by_user_perms
 SPECIAL_SEARCH_CATEGORIES = (VECTOR_TYPE_NAME, TU_TYPE_NAME, MODULE_TYPE_NAME,
                              OTHER_TYPE_NAME)
 
@@ -31,11 +32,8 @@ def features_to_choices(features, blank_line=True):
 
 def get_all_vectors_as_choices(user):
     vectors = Feature.objects.filter(type__name=VECTOR_TYPE_NAME)
-    if user.is_authenticated():
-        vectors = vectors.filter(Q(featureperm__owner__username=user) |
-                                 Q(featureperm__is_public=True))
-    else:
-        vectors = vectors.filter(featureperm__is_public=True)
+    vectors = filter_feature_by_user_perms(vectors, user)
+
     return features_to_choices(vectors, blank_line=True)
 
 

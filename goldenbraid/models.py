@@ -14,7 +14,7 @@
 # limitations under the License.
 import re
 import os
-
+from StringIO import StringIO
 from Bio import SeqIO
 
 from django.db import models
@@ -26,13 +26,15 @@ from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
                               FORWARD, REVERSE, DERIVES_FROM, OTHER_TYPE_NAME,
                               TARGET_DICOT, TARGET_MONOCOT)
-from goldenbraid.excel import plot_from_excel
-from django.core.files.temp import NamedTemporaryFile
+from goldenbraid.excel import (plot_from_excel, parse_xlsx, COLUMNS,
+                               draw_combined_graph)
+
 from django.core.urlresolvers import reverse
 from goldenbraid.settings import (DOMESTICATION_VECTORS_IN_GB, CATEGORIES,
                                   SBOL_IMAGES, CRYSPER_CATEGORIES,
                                   MOCLO_INCOMPATIBLE_RESISTANCES)
 from goldenbraid.utils import has_rec_sites, get_prefix_and_suffix_index
+from tempfile import NamedTemporaryFile
 
 LEVEL_0 = '0'
 LEVEL_1ALPHA = '1-alpha'
@@ -436,6 +438,51 @@ class Feature(models.Model):
         return experiments
 
     @property
+    def experiments_by_type(self):
+        exp_by_type = {}
+        for experiment in self.ordered_experiments:
+            exp_type = experiment.type.name
+            if exp_type not in exp_by_type:
+                exp_by_type[exp_type] = []
+            exp_by_type[exp_type].append(experiment)
+        return exp_by_type
+
+    def combined_experiment_excel_data(self, exp_type):
+        for type_name, exps in self.experiments_by_type.items():
+            if type_name != exp_type:
+                continue
+            excel_data = {}
+            for exp in exps:
+                for excel_prop in exp.excel_props:
+                    exp_name = excel_prop.experiment.uniquename
+                    plot_type, labels, data = parse_xlsx(excel_prop.excel.path)
+                    if plot_type != COLUMNS:
+                        continue
+                    excel_data[exp_name] = labels, data
+
+            return excel_data
+
+    @property
+    def combined_experiment_images(self):
+        exp_types = self.experiments_by_type.keys()
+        for exp_type in exp_types:
+            kwargs = {'uniquename': self.uniquename, 'exp_type': exp_type}
+            yield reverse('api_combined_excel_images', kwargs=kwargs)
+
+    @property
+    def combined_svg(self):
+	combined_svgs = []
+        exp_types = self.experiments_by_type.keys()
+        for exp_type in exp_types:
+            if not exp_type.startswith('SE'):
+                continue
+            excel_datas = self.combined_experiment_excel_data(exp_type)
+            out_fhand = StringIO()
+            draw_combined_graph(excel_datas, out_fhand, exp_type)
+            combined_svgs.append((exp_type, out_fhand.getvalue()))
+	return combined_svgs
+
+    @property
     def experiment_images(self, user):
         experiments = self.ordered_experiments
         image_urls = []
@@ -693,7 +740,9 @@ class ExperimentPropExcel(models.Model):
         temp_fhand = NamedTemporaryFile()
         plot_from_excel(self.excel.path, temp_fhand)
         content_type = 'image/svg+xml'
-        return open(temp_fhand.name).read(), content_type
+        image_content = open(temp_fhand.name).read()
+        temp_fhand.close() 
+        return image_content, content_type
 
     @property
     def image_url(self):

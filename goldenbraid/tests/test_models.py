@@ -258,6 +258,10 @@ class FeatureTestModels(TestCase):
                                   '3utr_term.png', '3utr_term.png', 'cds.png',
                                   'prom_5utr_ntag.png']
 
+    def test_combined_experiments(self):
+        f = Feature.objects.get(uniquename='GB0125')
+        print f.combined_experiment_images
+
 
 class FeatureExtraTestModels(TestCase):
     fixtures = FIXTURES_TO_LOAD5

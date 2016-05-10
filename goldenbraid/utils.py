@@ -1,12 +1,22 @@
-'''
-Created on 2015 mai. 6
-
-@author: peio
-'''
-from goldenbraid.settings import REBASE_FILE, MANDATORY_DOMEST_ENZYMES
 import re
+
+from django.db.models import Q
+
 from Bio.Seq import Seq
 
+from goldenbraid.settings import REBASE_FILE, MANDATORY_DOMEST_ENZYMES
+
+
+def filter_feature_by_user_perms(query, user):
+    if user.is_staff:
+        return query
+    if user.is_authenticated():
+        query = query.filter(Q(featureperm__owner__username=user) |
+                             Q(featureperm__is_public=True))
+    else:
+        query = query.filter(featureperm__is_public=True)
+
+    return query
 
 def parse_rebase_file(fpath):
     'It parses the rebase enzyme file and return a list with all the enzymes'
