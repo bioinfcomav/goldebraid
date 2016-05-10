@@ -20,7 +20,7 @@ from collections import OrderedDict
 
 from django.db import models
 from django.contrib.auth.models import User
-from django.conf import settings as site_settings
+
 from goldenbraid import settings
 from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
@@ -197,7 +197,6 @@ class Feature(models.Model):
             new_prop_dict[type_].append((value, rank))
         prop_dict = {}
         for type_, values in new_prop_dict.items():
-
             values = sorted(values, key=lambda x: x[1])
             values = [value[0] for value in values]
             prop_dict[type_] = values
@@ -343,7 +342,7 @@ class Feature(models.Model):
 
     @property
     def gb_category(self):
-        if (self.level != LEVEL_0 or  self.type.name == VECTOR_TYPE_NAME or
+        if (self.level != LEVEL_0 or self.type.name == VECTOR_TYPE_NAME or
                 self.type.name == OTHER_TYPE_NAME):
             return self.type.name
         type_ = self.type.name
@@ -447,7 +446,7 @@ class Feature(models.Model):
                 exp_by_type[exp_type] = []
             exp_by_type[exp_type].append(experiment)
         ordered_exp_by_type = OrderedDict(sorted(exp_by_type.items()))
-	return ordered_exp_by_type
+        return ordered_exp_by_type
 
     def combined_experiment_excel_data(self, exp_type):
         for type_name, exps in self.experiments_by_type.items():
@@ -473,16 +472,18 @@ class Feature(models.Model):
 
     @property
     def combined_svg(self):
-	combined_svgs = []
+        combined_svgs = []
         exp_types = self.experiments_by_type.keys()
         for exp_type in exp_types:
             if not exp_type.startswith('SE'):
                 continue
             excel_datas = self.combined_experiment_excel_data(exp_type)
+            if not excel_datas:
+                continue
             out_fhand = StringIO()
             draw_combined_graph(excel_datas, out_fhand, exp_type)
             combined_svgs.append((exp_type, out_fhand.getvalue()))
-	return combined_svgs
+        return combined_svgs
 
     @property
     def experiment_images(self, user):
@@ -743,7 +744,7 @@ class ExperimentPropExcel(models.Model):
         plot_from_excel(self.excel.path, temp_fhand)
         content_type = 'image/svg+xml'
         image_content = open(temp_fhand.name).read()
-        temp_fhand.close() 
+        temp_fhand.close()
         return image_content, content_type
 
     @property
