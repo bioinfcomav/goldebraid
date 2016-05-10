@@ -16,6 +16,7 @@ import re
 import os
 from StringIO import StringIO
 from Bio import SeqIO
+from collections import OrderedDict
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -445,7 +446,8 @@ class Feature(models.Model):
             if exp_type not in exp_by_type:
                 exp_by_type[exp_type] = []
             exp_by_type[exp_type].append(experiment)
-        return exp_by_type
+        ordered_exp_by_type = OrderedDict(sorted(exp_by_type.items()))
+	return ordered_exp_by_type
 
     def combined_experiment_excel_data(self, exp_type):
         for type_name, exps in self.experiments_by_type.items():
