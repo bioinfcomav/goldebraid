@@ -320,7 +320,28 @@ class DomesticationCrisprForm(DomesticationForm):
             raise ValidationError('You must choose a valid category')
         return category_name
 
-    def _seqform_validation(self):
+    def full_clean(self):
+        """
+        Cleans all of self.data and populates self._errors and
+        self.cleaned_data.
+        """
+        self._errors = ErrorDict()
+        if not self.is_bound:  # Stop further processing.
+            return
+        self.cleaned_data = {}
+        # If the form is permitted to be empty, and none of the form data has
+        # changed from the initial data, short circuit any validation.
+        if self.empty_permitted and not self.has_changed():
+            return
+        self._clean_fields()
+        self._clean_form()
+        self._post_clean()
+        # custom validations
+        self._multi_field_validation()
+        if self._errors:
+            del self.cleaned_data
+
+    def _multi_field_validation(self):
         cleaned_data = self.cleaned_data
         if 'seq' not in cleaned_data:
             return
