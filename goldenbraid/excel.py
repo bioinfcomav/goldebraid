@@ -330,7 +330,12 @@ def draw_combined_graph(data, out_fhand, exp_type):
     left, right = axes.get_xlim()
     axes2.set_xlim(left=left, right=right)
     axes2.set_xticks(xlabel_pos)
-    axes2.set_xticklabels(titles)
+    #axes2.set_xticklabels(titles)
+    xticklabels_kwarg = {}
+    if max([len(ti)for ti in titles]) > 30:
+        xticklabels_kwarg = {'rotation': 5}
+    axes2.set_xticklabels(titles, **xticklabels_kwarg)
+
 
     axes.set_ylabel(COMBINED_Y_LABELS[exp_type])
     axes.legend(rects[:len(times)], times)
