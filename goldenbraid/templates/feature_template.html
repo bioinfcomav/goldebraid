@@ -122,8 +122,8 @@
 
 <div style='clear:both;'>&nbsp;</div>
 </div>
-       
-{% if feature.combined_svg %}
+
+{% if feature.experiments_by_type|filter_private_and_make_svgs:user %}
   {% with exp_images=feature.experiments_by_type|filter_private_and_make_svgs:user %}
     <div id="expimage">
     <h6>Experimental Image</h6>

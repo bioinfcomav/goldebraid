@@ -138,14 +138,12 @@ def filter_private_and_make_svgs(experiments_by_type, user):
         user = User.objects.get(username=user)
     except User.DoesNotExist:
         user = AnonymousUser()
-
     for type_, exps in experiments_by_type.items():
         for exp in exps:
             if exp.owner == user or user.is_staff or exp.is_public:
                 if type_ not in public_experiments_by_type:
-                    public_experiments_by_type[type] = []
+                    public_experiments_by_type[type_] = []
                 public_experiments_by_type[type_].append(exp)
-
     combined_svgs = []
     for exp_type, excel_data in combined_experiment_excel_data(public_experiments_by_type):
         out_fhand = StringIO()
@@ -158,7 +156,7 @@ register.filter('filter_private_and_make_svgs', filter_private_and_make_svgs,
 
 
 def combined_experiment_excel_data(experiments_by_type):
-    for type_name, exps in experiments_by_type:
+    for type_name, exps in experiments_by_type.items():
         excel_data = {}
         for exp in exps:
             for excel_prop in exp.excel_props:
