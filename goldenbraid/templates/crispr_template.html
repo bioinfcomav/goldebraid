@@ -21,6 +21,9 @@
 		<li>
 	        {{ form.seq.errors }}<label for="name">Type or paste your 20 nt TARGET sequence here:</label>{{ form.seq }}
 		</li>
+              <li>
+              <p><span class="warning">Please, note that the target Dicot and Monocot sequences should start with 'G' and 'A' respectively. This constraint derives from the RNA polymerase III-dependent U6 and U3 promoters requirement of a 'G' or 'A' at the 5' end of the RNA to be transcribed.</span></p>
+              </li>
 		<li>
 		<p><span class='notes'>'The CRISPR domesticator tool will produce a domesticated sgRNA sequence flanked by standard GB overhangs (prefix and suffix). If you prefer to create your own non-standard flanking 4 nucleotide overhangs, please provide them in the boxes below (optional). 
 		<span class='warningcrispr'>Please note that if you choose the custom option the resulting oligonucleotides will not assemble with the rest of GB standard CRISPR elements</span>.'</span></p>
