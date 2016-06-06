@@ -124,7 +124,7 @@
 </div>
        
 {% if feature.combined_svg %}
-  {% with exp_images=feature.combined_svg %}
+  {% with exp_images=feature.experiments_by_type|filter_private_and_make_svgs:user %}
     <div id="expimage">
     <h6>Experimental Image</h6>
     {% for item in exp_images %}

@@ -1,4 +1,6 @@
 import re
+import json
+from StringIO import StringIO
 
 from django import template
 from django.utils.safestring import mark_safe
@@ -8,8 +10,9 @@ from django.utils.encoding import force_unicode
 from django.utils.functional import allow_lazy
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
-import json
 from django.contrib.auth.models import User, AnonymousUser
+
+from goldenbraid.excel import parse_xlsx, COLUMNS, draw_combined_graph
 
 register = template.Library()
 
@@ -126,3 +129,43 @@ def filter_2best_images(experiments):
     return urls
 
 register.filter('filter_2best_images', filter_2best_images, is_safe=True)
+
+
+def filter_private_and_make_svgs(experiments_by_type, user):
+    public_experiments_by_type = {}
+    # filter private
+    try:
+        user = User.objects.get(username=user)
+    except User.DoesNotExist:
+        user = AnonymousUser()
+
+    for type_, exps in experiments_by_type.items():
+        for exp in exps:
+            if exp.owner == user or user.is_staff or exp.is_public:
+                if type_ not in public_experiments_by_type:
+                    public_experiments_by_type[type] = []
+                public_experiments_by_type[type_].append(exp)
+
+    combined_svgs = []
+    for exp_type, excel_data in combined_experiment_excel_data(public_experiments_by_type):
+        out_fhand = StringIO()
+        draw_combined_graph(excel_data, out_fhand, exp_type)
+        combined_svgs.append((exp_type, out_fhand.getvalue()))
+        return combined_svgs
+
+register.filter('filter_private_and_make_svgs', filter_private_and_make_svgs,
+                is_safe=True)
+
+
+def combined_experiment_excel_data(experiments_by_type):
+    for type_name, exps in experiments_by_type:
+        excel_data = {}
+        for exp in exps:
+            for excel_prop in exp.excel_props:
+                exp_name = excel_prop.experiment.uniquename
+                plot_type, labels, data = parse_xlsx(excel_prop.excel.path)
+                if plot_type != COLUMNS:
+                    continue
+                excel_data[exp_name] = labels, data
+
+        yield type_name, excel_data

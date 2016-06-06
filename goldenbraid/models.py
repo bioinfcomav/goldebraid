@@ -448,42 +448,42 @@ class Feature(models.Model):
         ordered_exp_by_type = OrderedDict(sorted(exp_by_type.items()))
         return ordered_exp_by_type
 
-    def combined_experiment_excel_data(self, exp_type):
-        for type_name, exps in self.experiments_by_type.items():
-            if type_name != exp_type:
-                continue
-            excel_data = {}
-            for exp in exps:
-                for excel_prop in exp.excel_props:
-                    exp_name = excel_prop.experiment.uniquename
-                    plot_type, labels, data = parse_xlsx(excel_prop.excel.path)
-                    if plot_type != COLUMNS:
-                        continue
-                    excel_data[exp_name] = labels, data
-
-            return excel_data
-
-    @property
-    def combined_experiment_images(self):
-        exp_types = self.experiments_by_type.keys()
-        for exp_type in exp_types:
-            kwargs = {'uniquename': self.uniquename, 'exp_type': exp_type}
-            yield reverse('api_combined_excel_images', kwargs=kwargs)
-
-    @property
-    def combined_svg(self):
-        combined_svgs = []
-        exp_types = self.experiments_by_type.keys()
-        for exp_type in exp_types:
-            if not exp_type.startswith('SE'):
-                continue
-            excel_datas = self.combined_experiment_excel_data(exp_type)
-            if not excel_datas:
-                continue
-            out_fhand = StringIO()
-            draw_combined_graph(excel_datas, out_fhand, exp_type)
-            combined_svgs.append((exp_type, out_fhand.getvalue()))
-        return combined_svgs
+#     def combined_experiment_excel_data(self, exp_type):
+#         for type_name, exps in self.experiments_by_type.items():
+#             if type_name != exp_type:
+#                 continue
+#             excel_data = {}
+#             for exp in exps:
+#                 for excel_prop in exp.excel_props:
+#                     exp_name = excel_prop.experiment.uniquename
+#                     plot_type, labels, data = parse_xlsx(excel_prop.excel.path)
+#                     if plot_type != COLUMNS:
+#                         continue
+#                     excel_data[exp_name] = labels, data
+#
+#             return excel_data
+#
+#      @property
+#     def combined_experiment_images(self):
+#         exp_types = self.experiments_by_type.keys()
+#         for exp_type in exp_types:
+#             kwargs = {'uniquename': self.uniquename, 'exp_type': exp_type}
+#             yield reverse('api_combined_excel_images', kwargs=kwargs)
+#
+#     @property
+#     def combined_svg(self):
+#         combined_svgs = []
+#         exp_types = self.experiments_by_type.keys()
+#         for exp_type in exp_types:
+#             if not exp_type.startswith('SE'):
+#                 continue
+#             excel_datas = self.combined_experiment_excel_data(exp_type)
+#             if not excel_datas:
+#                 continue
+#             out_fhand = StringIO()
+#             draw_combined_graph(excel_datas, out_fhand, exp_type)
+#             combined_svgs.append((exp_type, out_fhand.getvalue()))
+#         return combined_svgs
 
     @property
     def experiment_images(self, user):
