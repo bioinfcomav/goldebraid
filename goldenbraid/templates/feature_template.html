@@ -129,7 +129,9 @@
     <h6>Experimental Image</h6>
     {% for item in exp_images %}
       <h2>{{item|first}}</h2>
+      <div class='svg_image'>
       {{item|last|safe|escape }}
+      </div>
     {% endfor %}
     </div>
   {% endwith %}
