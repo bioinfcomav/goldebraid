@@ -332,7 +332,12 @@ def draw_combined_graph(data, out_fhand, exp_type):
     axes2.set_xticks(xlabel_pos)
     #axes2.set_xticklabels(titles)
     xticklabels_kwarg = {}
-    if max([len(ti)for ti in titles]) > 20:
+    title_lengths = [len(ti) for ti in titles]
+    if title_lengths:
+        max_length = max(title_lengths)
+    else:
+        max_length = 0
+    if max_length > 20:
         xticklabels_kwarg = {'rotation': 5}
     axes2.set_xticklabels(titles, **xticklabels_kwarg)
 

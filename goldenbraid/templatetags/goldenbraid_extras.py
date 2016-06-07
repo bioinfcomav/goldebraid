@@ -146,6 +146,8 @@ def filter_private_and_make_svgs(experiments_by_type, user):
                 public_experiments_by_type[type_].append(exp)
     combined_svgs = []
     for exp_type, excel_data in combined_experiment_excel_data(public_experiments_by_type):
+	if exp_type.startswith('NS'):
+            continue
         out_fhand = StringIO()
         draw_combined_graph(excel_data, out_fhand, exp_type)
         combined_svgs.append((exp_type, out_fhand.getvalue()))
