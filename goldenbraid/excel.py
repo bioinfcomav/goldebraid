@@ -338,9 +338,8 @@ def draw_combined_graph(data, out_fhand, exp_type):
     else:
         max_length = 0
     if max_length > 20:
-        xticklabels_kwarg = {'rotation': 5}
+        xticklabels_kwarg = {'rotation': 10}
     axes2.set_xticklabels(titles, **xticklabels_kwarg)
-
 
     axes.set_ylabel(COMBINED_Y_LABELS[exp_type])
     axes.legend(rects[:len(times)], times)
