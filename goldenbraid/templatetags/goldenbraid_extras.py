@@ -152,7 +152,7 @@ def filter_private_and_make_svgs(experiments_by_type, user):
         out_fhand = StringIO()
         draw_combined_graph(excel_data, out_fhand, exp_type)
         combined_svgs.append((exp_type, out_fhand.getvalue()))
-        return combined_svgs
+    return combined_svgs
 
 register.filter('filter_private_and_make_svgs', filter_private_and_make_svgs,
                 is_safe=True)
