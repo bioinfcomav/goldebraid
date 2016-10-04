@@ -31,7 +31,8 @@ from goldenbraid.settings import (DOMESTICATION_DEFAULT_MELTING_TEMP,
                                   MANDATORY_DOMEST_ENZYMES)
 from goldenbraid.models import Feature, Count
 from Bio.SeqFeature import FeatureLocation, CompoundLocation, SeqFeature
-from goldenbraid.tags import TARGET_MONOCOT, TARGET_DICOT, CDS, CDS1_CDS2, NTAG
+from goldenbraid.tags import (TARGET_MONOCOT, TARGET_DICOT, CDS, CDS1_CDS2,
+                              NTAG, CDS1)
 from goldenbraid.utils import (get_ret_sites, has_rec_sites,
                                get_prefix_and_suffix_index)
 
@@ -333,7 +334,7 @@ def _guess_prefix_suffix_tag(kind, prefix, suffix):
     elif kind == CDS1_CDS2:
         prefix = 'A'
         suffix = 'GGTTCG'
-    elif kind == CDS1_CDS2:
+    elif kind == CDS1:
         prefix = 'A'
         suffix = 'GCAGCC'
     elif kind == NTAG:
