@@ -55,7 +55,7 @@ def populate_comp_def(comp_def_xml, name, components=None, sequence_xml=None):
         sequence.set('rdf:resource', seq_xml_uri)
 
     compliant_component_uris = []
-    if components is not None:
+    if components:
         components_xml = ET.SubElement(comp_def_xml, 'sbol:component')
         for component_uri in components:
             component_displayid = component_uri.split('/')[-1]
