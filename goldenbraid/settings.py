@@ -26,10 +26,10 @@ from goldenbraid.tags import (MODULE_TYPE_NAME, TU_TYPE_NAME, TARGET_DICOT,
                               PROM_5UTR_MIR173, NTAG, CDS, CDS2_CTAG,
                               CDS1_CDS2, CTAG, FS5, TARGET, FS3, GOI, INT, IOG,
                               FGOI, UTR3_TERM, CDS1, FORWARD, REVERSE,
-			      OTHER_TYPE_NAME)
+			    OTHER_TYPE_NAME)
 
 
-GENBANK_DIR = getattr(settings, 'GOLDENBRAID_GENBANK_DIR', 'genbank_files')
+GENBANK_DIR = getattr(settings, 'GOLDENBRAID_GENBANK_DIR', 'genbank')
 RESULTS_DIR = getattr(settings, 'GOLDENBRAID_RESULTS_DIR', 'result_files')
 
 REBASE = os.path.join(goldenbraid.__path__[0], 'rebase', 'withrefm.301')

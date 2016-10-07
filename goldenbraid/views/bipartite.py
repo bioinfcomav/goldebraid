@@ -31,6 +31,7 @@ from goldenbraid.forms.assemblers import (BipartiteForm1, BipartiteForm2,
                                           get_part2_choices, BipartiteForm3,
                                           get_bipart_vector_choices,
                                           get_part1_choice)
+from goldenbraid.sbol import convert_to_sbol
 
 
 def bipartite_view(request, form_num):
@@ -113,6 +114,29 @@ def bipartite_view_genbank(request):
             response = HttpResponse(seq.format('genbank'),
                                     content_type='text/plain')
             filename = seq.name + '.gb'
+            response['Content-Disposition'] = 'attachment; '
+            response['Content-Disposition'] += 'filename="{0}"'.format(filename)
+            return response
+    return HttpResponseBadRequest()
+
+
+def bipartite_view_sbol(request):
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    elif request.method == 'GET':
+        request_data = request.GET
+    else:
+        request_data = None
+
+    if request_data:
+        form = BipartiteForm3(request_data)
+        if form.is_valid():
+            seq = assemble_parts(form.cleaned_data, ['part_1', 'part_2'])
+            response = HttpResponse(convert_to_sbol(seq),
+                                    content_type='xml/plain')
+            filename = seq.name + '.xml'
             response['Content-Disposition'] = 'attachment; '
             response['Content-Disposition'] += 'filename="{0}"'.format(filename)
             return response

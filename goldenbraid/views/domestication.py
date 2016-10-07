@@ -31,12 +31,13 @@ from django.db.utils import IntegrityError
 
 from goldenbraid.domestication import (domesticate, domesticate_for_synthesis,
                                        domestication_crispr)
-from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES, \
-    DOMESTICATED_VECTOR
+from goldenbraid.settings import (CATEGORIES, CRYSPER_CATEGORIES,
+                                  DOMESTICATED_VECTOR)
 
 from goldenbraid.forms.domestication import (DomesticationForm,
                                              DomesticationCrisprForm)
 from goldenbraid.views.feature import add_feature
+from goldenbraid.sbol import convert_to_sbol
 
 
 def synthesis_view(request):
@@ -186,6 +187,18 @@ def synthesis_view_genbank(request):
     return _domestication_view_no_template(request, function)
 
 
+def synthesis_view_sbol(request):
+    def function(seq, category, prefix, suffix, enzymes, with_intron):
+        seq = domesticate_for_synthesis(seq, category, prefix, suffix, enzymes,
+                                        with_intron)[1]
+        response = HttpResponse(convert_to_sbol(seq),
+                                content_type='xml/plain')
+        response['Content-Disposition'] = 'attachment; '
+        response['Content-Disposition'] += 'filename="{0}.xml"'.format(seq.id)
+        return response
+    return _domestication_view_no_template(request, function)
+
+
 def domestication_view_genbank(request):
     def function(seq, category, prefix, suffix, enzymes, with_intron):
         seq = domesticate(seq, category, prefix, suffix, enzymes,
@@ -195,6 +208,30 @@ def domestication_view_genbank(request):
         response['Content-Disposition'] = 'attachment; '
         response['Content-Disposition'] += 'filename="{0}.gb"'.format(seq.id)
         return response
+    return _domestication_view_no_template(request, function)
+
+
+def domestication_view_sbol(request):
+    def function(seq, category, prefix, suffix, enzymes, with_intron):
+        seq = domesticate(seq, category, prefix, suffix, enzymes,
+                          with_intron)[1]
+        response = HttpResponse(convert_to_sbol(seq),
+                                content_type='text/xml')
+        response['Content-Disposition'] = 'attachment; '
+        response['Content-Disposition'] += 'filename="{0}.xml"'.format(seq.id)
+        return response
+    return _domestication_view_no_template(request, function)
+
+
+def domestication_view_protocol(request):
+    def function(seq, category, prefix, suffix, enzymes, with_intron):
+        pcrs, seq = domesticate(seq, category, prefix, suffix, enzymes,
+                                with_intron)
+        protocol = write_domestication_protocol(pcrs)
+        response = HttpResponse(protocol, content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
+        return response
+
     return _domestication_view_no_template(request, function)
 
 
@@ -386,16 +423,6 @@ def synthesis_view_protocol(request):
     return _domestication_view_no_template(request, function)
 
 
-def domestication_view_protocol(request):
-    def function(seq, category, prefix, suffix, enzymes, with_intron):
-        pcrs, seq = domesticate(seq, category, prefix, suffix, enzymes,
-                                with_intron)
-        protocol = write_domestication_protocol(pcrs)
-        response = HttpResponse(protocol, content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename="protocol.txt"'
-        return response
-
-    return _domestication_view_no_template(request, function)
 
 
 def _domestication_view_no_template(request, function):

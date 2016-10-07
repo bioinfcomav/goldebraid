@@ -19,7 +19,7 @@
     <p>You can download a detailed protocol to fulfill the assembly in the lab from <INPUT type="submit" value="here"></p>
 </form>
 
-<form action='/do/multipartite/{{ multi_type }}/genbank/' method='POST'>{% csrf_token %}
+<form action='/do/multipartite/free/genbank/' method='POST'>{% csrf_token %}
     {% for key, value in post_data.items %}
     <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
@@ -27,6 +27,13 @@
     <p>The resulted sequence of the assembly is <INPUT type="submit" value="genbank_file"></p>
 </form>
 
+<form action='/do/multipartite/free/sbol/' method='POST'>{% csrf_token %}
+    {% for key, value in post_data.items %}
+    <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+
+    <p>The resulted sequence of the assembly is <INPUT type="submit" value="SBOL_file"></p>
+</form>
 {{genbank_url}}
 {% if user.is_authenticated %}
   <a id="displayText" href="javascript:toggle();">+Add part</a>

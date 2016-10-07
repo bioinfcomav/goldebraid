@@ -35,6 +35,18 @@
     <p>You can download your new seq in genbank format <INPUT type="submit" value="here"></p>
 </form>
 
+<form action='/do/domestication/sbol/' method='POST'>{% csrf_token %}
+    <INPUT type="hidden" name="seq" value="{{ seq }}">
+    <INPUT type="hidden" name="prefix" value="{{ prefix }}">
+    <INPUT type="hidden" name="suffix" value="{{ suffix }}">
+    <INPUT type="hidden" name="category" value="{{ category }}">
+    <INPUT type="hidden" name="seq_name" value="{{ seq_name }}">
+    <INPUT type="hidden" name="with_intron" value="{{ with_intron }}">
+    <INPUT type="hidden" name="enzymes" value="{{ enzymes|jsonify }}">
+    <p>You can download your new seq in SBOL format <INPUT type="submit" value="here"></p>
+</form>
+
+
 {% if user.is_authenticated %}
   <a id="displayText" href="javascript:toggle();">+Add part</a>
   <div id="toggleText" style="display: none">

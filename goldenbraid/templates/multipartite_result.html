@@ -27,6 +27,15 @@
 
     <p>The resulted sequence of the assembly is <INPUT type="submit" value="genbank_file"></p>
 </form>
+
+<form action='/do/multipartite/{{ multi_type }}/sbol/' method='POST'>{% csrf_token %}
+    {% for key, value in used_parts.items %}
+    <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+
+    <p>The resulted sequence of the assembly is <INPUT type="submit" value="SBOL_file"></p>
+</form>
+
 {% if user.is_authenticated %}
   <a id="displayText" href="javascript:toggle();">+Add part</a>
   <div id="toggleText" style="display: none">

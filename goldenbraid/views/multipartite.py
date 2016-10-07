@@ -19,6 +19,7 @@ import os
 from tempfile import NamedTemporaryFile
 from django.db.utils import IntegrityError
 from django.http.response import HttpResponseServerError
+from goldenbraid.sbol import convert_to_sbol
 try:
     from collections import OrderedDict
 except ImportError:
@@ -139,6 +140,39 @@ def multipartite_view_genbank(request, multi_type=None):
             filename = assembled_seq.name + '.gb'
             response = HttpResponse(assembled_seq.format('genbank'),
                                     content_type='text/plain')
+            response['Content-Disposition'] = 'attachment; '
+            response['Content-Disposition'] += 'filename="{0}"'.format(filename)
+            return response
+    return HttpResponseBadRequest()
+
+
+def multipartite_view_sbol(request, multi_type=None):
+    'view of the multipartite tool'
+
+    if multi_type is None:
+        return render_to_response('multipartite_initial.html', {},
+                                  context_instance=RequestContext(request))
+    elif multi_type not in PARTS_TO_ASSEMBLE.keys():
+        return Http404
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    elif request.method == 'GET':
+        request_data = request.GET
+    else:
+        request_data = None
+    form_class = get_multipartite_form(multi_type, request.user)
+    if request_data:
+        form = form_class(request_data)
+
+        if form.is_valid():
+            multi_form_data = form.cleaned_data
+            part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
+            assembled_seq = assemble_parts(multi_form_data, part_types)
+            filename = assembled_seq.name + '.xml'
+            response = HttpResponse(convert_to_sbol(assembled_seq),
+                                    content_type='xml/plain')
             response['Content-Disposition'] = 'attachment; '
             response['Content-Disposition'] += 'filename="{0}"'.format(filename)
             return response
@@ -384,6 +418,38 @@ def multipartite_view_free_genbank(request):
             response = HttpResponse(assembled_seq.format('genbank'),
                                     content_type='text/plain')
             filename = assembled_seq.name + '.gb'
+            response['Content-Disposition'] = 'attachment; '
+            response['Content-Disposition'] += 'filename="{0}"'.format(filename)
+            return response
+
+    return HttpResponseBadRequest('There was an error in the assembly')
+
+
+def multipartite_view_free_sbol(request):
+    context = RequestContext(request)
+    context.update(csrf(request))
+    if request.method == 'POST':
+        request_data = request.POST
+    else:
+        msg = "To get the sequence you need first to assemble parts"
+        return HttpResponseBadRequest(msg)
+
+    feats = [request_data['vector']]
+    for k in sorted(request_data.keys()):
+        if 'part_' in k:
+            feats.append(request_data[k])
+
+    form_class = get_multipartite_free_form(feats)
+    form = form_class(request_data)
+    if form.is_valid():
+        last_feat = Feature.objects.get(uniquename=feats[-1])
+        last_suffix = last_feat.suffix
+        if last_suffix == 'CGCT':
+            protocol_data, part_order = _get_fragments_from_request(request)
+            assembled_seq = assemble_parts(protocol_data, part_order)
+            response = HttpResponse(convert_to_sbol(assembled_seq),
+                                    content_type='xml/plain')
+            filename = assembled_seq.name + '.xml'
             response['Content-Disposition'] = 'attachment; '
             response['Content-Disposition'] += 'filename="{0}"'.format(filename)
             return response
