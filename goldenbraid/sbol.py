@@ -75,7 +75,7 @@ def populate_comp_def(comp_def_xml, name, components=None, sequence_xml=None):
                 comp_in_db = None
 
             sbol_access = ET.SubElement(comp_xml, 'sbol:access')
-            if comp_in_db and comp_in_db.public:
+            if comp_in_db and comp_in_db.is_public:
                 access_uri = 'http://sbols.org/v2#public'
             else:
                 access_uri = 'http://sbols.org/v2#private'
