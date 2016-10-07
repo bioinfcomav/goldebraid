@@ -4,13 +4,36 @@ Created on 2015 api. 1
 @author: peio
 '''
 import json
-from django.http.response import HttpResponse, Http404, HttpResponseForbidden
-from django.contrib.auth.models import User
-from django.db.models import Q
-
-from goldenbraid.models import Feature, ExperimentPropExcel, ExperimentKeyword
 from tempfile import NamedTemporaryFile
+
+from django.http.response import HttpResponse, Http404, HttpResponseForbidden
+from django.db.models import Q
+from Bio.SeqIO import read
+from goldenbraid.models import Feature, ExperimentPropExcel, ExperimentKeyword
 from goldenbraid.excel import draw_combined_graph
+from goldenbraid.sbol import convert_to_sbol
+
+
+def feature_sbol(request, uniquename):
+    user = request.user
+    print(uniquename)
+    query = Feature.objects.filter(uniquename=uniquename)
+    print(query)
+    if not user.is_staff:
+        query = query.filter(Q(featureperm__is_public=True) |
+                             Q(featureperm__owner=user))
+    print(query)
+    if query:
+        query[0].genbank
+        seq = read(query[0].genbank_fileo, 'gb')
+        response = HttpResponse(convert_to_sbol(seq), content_type='xml/plain')
+        filename = seq.name + '.xml'
+        response['Content-Disposition'] = 'attachment; '
+        response['Content-Disposition'] += 'filename="{0}"'.format(filename)
+        return response
+
+    else:
+        return Http404
 
 
 def feature_uniquenames(request):

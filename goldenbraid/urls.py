@@ -19,7 +19,8 @@ from goldenbraid.views.feature import (add_feature_view, feature_view,
 
 from goldenbraid.views.api import(feature_uniquenames, features_children,
                                   features_key_elements, excel_image,
-                                  experiment_keywords)
+                                  experiment_keywords, feature_sbol,
+                                  combined_excel_image)
 
 from goldenbraid.views.multipartite import (multipartite_view,
                                             multipartite_protocol_view,
@@ -50,7 +51,6 @@ from goldenbraid.views.domestication import (domestication_view,
 from goldenbraid.views.experiment import (search_experiment,
                                           add_experiment_view, experiment_view)
 from goldenbraid.views.user import user_view
-from goldenbraid.views.api import combined_excel_image
 
 
 urlpatterns = patterns('',
@@ -98,6 +98,8 @@ urlpatterns = patterns('',
     url(r'^do/bipartite/(?P<form_num>.+)?/?$', bipartite_view, name='bipartite_view'),  # @IgnorePep8
 
     url('api/feature_uniquenames/$', feature_uniquenames, name='api_feature'),
+    url('api/sbol/(?P<uniquename>.+)/$', feature_sbol, name='api_feature_sbol'),
+
     url('api/features_children/$', features_children, name='api_feature_children'),  # @IgnorePep8
     url('api/features_key_elements/$', features_key_elements, name='api_feature_key_elements'),  # @IgnorePep8
     url('api/excel_graph/(?P<excel_id>.+)?', excel_image, name='api_excel_image'),  # @IgnorePep8

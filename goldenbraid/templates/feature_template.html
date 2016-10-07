@@ -74,6 +74,8 @@
      <tr><th>Owner</th><td> <div id='owner'><a href='/user/{{feature.owner}}/' >{{feature.owner}}</a></div></td></tr>
      <tr><th>Public</th><td>{{ feature.is_public }}</td></tr>
      <tr><th>Genbank_file</th><td><a href="{{feature.genbank_file.url}}">{{ feature.uniquename }}</a></td></tr>
+     <tr><th>SBOL_file</th><td><a href="{%url 'api_feature_sbol' uniquename=feature.uniquename %}">{{ feature.uniquename }}</a></td></tr>
+     
    </tbody>
   </table>
  </div>
