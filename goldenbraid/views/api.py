@@ -17,15 +17,15 @@ from goldenbraid.sbol import convert_to_sbol
 def feature_sbol(request, uniquename):
     user = request.user
     print(uniquename)
-    query = Feature.objects.filter(uniquename=uniquename)
-    print(query)
-    if not user.is_staff:
-        query = query.filter(Q(featureperm__is_public=True) |
-                             Q(featureperm__owner=user))
-    print(query)
-    if query:
-        query[0].genbank
-        seq = read(query[0].genbank_fileo, 'gb')
+    try:
+        feat = Feature.objects.get(uniquename=uniquename)
+    except Feature.DoesNotExist:
+        feat = None
+
+    if feat is None:
+        return Http404
+    if (feat.is_public or (user.is_staff or user == feat.owner)):
+        seq = read(feat.genbank_file, 'gb')
         response = HttpResponse(convert_to_sbol(seq), content_type='xml/plain')
         filename = seq.name + '.xml'
         response['Content-Disposition'] = 'attachment; '
@@ -33,7 +33,7 @@ def feature_sbol(request, uniquename):
         return response
 
     else:
-        return Http404
+        return HttpResponseForbidden
 
 
 def feature_uniquenames(request):
