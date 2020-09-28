@@ -113,7 +113,7 @@
 <div class ="col_right">
                 <img class='resize1' src={{exp_excel.image_url}} alt={{exp_excel.description}}>
 <div class="caption"><a href={{exp_excel.excel.url}}>{{ exp_excel.description|capfirst|replaceunderscore }}</a></div>
-</div>        
+</div>
 	{% endfor %}
     {% endif %}
 <div style='clear:both;'>&nbsp;</div>
@@ -168,6 +168,8 @@
     <p>You can delete this experiment from the database, this step can not be undone.
     <INPUT type="submit" value="Delete"></p>
   </form>
+ {% endif %}
+ {% if user.is_staff %}
   <form action='' method='POST'>{% csrf_token %}
     <INPUT type="hidden" name="experiment" value="{{experiment.uniquename }}">
     {% if experiment.is_public %}

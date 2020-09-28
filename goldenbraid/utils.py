@@ -10,7 +10,7 @@ from goldenbraid.settings import REBASE_FILE, MANDATORY_DOMEST_ENZYMES
 def filter_feature_by_user_perms(query, user):
     if user.is_staff:
         return query
-    if user.is_authenticated():
+    if user.is_authenticated:
         query = query.filter(Q(featureperm__owner__username=user) |
                              Q(featureperm__is_public=True))
     else:
@@ -69,6 +69,7 @@ def _search_rec_sites(seq, rec_site):
     residues = str(seq_elonged)
     finded_site_indexes = [m.start() for m in re.finditer(rec_site.upper(),
                                                           residues.upper())]
+
     corrected_site_indexes = set()
     for site in finded_site_indexes:
         if site > len(seq):

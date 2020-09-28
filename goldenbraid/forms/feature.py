@@ -1,3 +1,5 @@
+import textwrap
+
 from operator import itemgetter
 
 from django import forms
@@ -6,23 +8,29 @@ from django.forms.widgets import Select
 from django.core.exceptions import ValidationError
 
 from goldenbraid.models import Feature, Cvterm
-from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES
+from goldenbraid.settings import (CATEGORIES, CRYSPER_CATEGORIES,
+                                  CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE,
+                                  CRYSPR_MULTIPLEX_REGULATION_LEVEL_MINUS_ONE,
+                                  CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE,
+                                  FUNGAL_CATEGORIES, CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO,
+                                  CRYSPR_MULTIPLEX_REGULATION_LEVEL_ZERO)
 
 from goldenbraid.tags import (TU_TYPE_NAME, MODULE_TYPE_NAME, OTHER_TYPE_NAME,
-                              VECTOR_TYPE_NAME)
+                              VECTOR_TYPE_NAME, PROM_CAS12, CLEAVAGE_SIGNAL)
 from goldenbraid import settings
 from goldenbraid.utils import filter_feature_by_user_perms
 SPECIAL_SEARCH_CATEGORIES = (VECTOR_TYPE_NAME, TU_TYPE_NAME, MODULE_TYPE_NAME,
                              OTHER_TYPE_NAME)
 
 
+
 def features_to_choices(features, blank_line=True):
     choices = [('', '')] if blank_line else []
 
     for feat in features:
-        uniquename = feat.uniquename.encode('utf-8')
+        uniquename = feat.uniquename
         if feat.name:
-            show = u'{0} - {1}'.format(feat.uniquename, feat.name)
+            show = '{0} - {1}'.format(uniquename, feat.name)
         else:
             show = uniquename
         choices.append((uniquename, show))
@@ -64,6 +72,12 @@ class VectorForm(forms.Form):
 #     feature_kinds.insert(0, ('', ''))  # no kind
 #     return feature_kinds
 
+
+def clean_description(self):
+    description = self.cleaned_data['description']
+    description = textwrap.fill(description, width=70)
+    return description
+
 def _get_category_name(category):
     if category[0] in SPECIAL_SEARCH_CATEGORIES:
         return category[0]
@@ -90,13 +104,57 @@ def _prepare_feature_kind():
         for special_category in SPECIAL_SEARCH_CATEGORIES:
             special_string = '{0},None,None'.format(special_category)
             feature_categories.append((special_string, special_category))
+
+
+        # # NEEDED TO ADD EX NIHILO NEW GBs TO THIS CATEGORY
+        # for position in CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE:
+        #     category = (position, CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[position][1],
+        #                 CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[position][2])
+        #     category_name = _get_category_name(category)
+        #     feature_categories.append((','.join(category), category_name))
+
+        for position in CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO:
+            category = (position, CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[position][1],
+                        CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[position][2])
+            category_name = _get_category_name(category)
+            feature_categories.append((','.join(category), category_name))
+
+
+        # category = (PROM_CAS12, CRYSPER_CATEGORIES[PROM_CAS12][1],
+        #             CRYSPER_CATEGORIES[PROM_CAS12][2])
+        # category_name = _get_category_name(category)
+        # feature_categories.append((",".join(category), category_name))
+
+        # category = (CLEAVAGE_SIGNAL, CRYSPER_CATEGORIES[CLEAVAGE_SIGNAL][1],
+        #             CRYSPER_CATEGORIES[CLEAVAGE_SIGNAL][2])
+        # category_name = _get_category_name(category)
+        # feature_categories.append((",".join(category), category_name))
+
+        # for position in FUNGAL_CATEGORIES:
+        #     category = (position, FUNGAL_CATEGORIES[position][1],
+        #                 FUNGAL_CATEGORIES[position][2])
+        #     category_name = _get_category_name(category)
+        #     feature_categories.append((','.join(category), category_name))
+
         for dict_category in categories:
             if dict_category['type__name'] in SPECIAL_SEARCH_CATEGORIES:
+                continue
+            if dict_category['type__name'] in CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE:
+                continue
+            if dict_category['type__name'] in CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE:
+                continue
+            if dict_category['type__name'] in [CLEAVAGE_SIGNAL, PROM_CAS12]:
                 continue
             category = (dict_category['type__name'], dict_category['prefix'],
                         dict_category['suffix'])
             category_name = _get_category_name(category)
             feature_categories.append((','.join(category), category_name))
+
+        # for position in CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE:
+        #     category = (position, CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[position][1],
+        #                 CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[position][2])
+        #     category_name = _get_category_name(category)
+        #     feature_categories.append((','.join(category), category_name))
 
     feature_categories.insert(0, ('', ''))  # no kind
     return feature_categories
@@ -137,7 +195,7 @@ class FeatureForm(forms.Form):
             return vector
         type_str = self.cleaned_data['type']
 
-        if type_str != VECTOR_TYPE_NAME:
+        if type_str != VECTOR_TYPE_NAME and type_str not in list(CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE.keys()):
             try:
                 vector_type = Cvterm.objects.get(name=VECTOR_TYPE_NAME)
                 Feature.objects.get(uniquename=vector, type=vector_type)
@@ -149,6 +207,12 @@ class FeatureForm(forms.Form):
                 raise ValidationError('A vector does not have a vector')
 
         return vector
+
+
+    def clean_description(self):
+        description = self.cleaned_data['description']
+        description = textwrap.fill(description, width=70)
+        return description
 
 
 def create_feature_validator(field_name):
@@ -168,16 +232,21 @@ def create_feature_validator(field_name):
 class FeatureManagementForm(forms.Form):
     feature = forms.CharField(max_length=30, widget=forms.HiddenInput())
     action = forms.CharField(max_length=30, widget=forms.HiddenInput())
+    edit_description = forms.CharField(max_length=255, widget=forms.HiddenInput(), required=False)
 
     def clean_action(self):
         action = self.cleaned_data['action']
-        if action in ('delete', 'make_public', 'make_private'):
+        if action in ('delete', 'make_public', 'make_private', 'no_action'):
             return action
         raise ValidationError('action must be delete or make_public')
 
     def clean_feature(self):
         return create_feature_validator('feature')(self)
 
+    def clean_edit_description(self):
+        description = self.cleaned_data['edit_description']
+        description = textwrap.fill(description, width=70)
+        return description
 
 class SearchFeatureForm(forms.Form):
 

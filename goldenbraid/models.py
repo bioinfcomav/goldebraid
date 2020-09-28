@@ -25,20 +25,24 @@ from goldenbraid.tags import (DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               VECTOR_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, REFERENCE_TYPE_NAME,
                               FORWARD, REVERSE, DERIVES_FROM, OTHER_TYPE_NAME,
-                              TARGET_DICOT, TARGET_MONOCOT)
+                              TARGET_DICOT, TARGET_MONOCOT, TARGET_CAS12A, TARGET_CAS12A, TARGET,
+                              CRISPR_MULTIPLEXING_TARGET)
 from goldenbraid.excel import plot_from_excel
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from goldenbraid.settings import (DOMESTICATION_VECTORS_IN_GB, CATEGORIES,
                                   SBOL_IMAGES, CRYSPER_CATEGORIES,
-                                  MOCLO_INCOMPATIBLE_RESISTANCES)
+                                  MOCLO_INCOMPATIBLE_RESISTANCES,
+                                  CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO,
+                                  CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE,
+                                  CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_ZERO,
+                                  FUNGAL_CATEGORIES)
 from goldenbraid.utils import has_rec_sites, get_prefix_and_suffix_index
 from tempfile import NamedTemporaryFile
 
 LEVEL_0 = '0'
 LEVEL_1ALPHA = '1-alpha'
 LEVEL_1_OMEGA = '1-omega'
-
 
 class Db(models.Model):
     db_id = models.AutoField(primary_key=True)
@@ -65,7 +69,7 @@ class Cv(models.Model):
 
 class Dbxref(models.Model):
     dbxref_id = models.AutoField(primary_key=True)
-    db = models.ForeignKey(Db)
+    db = models.ForeignKey(Db, on_delete=models.CASCADE)
     accession = models.CharField(max_length=255)
 
     class Meta:
@@ -78,7 +82,7 @@ class Dbxref(models.Model):
 
 class Cvterm(models.Model):
     cvterm_id = models.AutoField(primary_key=True)
-    cv = models.ForeignKey(Cv)
+    cv = models.ForeignKey(Cv, on_delete=models.CASCADE)
     name = models.CharField(max_length=1024)
     definition = models.TextField()
 
@@ -118,7 +122,7 @@ class Contact(models.Model):
 class Stockcollection(models.Model):
     stockcollection_id = models.AutoField(primary_key=True)
     # type = models.ForeignKey(Cvterm)
-    contact = models.ForeignKey(Contact)
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     uniquename = models.TextField()
 
@@ -131,8 +135,8 @@ class Stock(models.Model):
     name = models.CharField(max_length=255)
     uniquename = models.TextField()
     description = models.TextField()
-    stockcollection = models.ForeignKey(Stockcollection)
-    feature = models.ForeignKey("Feature", related_name='stocks', null=True)
+    stockcollection = models.ForeignKey(Stockcollection, on_delete=models.CASCADE)
+    feature = models.ForeignKey("Feature", related_name='stocks', null=True, on_delete=models.SET_NULL)
 
     class Meta:
         db_table = u'stock'
@@ -154,15 +158,37 @@ class Feature(models.Model):
     feature_id = models.AutoField(primary_key=True)
     uniquename = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
-    type = models.ForeignKey(Cvterm)
+    type = models.ForeignKey(Cvterm, on_delete=models.CASCADE)
     residues = models.TextField()
-    dbxref = models.ForeignKey(Dbxref)
-    vector = models.ForeignKey("Feature", null=True)
+    dbxref = models.ForeignKey(Dbxref, on_delete=models.CASCADE)
+    vector = models.ForeignKey("Feature", null=True, on_delete=models.SET_NULL)
     prefix = models.CharField(max_length=4)
     suffix = models.CharField(max_length=4)
     genbank_file = models.FileField(upload_to=settings.GENBANK_DIR)
     timecreation = models.DateTimeField(auto_now_add=True)
     timelastmodified = models.DateTimeField(auto_now=True)
+    field_description = models.CharField(max_length=255, default='No description')
+    field_owner =  models.CharField(max_length=255, default='guest')
+
+    def __str__(self):
+        return (self.uniquename)
+
+
+    def save_description_into_field(self, *args, **kwargs):
+        try:
+            description = self.props[DESCRIPTION_TYPE_NAME][0]
+        except KeyError:
+            description = "No description"
+        self.field_description = description
+
+        'owner of the feat'
+        try:
+            owner = FeaturePerm.objects.get(feature=self).owner
+        except KeyError:
+            owner = "No Owner"
+        self.field_owner = owner.username
+        super(Feature, self).save(*args, **kwargs)
+
 
     class Meta:
         db_table = u'feature'
@@ -199,7 +225,8 @@ class Feature(models.Model):
             values = [value[0] for value in values]
             prop_dict[type_] = values
 
-        return ReadOnlyDict(prop_dict)
+        return prop_dict
+
 
     @property
     def enzyme_in(self):
@@ -217,10 +244,12 @@ class Feature(models.Model):
     @property
     def resistance(self):
         'It returns the resistance of the feature'
+        print(self.type.name)
         if self.type.name == VECTOR_TYPE_NAME:
             return self.props[RESISTANCE_TYPE_NAME]
         else:
-            if self.type.name in (TARGET_DICOT, TARGET_MONOCOT):
+            if self.type.name in (TARGET_DICOT, TARGET_MONOCOT, 
+                                  TARGET_CAS12A, CRISPR_MULTIPLEXING_TARGET):
                 return None
             else:
                 return self.vector.resistance
@@ -228,6 +257,12 @@ class Feature(models.Model):
     @property
     def description(self):
         'Get description if it has one'
+        try:
+            return self.props[DESCRIPTION_TYPE_NAME][0]
+        except KeyError:
+            return "No description"
+
+    def get_description(self):
         try:
             return self.props[DESCRIPTION_TYPE_NAME][0]
         except KeyError:
@@ -260,7 +295,8 @@ class Feature(models.Model):
 
     @property
     def level(self):
-        if self.type.name in (TARGET_DICOT, TARGET_MONOCOT):
+        if self.type.name in (TARGET_DICOT, TARGET_MONOCOT,
+                              TARGET, TARGET_CAS12A, CRISPR_MULTIPLEXING_TARGET):
             return LEVEL_0
         if not self.vector:
             return None
@@ -308,7 +344,7 @@ class Feature(models.Model):
 
     def _flatten_list(self, list_):
         for item in list_:
-            if hasattr(item, '__iter__'):
+            if hasattr(item, '__iter__') and not isinstance(item, str):
                 for item2 in self._flatten_list(item):
                     yield item2
             else:
@@ -325,18 +361,28 @@ class Feature(models.Model):
 
     @property
     def moclo_compatible(self):
-        if not self.level or self.level != LEVEL_0 or self.type.name in (TARGET_DICOT, TARGET_MONOCOT):
+        if (not self.level or self.level != LEVEL_0 or
+                self.type.name in (TARGET_DICOT, TARGET_MONOCOT,
+                                   TARGET, TARGET_CAS12A, CRISPR_MULTIPLEXING_TARGET)):
             return 'not_evaluable'
-        if self.vector.resistance not in (MOCLO_INCOMPATIBLE_RESISTANCES):
+
+        if set(self.vector.resistance).intersection(MOCLO_INCOMPATIBLE_RESISTANCES):
+            return "FALSE due to the part not in a compatible vector"
+        else:
             enzyme = self.enzyme_out[0]
             residues = self.residues
-            pref_idx, suf_idx = get_prefix_and_suffix_index(residues, enzyme)[:2]
+            pref_idx, suf_idx = get_prefix_and_suffix_index(residues,
+                                                            enzyme)[:2]
             seq = residues[pref_idx:suf_idx + len(self.suffix)]
 
-            # TODO: maybe we should look only to the part seq. not with the vector
+            # TODO: maybe we should look only to the part seq. not with
+            # the vector
+            has_rec_site = has_rec_sites(seq, enzymes=('BpiI', 'BsaI'))
+            if has_rec_site:
+                return "FALSE due to the presence of BbsI internal sites"
+            else:
+                return True
             return not has_rec_sites(seq, enzymes=('BpiI', 'BsaI'))
-        else:
-            return False
 
     @property
     def gb_category(self):
@@ -354,6 +400,22 @@ class Feature(models.Model):
             if values == (type_, prefix, suffix):
                 return category.strip()
 
+        for category, values in CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO.items():
+            if values == (type_, prefix, suffix):
+                return category.strip()
+
+        for category, values in CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE.items():
+            if values == (type_, prefix, suffix):
+                return category.strip()
+
+        for category, values in CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_ZERO.items():
+            if values == (type_, prefix, suffix):
+                return category.strip()
+
+        for category, values in FUNGAL_CATEGORIES.items():
+            if values == (type_, prefix, suffix):
+                return category.strip()
+
     @property
     def gb_category_sections(self):
         gb_category = self.gb_category
@@ -366,6 +428,7 @@ class Feature(models.Model):
     @property
     def gb_category_name(self):
         gb_category = self.gb_category
+        print("gb_category", gb_category)
         if gb_category == OTHER_TYPE_NAME:
             return gb_category
         if gb_category is not None:
@@ -447,7 +510,7 @@ class Feature(models.Model):
         return ordered_exp_by_type
 
     @property
-    def experiment_images(self, user):
+    def experiment_images(self):
         experiments = self.ordered_experiments
         image_urls = []
         for experiment in experiments:
@@ -481,8 +544,8 @@ def _get_or_create_feature_relationship(object_, subject):
 
 class FeaturePerm(models.Model):
     'Model to store the perms of the features'
-    feature = models.OneToOneField(Feature, primary_key=True)
-    owner = models.ForeignKey(User)
+    feature = models.OneToOneField(Feature, primary_key=True, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     is_public = models.BooleanField(default=False)
 
     class Meta:
@@ -492,8 +555,8 @@ class FeaturePerm(models.Model):
 class Featureprop(models.Model):
     'Model to store the properties of the features'
     featureprop_id = models.AutoField(primary_key=True)
-    feature = models.ForeignKey(Feature)
-    type = models.ForeignKey(Cvterm)
+    feature = models.ForeignKey(Feature, on_delete=models.CASCADE)
+    type = models.ForeignKey(Cvterm, on_delete=models.CASCADE)
     value = models.TextField()
     rank = models.IntegerField()
 
@@ -504,9 +567,9 @@ class Featureprop(models.Model):
 class FeatureRelationship(models.Model):
     'Store the relationships between parts'
     featurerelationship_id = models.AutoField(primary_key=True)
-    type = models.ForeignKey(Cvterm)
-    subject = models.ForeignKey(Feature, related_name='subject')
-    object = models.ForeignKey(Feature, related_name='object')
+    type = models.ForeignKey(Cvterm, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Feature, related_name='subject', on_delete=models.CASCADE)
+    object = models.ForeignKey(Feature, related_name='object', on_delete=models.CASCADE)
 
     class Meta:
         db_table = u'feature_relationship'
@@ -519,9 +582,9 @@ class Experiment(models.Model):
     chasis_1 = models.CharField(max_length=255)
     chasis_2 = models.CharField(max_length=255)
     description = models.TextField(max_length=3000)
-    type = models.ForeignKey(Cvterm)
+    type = models.ForeignKey(Cvterm, on_delete=models.CASCADE)
     timecreation = models.DateTimeField(auto_now_add=True)
-    dbxref = models.ForeignKey(Dbxref)
+    dbxref = models.ForeignKey(Dbxref, on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'experiment'
@@ -580,7 +643,7 @@ class Experiment(models.Model):
             if type_ not in prop_dict:
                 prop_dict[type_] = []
             prop_dict[type_].append(value)
-        return sorted(prop_dict.iteritems())
+        return sorted(prop_dict.items())
         # return ReadOnlyDict(prop_dict)
 
     @property
@@ -631,8 +694,8 @@ class Experiment(models.Model):
 
 
 class ExperimentPerm(models.Model):
-    experiment = models.OneToOneField(Experiment, primary_key=True)
-    owner = models.ForeignKey(User)
+    experiment = models.OneToOneField(Experiment, primary_key=True, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     is_public = models.BooleanField(default=False)
 
     class Meta:
@@ -641,8 +704,8 @@ class ExperimentPerm(models.Model):
 
 class ExperimentFeature(models.Model):
     experiment_feature_id = models.AutoField(primary_key=True)
-    experiment = models.ForeignKey(Experiment)
-    feature = models.ForeignKey(Feature)
+    experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE)
+    feature = models.ForeignKey(Feature, on_delete=models.CASCADE)
 
     class Meta:
         db_table = u'experimentfeature'
@@ -651,8 +714,8 @@ class ExperimentFeature(models.Model):
 
 class ExperimentSubFeature(models.Model):
     experiment_key_subfeature_id = models.AutoField(primary_key=True)
-    experiment = models.ForeignKey(Experiment)
-    feature = models.ForeignKey(Feature)
+    experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE)
+    feature = models.ForeignKey(Feature, on_delete=models.CASCADE)
 
     class Meta:
         db_table = u'experimentkeysubfeature'
@@ -661,8 +724,8 @@ class ExperimentSubFeature(models.Model):
 
 class ExperimentPropNumeric(models.Model):
     experiment_prop_numeric_id = models.AutoField(primary_key=True)
-    experiment = models.ForeignKey(Experiment)
-    type = models.ForeignKey(Cvterm)
+    experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE)
+    type = models.ForeignKey(Cvterm, on_delete=models.CASCADE)
     value = models.FloatField(null=True)
 
     class Meta:
@@ -671,7 +734,7 @@ class ExperimentPropNumeric(models.Model):
 
 class ExperimentPropText(models.Model):
     experiment_prop_text_id = models.AutoField(primary_key=True)
-    experiment = models.ForeignKey(Experiment)
+    experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     value = models.TextField(max_length=3000)
 
@@ -682,7 +745,7 @@ class ExperimentPropText(models.Model):
 # TODO: File name must be unique
 class ExperimentPropImage(models.Model):
     experiment_prop_image_id = models.AutoField(primary_key=True)
-    experiment = models.ForeignKey(Experiment)
+    experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE)
     image = models.ImageField(upload_to=settings.RESULTS_DIR)
     description = models.CharField(max_length=255)
 
@@ -692,7 +755,7 @@ class ExperimentPropImage(models.Model):
 
 class ExperimentPropExcel(models.Model):
     experiment_prop_excel_id = models.AutoField(primary_key=True)
-    experiment = models.ForeignKey(Experiment)
+    experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE)
     excel = models.FileField(upload_to=settings.RESULTS_DIR)
     description = models.CharField(max_length=255)
 
@@ -715,7 +778,7 @@ class ExperimentPropExcel(models.Model):
 
 class ExperimentPropGenericFile(models.Model):
     experiment_prop_generic_file_id = models.AutoField(primary_key=True)
-    experiment = models.ForeignKey(Experiment)
+    experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE)
     file = models.FileField(upload_to=settings.RESULTS_DIR)
     description = models.CharField(max_length=255)
 
@@ -725,7 +788,7 @@ class ExperimentPropGenericFile(models.Model):
 
 class ExperimentKeyword(models.Model):
     experiment_keyword_id = models.AutoField(primary_key=True)
-    experiment = models.ForeignKey(Experiment)
+    experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE)
     keyword = models.CharField(max_length=50)
 
     class Meta:

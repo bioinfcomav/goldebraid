@@ -15,12 +15,16 @@
 
 from __future__ import division
 import re
-from itertools import izip_longest
+from itertools import zip_longest
+import os
 
+from Bio import SeqIO
 from Bio.Alphabet import generic_dna
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+from Bio.Alphabet import generic_dna
 
+from django.conf import settings as proj_settings
 from goldenbraid.settings import (DOMESTICATION_DEFAULT_MELTING_TEMP,
                                   DOMESTICATION_MIN_OLIGO_LENGTH,
                                   DOMEST_VECTOR_PREFIX,
@@ -32,7 +36,7 @@ from goldenbraid.settings import (DOMESTICATION_DEFAULT_MELTING_TEMP,
 from goldenbraid.models import Feature, Count
 from Bio.SeqFeature import FeatureLocation, CompoundLocation, SeqFeature
 from goldenbraid.tags import (TARGET_MONOCOT, TARGET_DICOT, CDS, CDS1_CDS2,
-                              NTAG, CDS1)
+                              NTAG, CDS1, CRISPR_MULTIPLEXING_TARGET, TARGET_CAS12A)
 from goldenbraid.utils import (get_ret_sites, has_rec_sites,
                                get_prefix_and_suffix_index)
 
@@ -45,6 +49,14 @@ def get_codontable():
     amino_acids += 'EGGGG'
     codon_table = dict(zip(codons, amino_acids))
     return codon_table
+
+
+def _load_features_from_vector():
+    pupd2 = Feature.objects.get(uniquename=DOMESTICATED_VECTOR)
+    gb_path = os.path.join(proj_settings.MEDIA_ROOT, "genbank",
+                           pupd2.genbank_file.name.replace("genbank/", ""))
+    pupd2_features = SeqIO.read(gb_path, 'gb').features
+    return pupd2_features
 
 
 def domesticate_for_synthesis(seqrec, category, prefix, suffix, enzymes,
@@ -68,18 +80,19 @@ def domesticate_for_synthesis(seqrec, category, prefix, suffix, enzymes,
     next_value = count.next
     seq_name = DOMESTICATED_SEQ + '_' + next_value
     vector_seq = _get_stripped_vector_seq()
+    vector_features = _load_features_from_vector()
     prepared_new_seq = prefix + new_seq + suffix + vector_seq
-    seq_for_synthesis = str(seqs_for_sintesis[0])
-    prepared_seq = SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
-
     start = len(prefix)
     part_feat = SeqFeature(FeatureLocation(start, len(new_seq) + start),
-                           type='misc_feature', id=prepared_seq.id)
+                           type='misc_feature')
+    seq_for_synthesis = str(seqs_for_sintesis[0])
+    prepared_seq = SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
     prepared_seq.features.append(part_feat)
     return seq_for_synthesis, prepared_seq
 
 
-def domesticate(seqrec, category, prefix, suffix, enzymes=None, with_intron=False):
+def domesticate(seqrec, category, prefix, suffix, enzymes=None, with_intron=False,
+                reverse_orientation=False):
     kind = category
     seq = seqrec.seq
     if not with_intron:
@@ -87,7 +100,7 @@ def domesticate(seqrec, category, prefix, suffix, enzymes=None, with_intron=Fals
     min_melting_temp = DOMESTICATION_DEFAULT_MELTING_TEMP
     if not enzymes:
         enzymes = MANDATORY_DOMEST_ENZYMES
-    new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq, enzymes)
+    new_seq, rec_site_pairs, fragments = _remove_rec_sites(seq, enzymes, reverse_orientation=reverse_orientation)
     segments = _get_pcr_segments(new_seq, rec_site_pairs, fragments)
 
     pcr_products = [str(new_seq[s['start']:s['end'] + 1]) for s in segments]
@@ -124,26 +137,35 @@ def domesticate(seqrec, category, prefix, suffix, enzymes=None, with_intron=Fals
     new_seq_record = SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
 
     start = len(prefix)
+    
     part_feat = SeqFeature(FeatureLocation(start, len(new_seq) + start),
                            type='misc_feature', id=new_seq_record.id)
     new_seq_record.features.append(part_feat)
     if with_intron:
-        cds = _get_cds_from_seq(seq, prefix)
+        cds = _get_cds_from_seq(seq, prefix, reverse_orientation=reverse_orientation)
         new_seq_record.features.append(cds)
 
     return oligo_pcrs, new_seq_record
 
 
-def _get_cds_from_seq(seq, prefix):
-
+def _get_cds_from_seq(seq, prefix, reverse_orientation=False):
     cds_locs = []
+    if reverse_orientation:
+        strand = -1
+    else:
+        strand = 1
     for match in re.finditer('[A-Z]+', str(seq)):
         cds_locs.append(FeatureLocation(match.start() + len(prefix),
-                                        match.end() + len(prefix), strand=1))
-
-    qualifiers = {'translation': Seq(_get_upper_nucls(seq)).translate()}
-    cds = SeqFeature(CompoundLocation(cds_locs), type='CDS', strand=1,
-                     qualifiers=qualifiers)
+                                        match.end() + len(prefix), strand=strand))
+    if reverse_orientation:
+        qualifiers = {'translation':Seq(_get_upper_nucls(seq)).reverse_complement().translate()}
+    else:
+        qualifiers = {'translation': Seq(_get_upper_nucls(seq)).translate()}
+    if len(cds_locs) == 1:
+        cds = SeqFeature(cds_locs[0], type='CDS', qualifiers=qualifiers, strand=strand)
+    else:
+        cds = SeqFeature(CompoundLocation(cds_locs), type='CDS', strand=strand,
+                         qualifiers=qualifiers)
     return cds
 
 
@@ -399,12 +421,21 @@ def _calculate_annealing_temp(seq):
     return 64.9 + 41 * (seq.count('G') + seq.count('C') - 16.4) / len_seq
 
 
-def _remove_rec_sites(seq, enzymes=None):
+def reverse_complement(seq):
+    complement_nucl = {"A": "T", "T": "A", 
+                       "C": "G", "G":"C",
+                       "a": "t", "t": "a",
+                       "c": "g", "g": "c"}
+    return "".join([complement_nucl[nucl] for nucl in seq[::-1]])
+
+def _remove_rec_sites(seq, enzymes=None, reverse_orientation=False):
     '''It modifies all rec sites in the sequence to be able to use with
     goldenbraid pipeline'''
     if enzymes is None:
         enzymes = MANDATORY_DOMEST_ENZYMES
     rec_sites = get_ret_sites(enzymes)
+    if reverse_orientation:
+        seq = seq.reverse_complement()
     # regex with the sites to domesticate
     rec_sites_regex = '(' + '|'.join(rec_sites) + ')'
     rec_sites_regex = re.compile(rec_sites_regex, flags=re.IGNORECASE)
@@ -419,25 +450,46 @@ def _remove_rec_sites(seq, enzymes=None):
     # we can not convert a rec site in another rec site
     _cumulative_patch = ''  # it is only used to know the frame
     rec_site_pairs = []
-    for fragment, rec_site_in_seq in izip_longest(fragments, rec_sites_in_seq):
+    for fragment, rec_site_in_seq in zip_longest(fragments, rec_sites_in_seq):
         new_seq += fragment
         if rec_site_in_seq is not None:
             _cumulative_patch += fragment + rec_site_in_seq
             new_rec_site = _domesticate_rec_site(rec_site_in_seq,
                                                  _cumulative_patch,
                                                  rec_sites_regex)
+            print(rec_site_in_seq, new_rec_site)
             rec_site_pairs.append({'original': rec_site_in_seq,
                                    'modified': new_rec_site})
 
             new_seq += new_rec_site
+    
     coding_seq = Seq(_get_upper_nucls(seq))
     new_coding_seq = Seq(_get_upper_nucls(new_seq))
     if str(coding_seq.translate()) != str(new_coding_seq.translate()):
         msg = 'The generated sequence does not produce the same peptide'
         raise ValueError(msg)
     if rec_sites_regex.search(str(new_seq)):
-        msg = 'Not all rec_sites modified'
+        start = rec_sites_regex.search(str(new_seq)).start()
+        end = rec_sites_regex.search(str(new_seq)).end()
+        msg = "Domesticating this sequence creates new restriction sites at positions {}-{}".format(start, end)
         raise ValueError(msg)
+
+    #If sequence is in reverse strand, it must return to forward strand after domestication
+    if reverse_orientation:
+        new_seq_forward = new_seq.reverse_complement()
+        rec_site_pairs_forward = []
+
+        for pair in rec_site_pairs[::-1]:
+            original = reverse_complement(pair['original'])
+            modified = reverse_complement(pair['modified'])
+            rec_site_pairs_forward.append({'original': original,
+                                           'modified': modified})
+        fragments_forward = []
+        for fragment in fragments[::-1]:
+            fragments_forward.append(reverse_complement(fragment))
+
+        return new_seq_forward, rec_site_pairs_forward, fragments_forward
+
     return new_seq, rec_site_pairs, fragments
 
 
@@ -522,10 +574,17 @@ def domestication_crispr(seq, category=None, prefix=None, suffix=None):
     if len(seq) < 20:
         raise ValueError('Seq length must be at least 20')
 
-    if len(seq) != 20 and category:
-        msg = 'To domesticate with the given target type, the CRISPR target '
-        msg += 'size must be 20'
-        raise ValueError(msg)
+    if category == TARGET_CAS12A:
+        if len(seq) > 23 or len(seq) < 20:
+            msg = 'To domesticate with the given target type, the CRISPR target '
+            msg += 'size must between 20 and 23 nt long'
+            raise ValueError(msg)
+
+    elif category:
+        if len(seq) != 20 and category:
+            msg = 'To domesticate with the given target type, the CRISPR target '
+            msg += 'size must be 20'
+            raise ValueError(msg)
 
     if category == TARGET_DICOT and str(seq[0]).upper() != 'G':
         raise ValueError('First nucleotide must be G for target dicot category')
@@ -533,19 +592,38 @@ def domestication_crispr(seq, category=None, prefix=None, suffix=None):
         raise ValueError('First nucleotide must be G for target monocot category')
 
     if has_rec_sites(seq):
-        msg = 'This secuence can not be domesticated. It has internal restriction sites'
+        msg = 'This sequence can not be domesticated. It has internal restriction sites'
         raise ValueError(msg)
 
-    if category:
-        prefix = prefix[:3]
+
+    # M target and D target has the last overhang nucletoide inside of the target sequence
+    if category is not None:
+        if category not in [CRISPR_MULTIPLEXING_TARGET, TARGET_CAS12A]:
+            prefix = prefix[:3]
 
     try:
         count = Count.objects.get(name=CRYSPER_SEQ)
     except Count.DoesNotExist:
         count = Count.objects.create(name=CRYSPER_SEQ, value=1)
     next_value = count.next
-
-    prepared_seq = Seq(prefix + seq + suffix)
+    # Polycistronic targets, we must add an A to the domesticated sequence
+    if category == CRISPR_MULTIPLEXING_TARGET:
+        seq = "A" + seq
+    prepared_seq = Seq(prefix + seq + suffix, alphabet=generic_dna)
     seq_name = CRYSPER_SEQ + '_' + next_value
-    new_seq_record = SeqRecord(prepared_seq, name=seq_name, id=seq_name)
-    return new_seq_record
+    annotated_record = annotate_domesticated_crispr(prepared_seq, seq_name, prefix, 
+                                                    suffix, category)
+    return annotated_record
+
+
+def annotate_domesticated_crispr(seq, seq_name, prefix, suffix, 
+                                 category, feature_type="target"):
+    start = len(prefix)
+    if category == CRISPR_MULTIPLEXING_TARGET:
+        start += 1
+    end = len(seq) - len(suffix)
+    feature_location = FeatureLocation(start, end)
+    feature = SeqFeature(feature_location, type=feature_type, qualifiers={"note": category})
+    annotated_record = SeqRecord(seq, name=seq_name, id=seq_name)
+    annotated_record.features.append(feature)
+    return annotated_record

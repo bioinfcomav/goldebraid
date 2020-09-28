@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}CRISPR formulary {% endblock title %}
+{% block content %}
+<div class='tools'>
+    <h1>Construct a TU with your LbCas12a Dicot Multiplex target</h1>
+    <p><span class='tools'>Select the U6-26:LbCas12aDR Level 0 part and your own assembled crRNA array (see Step 1). Choose a destination vector and proceed with the assembly.</span></p>
+{% load goldenbraid_extras %}
+<form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
+<fieldset>
+<form action="{{form_num}}" method="post">{% csrf_token %}
+{{ form.as_p}}
+<input type="submit" value="Submit" />
+</form>
+
+{% endblock content %}

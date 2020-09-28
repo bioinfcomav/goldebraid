@@ -34,13 +34,12 @@ from goldenbraid.models import Feature, Cv, Cvterm, FeatureRelationship
 from goldenbraid.domestication import domesticate
 from Bio.SeqRecord import SeqRecord
 from django.contrib.auth.models import User
+from gbdb.settings import DJANGO_PROJECT_DIR
 
-TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
-                         'goldenbraid', 'tests', 'data')
-
+TEST_DATA = os.path.join(DJANGO_PROJECT_DIR, 'files', 'tests_data')
 
 class FeatureTest(TestCase):
-    fixtures = FIXTURES_TO_LOAD
+    fixtures = ['auth.json'] + FIXTURES_TO_LOAD
     multi_db = True
 
     def test_get_prefix_and_suffix(self):
@@ -73,8 +72,8 @@ class FeatureTest(TestCase):
 
         dom_seq = domesticate(seqrec, '01-02-03-11-12 (PROM+UTR+ATG)',
                               'GGAG', 'AATG')[1]
-        print len(dom_seq), seqrec.seq.upper()
-        print len(dom_seq), dom_seq.seq
+        print(len(dom_seq), seqrec.seq.upper())
+        print(len(dom_seq), dom_seq.seq)
         assert ('GGAG', 'AATG') == get_prefix_and_suffix(dom_seq.seq, 'BsaI')
 
     def test_choose_rec_sites(self):
@@ -184,9 +183,9 @@ class FeatureTest(TestCase):
                 pass
             else:
                 raise
-        User.objects.create_user(username='admin', email='admin@upv.es',
+        User.objects.create_user(username='lorelei', email='lorelei@upv.es',
                                  password='top_secret')
-        add_feature(name, type_name, vector, open(genbank), props, 'admin')
+        add_feature(name, type_name, vector, open(genbank), props, 'lorelei')
 
         feat = Feature.objects.get(uniquename='pANT1_uniq')
         assert FeatureRelationship.objects.filter(object=feat).count() == 0

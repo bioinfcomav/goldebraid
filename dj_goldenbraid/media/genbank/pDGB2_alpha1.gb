@@ -45,7 +45,7 @@ FEATURES             Location/Qualifiers
      CDS             complement(5680..6492)
                      /vntifkey="4"
                      /label=KanR
-     repeat_region   6925..4
+     repeat_region   complement(4..6925)
                      /vntifkey="34"
                      /label=LB
 BASE COUNT     1665 a      1925 c      1962 g      1392 t 

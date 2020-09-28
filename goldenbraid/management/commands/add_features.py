@@ -18,7 +18,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings as proj_settings
 from goldenbraid.management.commands.add_cvterms import run_command
 from goldenbraid import settings
-from goldenbraid.views.feature_views import add_feature
+from goldenbraid.views.feature import add_feature
 
 MANDATORY_FIELDS = ('name', 'type', 'vector', 'genbank_file', 'properties',
                     'owner', 'is_public')
@@ -26,15 +26,17 @@ FAIL_IF_EXISTS = False
 
 
 class Command(BaseCommand):
-    args = '<features_file>'
     help = 'Adds the given cvterm file to the pseudo_chado database'
+
+    def add_arguments(self, parser):
+        parser.add_argument("-f", "--feature_file", nargs="?", type=str)
 
     def handle(self, *args, **options):
         'Adds the given featuress to the pseudo_chado database'
-        if not args:
+        if not options:
             raise CommandError('No features file given')
         else:
-            features_fpath = args[0]
+            features_fpath = options["feature_file"]
         try:
             run_command(open(features_fpath), load_features, MANDATORY_FIELDS)
         except Exception as error:
@@ -75,6 +77,5 @@ def load_features(reader):
                                      os.path.basename(genbank_fpath))
         if os.path.exists(path_in_media):
             os.remove(path_in_media)
-
-        add_feature(name, type_name, vector, open(genbank_fpath),
+        add_feature(name, type_name, vector, open(genbank_fpath, 'rb'),
                     props=props, owner=owner, is_public=is_public)

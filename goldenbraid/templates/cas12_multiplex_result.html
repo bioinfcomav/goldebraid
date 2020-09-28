@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load goldenbraid_extras %}
+{% block title %}Domestication Result Page{% endblock title %}
+{% block content %}
+<p>Category:{{category}}</p>
+<p>Prefix:{{prefix}}</p>
+<p>Suffix:{{suffix}}</p>
+<p>Sequence for synthesis: <pre>{{seq|letterwrap:80}}</pre></p>
+
+<form action='/do/crispr/cas12a_multiplexing_view_protocol' method='POST'>{% csrf_token %}
+    <INPUT type="hidden" name="category" value="{{ category }}">
+    <INPUT type="hidden" name="seq_name" value="{{ seq_name }}">
+    <INPUT type="hidden" name="targets" value="{{ targets }}">
+    <p>You can download a detailed protocol to fulfill the assembly in the lab from <INPUT type="submit" value="here"></p>
+</form>
+
+<form action='/do/crispr/cas12a_multiplexing/genbank' method='POST'>{% csrf_token %}
+    <INPUT type="hidden" name="targets" value="{{ targets }}">
+    <INPUT type="hidden" name="category" value="{{ category }}">
+    <INPUT type="hidden" name="seq_name" value="{{ seq_name }}">
+    <p>You can download your new seq in genbank format <INPUT type="submit" value="here"></p>
+</form>
+
+<form action='/do/crispr/cas12a_multiplexing/sbol' method='POST'>{% csrf_token %}
+    <INPUT type="hidden" name="targets" value="{{ targets }}">
+    <INPUT type="hidden" name="category" value="{{ category }}">
+    <INPUT type="hidden" name="seq_name" value="{{ seq_name }}">
+    <p>You can download your new seq in SBOL format <INPUT type="submit" value="here"></p>
+</form>
+
+
+{% if user.is_authenticated %}
+  <a id="displayText" href="javascript:toggle();">+Add part</a>
+  <div id="toggleText" style="display: none">
+    <form action='/do/crispr/cas12a_multiplexing/add' method='POST'>{% csrf_token %}
+     <div class='tools'>
+     <p><span class='addfeat'>Once you have domesticated your DNA sequence, you can add the created GBpart/superpart to the GB database. This will allow you to use these GBpart/superparts in your next assemblies.</span></p>
+     <p><span class='addfeat'>User-added GBdatabase entries are private and only accessible to the user who created them.</span></p>
+     </div>
+     <ul>
+        <li>
+            <label for="name">Name:</label><input id="id_name" maxlength="255" name="name" type="text" /><span class='addfeat'> We recomend using a descriptive name e.g. pYFP, pEGB 35S:DsRed:Tnos. </span>
+        </li>
+        <li>
+            <label for="name">Description:</label><input id="id_description" maxlength="255" name="description" type="text" />{{ form.description }} <span class='addfeat'> A short free text description associated with your construct.</span>
+            </li>
+        <li>
+            <label for="name">Reference:</label><input id="id_reference" maxlength="255" name="reference" type="text" /><span class='addfeat'> You can add bibliographic references here.</span>
+        </li>
+        </ul>
+        <INPUT type="hidden" name="seq" value="{{ seq }}">
+        <INPUT type="hidden" name="seq_name" value="{{ seq_name }}">
+        <INPUT type="hidden" name="category" value="{{ category }}">
+        <INPUT type="hidden" name="targets" value="{{ targets }}">
+        <p>You can add the feature if you are logged <INPUT type="submit" value="add feature to GBDB"></p>
+    </form>
+  </div>
+{%else%}
+  <div class='tools'>
+  <p><span class='tools'>If you wish to use this construct in a new assembly you should incorporate it into the GB database through the <a href='/add/feature'>Add GB_Element</a> page. You will need to <a href='/accounts/login'>log in</a> first.</span></p>
+  </div>
+{% endif %}
+{% endblock content %}

@@ -1,0 +1,32 @@
+ComponentDefinition: : Describes the structure of designed entities, such as DNA, RNA, and proteins, as well as other entities they interact with, such as small molecules or environmental properties
+    - Component: Pointer class. Incorporates a child ComponentDefinition by reference into exactly one parent ComponentDefinition. Represents a specific occurrence or instance of an entity within the design of a more complex entity. Because the same definition might appear in multiple designs or multiple times in a single design, a single ComponentDefinition can have zero or more parent ComponentDefinitions, and each such parent-child link requires its own, distinct Component
+
+    - Location: Specifies the base coordinates and orientation of a genetic feature on a DNA or RNA molecule or a residue or site on another sequential macromolecule such as a protein
+
+    - SequenceAnnotation:Describes the Location of a notable sub-sequence found within the Sequence of a ComponentDefinition. Can also link to and effectively position a child Component.
+
+    - SequenceConstraint: Describes the relative spatial position and orientation of two Component objects that are contained within the same ComponentDefinition.
+
+ModuleDefinition: Describes a “system” design as a collection of biological components and their functional relationships.
+    - FunctionalComponent: Pointer class. Incorporates a child ComponentDefinition by reference into exactly one parent ModuleDefinition. Represents a specific occurrence or instance of an entity within the design of a system. Because the same definition might appear in multiple designs or multiple times in a single design, a single ComponentDefinition can have zero or more parent ModuleDefinitions, and each such parent-child link requires its own, distinct FunctionalComponent
+
+    - Interaction: Describes a functional relationship between biological entities, such as regulatory activation or repression, or a biological process such as transcription or translation.
+
+    - MapsTo: When a design (ComponentDefinition or ModuleDefinition) includes another design as a sub-design, the parent design might need to refer to a ComponentInstance (either a Component or FunctionalComponent) in the sub-design. In this case, a MapsTo needs to be added to the instance for the sub-design, and this MapsTo needs to link between the ComponentInstance in the sub-design and a ComponentInstance in the parent design.
+
+    - Module: Pointer class. Incorporates a child ModuleDefinition by reference into exactly one parent ModuleDefinition. Represents a specific occurrence or instance of a subsystem within the design of a larger system. Because the same definition might appear in multiple designs or multiple times in a single design, a single ModuleDefinition can have zero or more parent ModuleDefinitions, and each such parent-child link requires its own, distinct Module.
+
+    - Participation: Describes the role that a FunctionalComponent plays in an Interaction. For example, a transcription factor might participate in an Interaction as a repressor or as an activator.
+
+Sequence: Generally represents a contiguous series of monomers in a macromolecular polymer such as DNA, RNA, or protein. A Sequence can also encode the atoms and bonds of a molecule with non-linear structure
+
+Component Definition
+--------------------
+
+Represents the structural entities of a biological design.
+    -type: Dna/RNA...
+    -role: Promoter, CDS,...
+    - Sequence
+    - components - > los elementos que lo componen, SOn un linkal componente definition que los define
+    - sequenceAnnotations.. Si has definido los componentes, aquí se puede especificar su localizacion en el padre.
+    - sequenceConstraints, si uno de los componentes no tiene sequencia y por lo tanto no los puedes localizar, con los constraits puedes decir que va delante o detras de otro componente. Teniendo sequence, lo harias en annotations pero sino , lo haces aquí. Para nosotros no va a ser necesario.

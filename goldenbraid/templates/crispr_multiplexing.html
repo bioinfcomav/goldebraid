@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Make CRISPR Multiplexing parts {% endblock title %}
+{% block content %}
+<div class='tools'>
+<h1>Make a level 0 Unit</h1>
+<p><span class='emphasis'>Note: User-added GBdatabase entries are private and only accessible to the user who created them.</span></p>
+</div>
+<p>To add a construct to the database fill out the following form:</p>
+
+
+ <form action="{{section}}"  enctype="multipart/form-data" method="post">{% csrf_token %}
+{{ form.as_p}}
+<input type="submit" value="Add" />
+  </form>
+{% endblock content %}

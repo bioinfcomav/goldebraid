@@ -184,7 +184,10 @@ class ExperimentProtocolForm(forms.Form):
 
 def _get_numeric_choices():
     choices = []
-    cv = Cv.objects.get(name=NUMERIC_TYPES)
+    try:
+        cv = Cv.objects.get(name=NUMERIC_TYPES)
+    except:
+        return choices
     for num_types in Cvterm.objects.filter(cv=cv):
         name = num_types.name
         choices.append((name, name))

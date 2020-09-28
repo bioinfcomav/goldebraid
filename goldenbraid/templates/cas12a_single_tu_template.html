@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}CRISPR formulary {% endblock title %}
+{% block content %}
+<div class='tools'>
+    <h1>Construct a TU with your Cas12a single target</h1>
+    <p><span class='tools'>Choose the U6-26 promoter-direct repeat you want to use. At the moment we have available U6-26-direct repeat fusions for AsCas12a and LbCas12a. Select your own domesticated target sequence, a 3' processing signal (HDV is the only one available at the moment in our public collection), a destination vector and proceed with the assembly.</span></p>
+{% load goldenbraid_extras %}
+<form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
+<fieldset>
+<form action="{{form_num}}" method="post">{% csrf_token %}
+{{ form.as_p}}
+<input type="submit" value="Submit" />
+</form>
+
+{% endblock content %}

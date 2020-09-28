@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Multipartite Result Page{% endblock title %}
+{% block content %}
+{% load goldenbraid_extras %}
+
+    <p>You have assembled in the GoldenBraid destiny vector <a href='/feature/{{used_parts.vector}}'>{{used_parts.vector}}</a> the following parts:</p>
+{% for key, value in used_parts.items %}
+    {% if key != 'Vector' %}
+        <p>{{ key|capfirst|replaceunderscore }}:<a href='/feature/{{value}}'>{{ value}}</a></p>
+
+    {% endif %}
+
+{% endfor %}
+
+<form action='/do/multipartite/free/protocol/' method='POST'>{% csrf_token %}
+    {% for key, value in multiform_data.items %}
+    <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
+        <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+    <INPUT type="hidden" name="multi_type" value="{{ multi_type }}">
+    <INPUT type="hidden" name="vector" value="{{ Vector }}">    
+    <p>You can download a detailed protocol to fulfill the assembly in the lab from <INPUT type="submit" value="here"></p>
+</form>
+
+<form action='/do/multipartite/{{ multi_type }}/genbank/' method='POST'>{% csrf_token %}
+    {% for key, value in multiform_data.items %}
+    <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+
+    <p>The resulted sequence of the assembly is <INPUT type="submit" value="genbank_file"></p>
+</form>
+
+<form action='/do/multipartite/free/sbol/' method='POST'>{% csrf_token %}
+    {% for key, value in multiform_data.items %}
+    <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+
+    <p>The resulted sequence of the assembly is <INPUT type="submit" value="SBOL_file"></p>
+</form>
+
+{% if user.is_authenticated %}
+  <a id="displayText" href="javascript:toggle();">+Add part</a>
+  <div id="toggleText" style="display: none">
+    <form action='/do/multipartite/add/' method='POST'>{% csrf_token %}
+        <div class='tools'>
+   <p><span class='addfeat'>Once you have assembled your TU, you can add it to the GB database. This will allow you to use this TU on the GB Binary Assembler.</span></p>
+   <p><span class='addfeat'>User-added GBdatabase entries are private and only accessible to the user who created them.</span></p>
+   </div>
+   <ul>
+        <li>
+            <label for="name">Name:</label><input id="id_name" maxlength="255" name="name" type="text" /><span class='addfeat'> We recomend using a descriptive name e.g. pYFP, pEGB 35S:DsRed:Tnos. </span>
+        </li>
+        <li>
+            <label for="name">Description:</label><input id="id_description" maxlength="255" name="description" type="text" />{{ form.description }} <span class='addfeat'> A short free text description associated with your construct.</span>
+            </li>
+        <li>
+            <label for="name">Reference:</label><input id="id_reference" maxlength="255" name="reference" type="text" /><span class='addfeat'> You can add bibliographic references here.</span>
+        </li>
+        </ul>
+        {% for key, value in used_parts.items %}
+            <INPUT type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endfor %}
+        <INPUT type="hidden" name="Vector" value="{{ Vector }}">
+        <INPUT type="hidden" name="order" value="{{ order }}">
+        <INPUT type="hidden" name="category" value="{{ multi_type }}">
+        <p>You can add the feature if you are logged <INPUT type="submit" value="add feature to GBDB"></p>
+    </form>
+  </div>
+{%else%}
+  <div class='tools'>
+  <p><span class='tools'>If you wish to use this construct in a new assembly you should incorporate it into the GB database through the <a href='/add/feature'>Add GB_Element</a> page. You will need to <a href='/accounts/login'>log in</a> first.</span></p>
+  </div>
+{% endif %}
+
+{% endblock content %}

@@ -14,11 +14,12 @@
 # limitations under the License.
 
 import operator
+from functools import reduce
 
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render, redirect
 from django.template.context import RequestContext
 from django.forms.formsets import formset_factory
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf 
 from django.db import transaction, connection
 from django.db.utils import IntegrityError
 from django.contrib.auth.models import User
@@ -86,21 +87,20 @@ def experiment_view(request, uniquename):
         request_data = None
 
     if experiment is None:
-        return render_to_response('goldenbraid_info.html',
-                                  {'title': 'Experiment not exist',
-                                   'info': 'This experiment ({0}) does not exist in the database'.format(uniquename)},
-                                  context_instance=RequestContext(request))
+        return render(request, 'goldenbraid_info.html', context={'title': 'Experiment not exist',
+                      'info': 'This experiment ({0}) does not exist in the database'.format(uniquename)})
+                                  
     if not request_data:
         if (experiment.is_public or
            (request.user.is_staff or request.user == experiment.owner)):
-            return render_to_response('experiment_template.html',
-                                      {'experiment': experiment},
-                                      context_instance=RequestContext(request))
+            return render(request, 'experiment_template.html',
+                          context={'experiment': experiment},
+                          )
         else:
-            return render_to_response('goldenbraid_info.html',
-                                      {'title': 'Not Allowed',
-                                       'info': 'You are not allowed to view this experiment'},
-                                      context_instance=RequestContext(request))
+            return render(request, 'goldenbraid_info.html',
+                          context={'title': 'Not Allowed',
+                                    'info': 'You are not allowed to view this experiment'},
+                          )
     else:
         form = ExperimentManagementForm(request_data)
         if form.is_valid():
@@ -111,16 +111,16 @@ def experiment_view(request, uniquename):
             if action == 'delete':
                 if request.user.is_staff or request.user == experiment.owner:
                     experiment.delete()
-                    return render_to_response('goldenbraid_info.html',
-                                              {'title': 'Experiment deleted',
-                                               'info': 'Experiment Deleted'},
-                                              context_instance=req_context)
+                    return render(request, 'goldenbraid_info.html',
+                                  context={'title': 'Experiment deleted',
+                                           'info': 'Experiment Deleted'},
+                                  )
                 else:
                     info_txt = 'You are not allowed to delete this experiment'
-                    return render_to_response('goldenbraid_info.html',
-                                              {'title': 'Not Allowed',
-                                               'info': info_txt},
-                                              context_instance=req_context)
+                    return render(request, 'goldenbraid_info.html',
+                                  context={'title': 'Not Allowed',
+                                           'info': info_txt},
+                                  )
 
             elif action in 'make_public' or 'make_private':
                 if request.user.is_staff or request.user == experiment.owner:
@@ -130,16 +130,16 @@ def experiment_view(request, uniquename):
                         experiment.is_public = False
                     else:
                         raise RuntimeError('bad conbinations of input request')
-                    return render_to_response('experiment_template.html',
-                                              {'experiment': experiment,
-                                               'info': 'Experiment modified'},
-                                              context_instance=req_context)
+                    return render(request, 'experiment_template.html',
+                                  context={'experiment': experiment,
+                                           'info': 'Experiment modified'},
+                                  )
                 else:
                     info_text = 'You are not allowed to modify this experiment'
-                    return render_to_response('Goldenbraid_info.html',
-                                              {'title': 'Not Allowed',
-                                               'info': info_text},
-                                              context_instance=req_context)
+                    return render(request, 'Goldenbraid_info.html',
+                                  context={'title': 'Not Allowed',
+                                           'info': info_text},
+                                  )
 
             else:
                 return HttpResponseBadRequest()
@@ -248,7 +248,7 @@ def _add_experiment(form, user, feat_formset, subfeat_form,
                                                        description=description,
                                                        excel=excel_file)
             if protocol_form is not None:
-  	        if protocol_form.cleaned_data['protocol'] is not None:
+                if protocol_form.cleaned_data['protocol'] is not None:
                     file_ = protocol_form.cleaned_data['protocol']
                     ExperimentPropGenericFile.objects.create(experiment=experiment,
                                                              description='Protocol',
@@ -324,9 +324,9 @@ def _add_experiment_SE(request, exp_type_name):
                                              excel_formset=excel_formset,
                                              keyword_formset=keyword_formset,
                                              protocol_form=protocol_form)
-                print "valid"
+                print("valid")
             except IntegrityError as error:
-                print error
+                print(error)
                 raise
             except RuntimeError as error:
                 msg = 'This user is not entitled to add this experiment'
@@ -334,7 +334,7 @@ def _add_experiment_SE(request, exp_type_name):
                 return HttpResponseForbidden(msg)
             return redirect(experiment.url)
         else:
-            print "no valid"
+            print("no valid")
 
     else:
         form = ExperimentForm(instance=Experiment())
@@ -371,7 +371,7 @@ def _add_experiment_SE(request, exp_type_name):
 
     context['quantitative_outputs'] = quantitative.order_by('name')
     context['excel_mandatory'] = settings['excel_mandatory']
-    return render_to_response('experiment_add_standard.html', context)
+    return render(request, 'experiment_add_standard.html', context=context.flatten())
 
 
 @login_required
@@ -421,7 +421,7 @@ def _add_experiment_free(request, exp_type_name):
                                              keyword_formset=keyword_formset,
                                              user=request.user)
             except IntegrityError as error:
-                print error
+                print(error)
                 raise
             except RuntimeError as error:
                 msg = 'This user is not entitled to add this experiment'
@@ -429,7 +429,7 @@ def _add_experiment_free(request, exp_type_name):
                 return HttpResponseForbidden(msg)
             return redirect(experiment.url)
         else:
-            print "no valid"
+            print("no valid")
     else:
         form = ExperimentForm(instance=Experiment())
         get_request_data = request.GET if request.method == 'GET' else None
@@ -460,7 +460,7 @@ def _add_experiment_free(request, exp_type_name):
     context['keyword_formset'] = keyword_formset
     context['exp_cv_type'] = exp_type
     template = 'experiment_add_free.html'
-    return render_to_response(template, context)
+    return render(request, template, context=context.flatten())
 
 
 def _get_experiments_for_feature(feature_id):
@@ -577,7 +577,7 @@ def search_experiment(request):
     content_type = None  # default
     if request_data:
         form = ExperimentSearchForm(request_data)
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             _label = "Search only in my parts?"
             form.fields['only_user'] = forms.BooleanField(label=_label,
                                                           initial=False,
@@ -602,8 +602,7 @@ def search_experiment(request):
                     return redirect(experiment_view,
                                     uniquename=experiment_uniquename)
                 else:
-                    experiment_table = ExperimentTable(experiment_queryset,
-                                                       template='table.html')
+                    experiment_table = ExperimentTable(experiment_queryset)
                     RequestConfig(request).configure(experiment_table)
                     experiment_table.paginate(page=request.GET.get('page', 1),
                                               per_page=25)
@@ -614,12 +613,12 @@ def search_experiment(request):
             else:
                 context['experiments'] = None
         else:
-            print form.errors
-            print "no_valid"
+            print(form.errors)
+            print("no_valid")
 
     else:
         form = ExperimentSearchForm()
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             _label = "Search only in my parts?"
             form.fields['only_user'] = forms.BooleanField(label=_label,
                                                           initial=False,
@@ -627,4 +626,4 @@ def search_experiment(request):
 
     context['form'] = form
 
-    return render_to_response(template, context, content_type=content_type)
+    return render(request, template, context=context.flatten(), content_type=content_type)

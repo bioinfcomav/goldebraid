@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}CRISPR formulary {% endblock title %}
+{% block content %}
+<div class='tools'>
+    <h1>GB CRISPR Domesticator: LbCas12a Multiplexing 3X</h1>
+    </div>
+{% load goldenbraid_extras %}
+<form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
+{% if form.residues.errors %}
+    {{form.residues.errors}}
+{% else %}
+<fieldset>
+<legend>CRISPR Domestication</legend>
+    <ul>
+        <li>
+            {{ form.target_1.errors }}<label for="name">Type or paste your 20-23 nt TARGET 1 sequence here:</label>{{ form.target_1 }}
+        </li>
+        <li>
+            {{ form.target_2.errors }}<label for="name">Type or paste your 20-23 nt TARGET 2 sequence here:</label>{{ form.target_2 }}
+        </li>
+        <li>
+            {{ form.target_3.errors }}<label for="name">Type or paste your 20-23 nt TARGET 3 sequence here:</label>{{ form.target_3 }}
+        </li>
+        <li>
+        <p><span class='notes'>'The CRISPR domesticator tool will produce a domesticated sgRNA sequence flanked by standard GB overhangs (prefix and suffix). If you prefer to create your own non-standard flanking 4 nucleotide overhangs, please provide them in the boxes below (optional).
+        <span class='warningcrispr'>Please note that if you choose the custom option the resulting oligonucleotides will not assemble with the rest of GB standard CRISPR elements</span>.'</span></p>
+        </li>
+        <li>
+            {{ form.prefix.errors }}<label for="name">Custom prefix:</label>{{ form.prefix }}
+        </li>
+        <li>
+            {{ form.suffix.errors }}<label for="name">Custom suffix:</label>{{ form.suffix }}
+        </li>
+
+    </ul>
+</fieldset>
+    {{ form.non_field_errors }}
+    <input type="submit" value="Submit" />
+{% endif %}
+</form>
+{% endblock content %}

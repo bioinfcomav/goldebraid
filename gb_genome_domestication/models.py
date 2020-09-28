@@ -15,16 +15,16 @@ class Db(models.Model):
     url = models.CharField(max_length=255)
 
     class Meta:
-        db_table = u'db'
+        db_table = u'dom_db'
 
 
 class Dbxref(models.Model):
     dbxref_id = models.AutoField(primary_key=True)
-    db = models.ForeignKey(Db)
+    db = models.ForeignKey(Db, on_delete=models.CASCADE)
     accession = models.CharField(max_length=255)
 
     class Meta:
-        db_table = u'dbxref'
+        db_table = u'dom_dbxref'
 
     @property
     def url(self):
@@ -38,10 +38,10 @@ class Feature(models.Model):
     description = models.CharField(max_length=1024)
     species = models.CharField(max_length=255)
     residues = models.TextField()
-    dbxref = models.ForeignKey(Dbxref)
+    dbxref = models.ForeignKey(Dbxref, on_delete=models.CASCADE)
 
     class Meta:
-            db_table = u'feature'
+            db_table = u'dom_feature'
 
     @property
     def primary_dbxref(self):
@@ -63,9 +63,9 @@ class Feature(models.Model):
 
 class FeatureDbxref(models.Model):
     feature_dbxref_id = models.AutoField(primary_key=True)
-    feature = models.ForeignKey(Feature)
-    dbxref = models.ForeignKey(Dbxref)
+    feature = models.ForeignKey(Feature, on_delete=models.CASCADE)
+    dbxref = models.ForeignKey(Dbxref, on_delete=models.CASCADE)
 
     class Meta:
-        db_table = u'feature_dbxref'
+        db_table = u'dom_featdbxref'
 

@@ -128,15 +128,16 @@ TEMPLATE_LOADERS = (
 #     'django.template.loaders.eggs.Loader',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware'
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
+]
 
 ROOT_URLCONF = 'dj_goldenbraid.urls'
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
@@ -213,3 +214,14 @@ RESTCMD_TOOL_CONFIG = {'blastplus': {'database': {'choices':
                                                   [[ARAB_DB, 'arabidopsis'],
                                                    ['tair8_cdna', 'arabid8']]}}
                        }
+
+TEMPLATES = [
+   {
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'APP_DIRS': True,
+    'OPTIONS': {'context_processors': ['django.contrib.auth.context_processors.auth',
+                                       'django.contrib.messages.context_processors.messages'
+                                       ]
+                }
+   }
+]

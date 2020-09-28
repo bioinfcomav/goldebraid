@@ -15,10 +15,11 @@
 
 import re
 import os
+from io import StringIO
 
 from django.template.context import RequestContext
-from django.core.context_processors import csrf
-from django.shortcuts import render_to_response, redirect
+from django.template.context_processors import csrf
+from django.shortcuts import render, redirect
 from django.db.utils import IntegrityError
 from django.http import HttpResponseServerError
 from django.core.files import File
@@ -45,14 +46,21 @@ from goldenbraid.tags import (GOLDEN_DB, VECTOR_TYPE_NAME,
                               DESCRIPTION_TYPE_NAME, ENZYME_IN_TYPE_NAME,
                               REFERENCE_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               RESISTANCE_TYPE_NAME, DERIVES_FROM,
-                              OTHER_TYPE_NAME, MODULE_TYPE_NAME, TU_TYPE_NAME)
+                              OTHER_TYPE_NAME, MODULE_TYPE_NAME, TU_TYPE_NAME,
+                              FUNGAL_TU_TYPE_NAME,
+                              FUNGAL_KNOCK_OUT,
+                              FUNGAL_MODULE_TYPE_NAME)
 
 from goldenbraid.forms.feature import (FeatureForm, FeatureManagementForm,
                                        get_all_vectors_as_choices, VectorForm,
                                        SearchFeatureForm,
                                        SPECIAL_SEARCH_CATEGORIES)
 from goldenbraid.utils import get_prefix_and_suffix_index
-from goldenbraid.settings import CATEGORIES, CRYSPER_CATEGORIES
+from goldenbraid.settings import (CATEGORIES, CRYSPER_CATEGORIES, CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO,
+                                  CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE,
+                                  CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE,
+                                  CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_ZERO,
+                                  FUNGAL_CATEGORIES)
 
 
 def get_prefix_and_suffix(seq, enzyme):
@@ -112,6 +120,10 @@ def _parse_children_relations_from_gb(seq):
     else:
         return None
 
+def change_genbank_fname(genbank_name):
+    fname = genbank_name.split("/")[-1]
+    return fname
+
 
 def add_feature(name, type_name, vector, genbank, props, owner,
                 is_public=False, prefix=None, suffix=None):
@@ -120,13 +132,15 @@ def add_feature(name, type_name, vector, genbank, props, owner,
     # transaction.set_autocommit(False)
     try:
         with transaction.atomic():
-            seq = SeqIO.read(genbank, 'gb')
+            file = "".join([line.decode() for line in genbank.readlines()])
+            seq = SeqIO.read(StringIO(file), 'gb')
             residues = str(seq.seq)
             name = name
             uniquename = seq.id
             type_ = Cvterm.objects.get(name=type_name)
             db = Db.objects.get(name=GOLDEN_DB)
             genbank_file = File(genbank)
+            genbank_file.name = change_genbank_fname(genbank_file.name)
             try:
                 dbxref = Dbxref.objects.create(db=db, accession=uniquename)
             except IntegrityError as error:
@@ -142,14 +156,25 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                 vector = None
             try:
                 user = User.objects.get(username=owner)
+                field_owner = user.username
             except User.DoesNotExist:
                 raise RuntimeError('the given user does not exist')
+        
+            if 'Description' in props:
+                description = " ".join(props['Description'])
+            elif 'description' in props:
+                description = " ".join(props['description'])
+            else:
+                description = 'No description'
+            field_description = description
             try:
                 feature = Feature.objects.create(uniquename=uniquename,
                                                  name=name, type=type_,
                                                  residues=residues,
                                                  dbxref=dbxref, vector=vector,
-                                                 genbank_file=genbank_file)
+                                                 genbank_file=genbank_file,
+                                                 field_description=field_description,
+                                                 field_owner=field_owner)
 
             except IntegrityError as error:
                 raise IntegrityError('feature already in db: ' + str(error))
@@ -168,24 +193,31 @@ def add_feature(name, type_name, vector, genbank, props, owner,
                     msg = msg.format(type_name)
                     raise RuntimeError(msg)
                 except MultipleObjectsReturned:
-                    for p in Cvterm.objects.filter(name=type_name):
-                        print p.name
-                        print p.cvterm_id
-                        print p.definition
-                    print "type_name", type_name
-                    print "feature", feature.uniquename
+                    # for p in Cvterm.objects.filter(name=type_name):
+                    #     print(p.name)
+                    #     print(p.cvterm_id)
+                    #     print(p.definition)
+                    # print("type_name", type_name)
+                    # print("feature", feature.uniquename)
                     raise
                 rank = 0
+                if type_name == "description" and str(type(values) == "<class 'str'>"):
+                    values = list(values)
                 for value in values:
                     Featureprop.objects.create(feature=feature, type=prop_type,
                                                value=value, rank=rank)
                     rank += 1
+
             if suffix is None or prefix is None:
                 if type_ == vector_type:
+                    
                     enzyme = props[ENZYME_IN_TYPE_NAME][0]
                 else:
                     enzyme = vector.enzyme_out[0]
+                #print(residues, enzyme)
+                print(enzyme)
                 prefix, suffix = get_prefix_and_suffix(residues, enzyme)
+                #print(prefix, suffix)
                 if prefix is None or suffix is None:
                     raise RuntimeError('The given vector is not compatible with this part')
 
@@ -197,7 +229,6 @@ def add_feature(name, type_name, vector, genbank, props, owner,
             feature.prefix = prefix.upper()
             feature.suffix = suffix.upper()
             feature.save()
-
     except (IntegrityError, RuntimeError):
         if feature:
             os.remove(feature.genbank_file.path)
@@ -207,20 +238,48 @@ def add_feature(name, type_name, vector, genbank, props, owner,
 
 
 def _check_category(type_name, prefix, suffix, vector):
+    print(prefix, suffix)
     if type_name in (OTHER_TYPE_NAME, VECTOR_TYPE_NAME):
         return True
-
     for values in CATEGORIES.values():
         if values == (type_name, prefix, suffix):
             return True
     for values in CRYSPER_CATEGORIES.values():
         if values == (type_name, prefix, suffix):
-            return True
+            return True 
     if (type_name, prefix, suffix) in ((TU_TYPE_NAME, 'GGAG', 'GTCA'),
                                        (TU_TYPE_NAME, 'GTCA', 'CGCT'),
                                        (MODULE_TYPE_NAME, 'GGAG', 'GTCA'),
-                                       (MODULE_TYPE_NAME, 'GTCA', 'CGCT')):
+                                       (MODULE_TYPE_NAME, 'GTCA', 'CGCT'),
+                                       (FUNGAL_TU_TYPE_NAME, 'GGAG', 'GTCA'),
+                                       (FUNGAL_KNOCK_OUT, 'GGAG', 'GTCA'),
+                                       (FUNGAL_TU_TYPE_NAME, 'GTCA', 'CGCT'),
+                                       (FUNGAL_KNOCK_OUT, 'GTCA', 'CGCT'),
+                                       (FUNGAL_MODULE_TYPE_NAME, 'GGAG', 'GTCA'),
+                                       (FUNGAL_MODULE_TYPE_NAME, 'GTCA', 'CGCT')):
         return True
+    for values in CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO.values():
+        if values == (type_name, prefix, suffix):
+            return True
+
+    for values in CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE.values():
+        if values == (type_name, prefix, suffix):
+            return True
+
+
+    #print(type_name, prefix, suffix, vector)
+    for values in CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE.values():
+        if values == (type_name, prefix, suffix):
+            return True
+
+    for values in CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_ZERO.values():
+        if values == (type_name, prefix, suffix):
+            return True
+
+    for category, values in FUNGAL_CATEGORIES.items():
+        if values == (type_name, prefix, suffix):
+            return True
+
     return False
 
 
@@ -250,7 +309,6 @@ def add_feature_from_form(form_data, user):
         props[DESCRIPTION_TYPE_NAME] = [form_data['description']]
     if form_data['reference']:
         props[REFERENCE_TYPE_NAME] = [form_data['reference']]
-
     feature = add_feature(name=form_data['name'], type_name=feature_type_name,
                           vector=form_data['vector'],
                           genbank=form_data['gbfile'],
@@ -314,20 +372,20 @@ def add_feature_view(request):
             try:
                 feature = add_feature_from_form(feat_form_data, request.user)
             except IntegrityError as error:
+                print(str(error))
                 if 'feature already in db' in str(error):
                     # TODO choose a template
                     req_context = RequestContext(request)
-                    return render_to_response('feature_exists.html', {},
-                                              context_instance=req_context)
+                    return render(request, 'feature_exists.html',
+                                  context={})
                 else:
                     return HttpResponseServerError(str(error))
 
             except Exception as error:
                 req_context = RequestContext(request)
-                return render_to_response('goldenbraid_info.html',
-                                          {'title': 'Error',
-                                           'info': str(error)},
-                                          context_instance=req_context)
+                return render(request, 'goldenbraid_info.html',
+                              context={'title': 'Error',
+                                       'info': str(error)})
             # if everithing os fine we show the just added feature
             return redirect(feature.url)
 
@@ -338,11 +396,13 @@ def add_feature_view(request):
 
     context['form'] = form
     template = 'feature_add_template.html'
-    return render_to_response(template, context)
+    return render(request, template, context=context.flatten())
 
 
 def feature_view(request, uniquename):
     'The feature view'
+    context = {}
+    context.update(csrf(request))
     if uniquename == 'GB0307':
         uniquename = 'pUPD2'
     try:
@@ -350,59 +410,55 @@ def feature_view(request, uniquename):
     except Feature.DoesNotExist:
         feature = None
 
-    context = RequestContext(request)
-    context.update(csrf(request))
     if request.method == 'POST':
         request_data = request.POST
     elif request.method == 'GET':
         request_data = request.GET
     else:
         request_data = None
-
     if feature is None:
         info_text = 'This feature ({0}) does not exist in the database'
-        return render_to_response('goldenbraid_info.html',
-                                  {'title': 'Feature not exist',
-                                   'info': info_text.format(uniquename)},
-                                  context_instance=RequestContext(request))
-
+        context.update({'title': 'Feature not exist',
+                      'info': info_text.format(uniquename)})
+        return render(request, 'goldenbraid_info.html', context=context)
     if not request_data:
         if (feature.is_public or
            (request.user.is_staff or request.user == feature.owner)):
-            return render_to_response('feature_template.html',
-                                      {'feature': feature},
-                                      context_instance=RequestContext(request))
+            context.update({'feature': feature})
+            return render(request, 'feature_template.html', context=context)
         else:
             info_text = 'You are not allowed to view this feature'
-            return render_to_response('goldenbraid_info.html',
-                                      {'title': 'Not Allowed',
-                                       'info': info_text},
-                                      context_instance=RequestContext(request))
+            context.update({'title': 'Not Allowed', 'info': info_text})
+            return render(request, 'goldenbraid_info.html', context=context)
 
     else:
         form = FeatureManagementForm(request_data)
+        print(form)
         if form.is_valid():
             form_data = form.cleaned_data
             action = form_data['action']
+            if 'edit_description' in form_data:
+                edit_description = form_data['edit_description']
+            else:
+                edit_description = None
             feature = Feature.objects.get(uniquename=form_data['feature'])
-            req_context = RequestContext(request)
+            context = {}
             if action == 'delete':
                 if request.user.is_staff or request.user == feature.owner:
                     file_path = feature.genbank_file.path
                     feature.delete()
                     os.remove(file_path)
-                    return render_to_response('goldenbraid_info.html',
-                                              {'title': 'Feature deleted',
-                                               'info': 'Feature Deleted'},
-                                              context_instance=req_context)
+                    context.update({'title': 'Feature deleted',
+                                    'info': 'Feature Deleted'})
+                    return render(request, 'goldenbraid_info.html',
+                                  context=context)
                 else:
                     info_txt = 'You are not allowed to delete this feature'
-                    return render_to_response('goldenbraid_info.html',
-                                              {'title': 'Not Allowed',
-                                               'info': info_txt},
-                                              context_instance=req_context)
+                    context.update({'title': 'Not Allowed', 'info': info_txt})
+                    return render(request, 'goldenbraid_info.html',
+                                  context=context)
 
-            elif action in 'make_public' or 'make_private':
+            elif action in 'make_public' or action in 'make_private':
 
                 if request.user.is_staff:
                     if action == 'make_public' and not feature.is_public:
@@ -414,20 +470,44 @@ def feature_view(request, uniquename):
                         featperm.is_public = False
                         featperm.save()
                     else:
-                        raise RuntimeError('bad conbinations of input request')
-                    return render_to_response('feature_template.html',
-                                              {'feature': feature,
-                                               'info': 'Feature modified'},
-                                              context_instance=req_context)
+                        raise RuntimeError('bad combinations of input request')
+                    context.update({'feature': feature, 'info': 'Feature modified'})
+                    return render(request, 'feature_template.html', context=context)
                 else:
                     info_text = 'You are not allowed to modify this feature'
-                    return render_to_response('Goldenbraid_info.html',
-                                              {'title': 'Not Allowed',
-                                               'info': info_text},
-                                              context_instance=req_context)
+                    context.update({'title': 'Not Allowed', 'info': info_text})
+                    return render(request, 'Goldenbraid_info.html', context=context)
 
-            else:
-                return HttpResponseBadRequest()
+            elif action in 'no_action' and edit_description is not None:
+                if request.user.is_staff or request.user == feature.owner:
+                    props = Featureprop.objects.filter(feature__uniquename=feature.uniquename)
+                    for prop in props:
+                        if prop.type.name == "Description":
+                            prop.value = edit_description
+                            prop.save()
+                    
+                    feature = Feature.objects.get(uniquename=feature.uniquename)
+                    feature.field_description = edit_description
+                    feature.save()
+                    feature = Feature.objects.get(uniquename=feature.uniquename)
+                    context.update({'feature': feature, 'info': 'Description changed'})
+                    return render(request, 'feature_template.html', context=context)
+                else:
+                    info_text = 'You are not allowed to edit the description of this feature'
+                    context.update({'title': 'Not Allowed', 'info': info_text})
+                    return render(request, 'Goldenbraid_info.html', context=context)
+            elif action in 'no_action' and edit_description is None:
+                if request.user.is_staff or request.user == feature.owner:
+                    context.update({'feature': feature, 'info': 'No changes added to feature'})
+                    return render(request, 'feature_template.html', context=context)
+                else:
+                    info_text = 'You are not allowed to edit the description of this feature'
+                    context.update({'title': 'Not Allowed', 'info': info_text})
+                    return render(request, 'Goldenbraid_info.html', context=context)
+
+        else:    
+            return HttpResponseBadRequest(content="Error while processing form data")
+
 
 
 # search
@@ -468,7 +548,7 @@ def _build_feature_query(search_criteria, user):
         if 'only_user' in criteria and criteria['only_user']:
             query = query.filter(featureperm__owner__username=user)
         else:
-            query = query.filter(Q(featureperm__is_public=True) |
+            query = query.filter(Q(featureperm__is_public=True) &
                                  Q(featureperm__owner__username=user))
 
     query = query.distinct()
@@ -492,17 +572,16 @@ class FeatureTable(tables.Table):
         link = "<a href='{}{}' download>Download</a>"
         return mark_safe(link.format(media_root, value))
 
+
     class Meta:
         # model = Experiment
         attrs = {"class": "searchresult"}
 
 
 def _querify_search_criteria(search_criteria, fields):
-    print fields.keys(), search_criteria
     already_used = set()
     query = ''
     for key, value in search_criteria.items():
-        print key, value
         if key in fields and key not in already_used:
             query += ';{}={}'.format(key, value)
             already_used.add(key)
@@ -512,7 +591,7 @@ def _querify_search_criteria(search_criteria, fields):
 
 def search_features_view(request):
     'The feature search view'
-
+    
     context = RequestContext(request)
     context.update(csrf(request))
     getdata = False
@@ -520,15 +599,14 @@ def search_features_view(request):
         request_data = request.POST
     elif request.method == 'GET':
         request_data = request.GET
-        getdata = True
+        getdata = True  
     else:
         request_data = None
-
     template = 'search_feature.html'
     content_type = None  # default
     if request_data:
         form = SearchFeatureForm(request_data)
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             usr_only_label = "Search only in my parts?"
             form.fields['only_user'] = forms.BooleanField(label=usr_only_label,
                                                           initial=False,
@@ -552,25 +630,26 @@ def search_features_view(request):
                     feature_uniquename = feature_queryset[0].uniquename
                     return redirect(feature_view,
                                     uniquename=feature_uniquename)
-
-                feature_table = FeatureTable(feature_queryset,
-                                             template='table.html')
-                RequestConfig(request).configure(feature_table)
-                context['features'] = feature_table
                 # we only have to write the criteria in the form the first
                 # time we search
                 if not getdata:
                     context['criteria'] = ''.join([";{}={}".format(k, v)
                                         for k, v in search_criteria.items()])
+                feature_table = FeatureTable(feature_queryset,
+                                             template_name='table.html')
+                RequestConfig(request).configure(feature_table)
+                context['features'] = feature_table
             else:
                 context['features'] = None
     else:
         form = SearchFeatureForm()
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             only_usr_label = "Search only in my parts?"
             form.fields['only_user'] = forms.BooleanField(initial=False,
                                                           required=False,
                                                           label=only_usr_label)
 
     context['form'] = form
-    return render_to_response(template, context, content_type=content_type)
+    context = context.flatten()
+    return render(request, template, context=context, 
+                  content_type=content_type)

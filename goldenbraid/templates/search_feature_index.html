@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Feature Search {% endblock title %}
+{% block content %}
+{% block css %}
+<head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/css/bootstrap.css">
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">
+</head>
+<div class="container" style="font-size: .9em;">
+</div>
+{% endblock %}
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+
+<div class="row">
+    <div class="col-sm-12">
+        <table id="search_features" class="table table-striped table-bordered" style="width:100%">
+                <div class="text-center">
+                    <button class="btn btn-outline-dark btn-myparts">Get only my parts</button>
+                    <button class="btn btn-outline-dark btn-refresh">Reset search</button>      
+                </div>
+            <thead>
+                <tr>
+                    <th>Accession</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Owner</th>
+                    <th>Entry Date</th>
+                    <th>Genbank</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="//code.jquery.com/jquery-1.12.4.js"></script>
+<script src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script src="//cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+<script>
+$(document).ready(function() {
+    category = '{{ category }}';
+    prefix = '{{ prefix }}';
+    suffix = '{{ suffix }}';
+    if (category == 'all') {
+        ajax_search = "api/search_features/?format=datatables&page=1&type__name="+category
+    } else {
+        ajax_search = "api/search_features/?format=datatables&type__name="+category +"&prefix="+prefix+"&suffix="+suffix
+    };
+    var table = $('#search_features').DataTable({
+        'serverSide': true,
+        "processing": false,
+        'ajax': ajax_search,
+        'columns': [
+            // Use dot notation to reference nested serializers.
+            // This data: could alternatively be displayed with the serializer's ReadOnlyField as well, as seen in the minimal example.
+            {'data': 'uniquename', 'name': 'uniquename',
+            "render": function(data, type, row, meta){
+            if(type === 'display'){
+                string = encodeURIComponent(data)
+                data = '<a href="https://gbcloning.upv.es/feature/' + string + '">' + data + '</a>';
+            }
+            
+            return data;
+         }},
+            {'data': 'name', 'name': 'name'},
+            {'data': 'type', 'name': 'type.name'},
+            {'data': 'field_description', 'sortable': 'false', 'name': 'field_description'},
+            {'data': 'field_owner', 'name': 'field_owner'},
+            {'data': 'timecreation', 'name': 'timecreation'},
+            {'data': 'genbank_file', 'name': 'genbank_file',
+            "render": function(data, type, row, meta){
+            if(type === 'display'){
+                data = '<a href="https://gbcloning.upv.es/files/genbank/' + data + '">' + 'Download' + '</a>';
+            }
+            
+            return data;
+         }, 'sortable': 'false', 'orderable': 'false'},    
+        ]
+    });
+$('.btn-myparts').on('click', function() {
+        user = '{{ request.user }}';
+        category = '{{ category }}';
+        prefix = '{{ prefix }}';
+        suffix = '{{ suffix }}';
+
+        if (category == 'all') {
+            ajax_search = "api/search_features/?format=datatables&username="+user+"&onlymyparts=True&type__name=" + category
+        } else {
+            ajax_search = "api/search_features/?format=datatables&type__name="+category+"&username="+user+"&prefix="+prefix+"&suffix="+suffix+"&onlymyparts=True"
+        };
+        table.destroy();
+        var usertable = $('#search_features').DataTable({
+        'serverSide': true,
+        'processing': false,
+        'ajax': ajax_search,
+        'columns': [
+            // Use dot notation to reference nested serializers.
+            // This data: could alternatively be displayed with the serializer's ReadOnlyField as well, as seen in the minimal example.
+            {'data': 'uniquename',
+            "render": function(data, type, row, meta){
+            if(type === 'display'){
+                string = encodeURIComponent(data)
+                data = '<a href="https://gbcloning.upv.es/feature/' + string + '">' + data + '</a>';
+            }
+            
+            return data;
+         }},
+            {'data': 'name', 'name': 'uniquename'},
+            {'data': 'type', 'name': 'type.name'},
+            {'data': 'field_description', 'sortable': 'false', 'name': 'field_description'},
+            {'data': 'field_owner', 'name': 'field_owner'},
+            {'data': 'timecreation', 'name': 'timecreation'},
+            {'data': 'genbank_file', 'name': 'genbank_file',
+            "render": function(data, type, row, meta){
+            if(type === 'display'){
+                data = '<a href="https://gbcloning.upv.es/files/genbank/' + data + '">' + 'Download' + '</a>';
+            }
+            
+            return data;
+         }, 'sortable': 'false', 'orderable': 'false'},  
+        ]
+    });
+    usertable.draw();
+    $(this).prop('disabled',true);
+});
+$('.btn-refresh').on('click', function() {
+    location.reload();
+});
+});
+
+</script>
+{% endblock %}
+

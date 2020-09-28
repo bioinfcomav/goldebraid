@@ -32,7 +32,7 @@ class QuerystringNode(template.Node):
             params[k] = v
 
         # TODO url encode. meh
-        for k,v in params.iteritems():
+        for k,v in params.items():
             url += "%s=%s&" % (k,v)
         return url[:-1]
 
@@ -76,6 +76,6 @@ def build_url(parser, token):
         var_value = args[4] if len(args) == 5 else None
 
     except ValueError:
-        raise template.TemplateSyntaxError, "%r tag requires 3 or 4 arguments" % token.contents.split()[0]
+        raise template.TemplateSyntaxError("%r tag requires 3 or 4 arguments" % token.contents.split()[0])
 
     return QuerystringNode(base_url, query_params, override, var_value)

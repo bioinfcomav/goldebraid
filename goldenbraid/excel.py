@@ -63,12 +63,12 @@ def search_data(ws):
                 if column_start is None or row_start is None:
                     raise RuntimeError('No data found in excel')
                 return (row_start, row_end,
-                        column_index_from_string(column_start))
+                        column_start)
     else:
         row_end = cell.row
         if column_start is None or row_start is None:
             raise RuntimeError('No data found in excel')
-        return row_start, row_end, column_index_from_string(column_start)
+        return row_start, row_end, column_start
 
 
 def parse_xlsx(fpath_or_fhand):
@@ -136,7 +136,7 @@ def draw_columns(labels, data, out_fhand):
         capsize = 36 - (len(x_labels) * 4)
         kwargs['capsize'] = 8 if capsize < 8  else capsize
 
-    axes.bar(left=left, height=height, width=bar_width, **kwargs)
+    axes.bar(left, height, width=bar_width, **kwargs)
     axes.set_xlim(left=0, right=len(x_labels))
     axes.set_title(labels[TITLE])
     axes.set_ylabel(labels[YLABEL])
@@ -201,7 +201,7 @@ def _filter_data(data, max_experiments):
             prev_min_value = min_value
             min_exp = exp_name
 
-    exp_names = data.keys()[:]
+    exp_names = list(data.keys())[:]
 
     non_filtered_exp = set([min_exp])
     exp_names.pop(exp_names.index(min_exp))
@@ -301,11 +301,11 @@ def draw_combined_graph(data, out_fhand, exp_type):
         kwargs['ecolor'] = '#3B383F'
 #         capsize = 36 - (len(times) * 4)
 #         kwargs['capsize'] = 8 if capsize < 8  else capsize
-    rects = axes.bar(left=bar_left_pos, height=bar_values, width=bar_width,
+    rects = axes.bar(bar_left_pos, bar_values, width=bar_width,
                      color=bar_color, zorder=-1, **kwargs)
     top_lim = axes.get_ylim()[1]
     exp_bars = [top_lim] * len(experiment_labels)
-    axes.bar(left=exp_left_pos, height=exp_bars, width=exp_width,
+    axes.bar(exp_left_pos, exp_bars, width=exp_width,
              color=exp_color, zorder=-2)
 
     axes.set_xticks(xlabel_pos)
@@ -316,11 +316,11 @@ def draw_combined_graph(data, out_fhand, exp_type):
         xticklabel.set_url(url)
 
     # we have to paint something to get xlabels on top with the same coords
-    axes2.bar(left=exp_left_pos, height=exp_bars, width=exp_width,
+    axes2.bar(exp_left_pos, exp_bars, width=exp_width,
               alpha=0, color='w')
 
     # this is only to paint almost invisible bar to put urls on it
-    foreground_rects = axes.bar(left=exp_left_pos, height=exp_bars,
+    foreground_rects = axes.bar(exp_left_pos, exp_bars,
                                 width=exp_width, alpha=0.1, color='w')
     for frects, experiment_label in zip(foreground_rects, experiment_labels):
         url = '/experiment/{}'.format(experiment_label)

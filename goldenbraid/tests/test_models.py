@@ -22,7 +22,7 @@ from django.core.files import File
 from django.conf import settings as proj_settings
 from django.db import transaction
 
-import goldenbraid
+
 from goldenbraid.utils import has_rec_sites
 from goldenbraid.models import (Db, Dbxref, Cv, Cvterm, Feature, Featureprop,
                                 Contact, Stock, Stockcollection, Count,
@@ -32,13 +32,14 @@ from goldenbraid.tags import (ENZYME_IN_TYPE_NAME, ENZYME_OUT_TYPE_NAME,
                               VECTOR_TYPE_NAME, RESISTANCE_TYPE_NAME,
                               DERIVES_FROM)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD4, FIXTURES_TO_LOAD5
+from gbdb.settings import DJANGO_PROJECT_DIR
 
-TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
-                         'goldenbraid', 'tests', 'data')
+TEST_DATA = os.path.join(DJANGO_PROJECT_DIR, 'files', 'tests_data')
 
 
 class FeatureTestModels(TestCase):
-    fixtures = FIXTURES_TO_LOAD4
+    #fixtures = FIXTURES_TO_LOAD4
+    fixtures = ['auth.json'] + FIXTURES_TO_LOAD4
 
     def test_create(self):
         'can we create a feature?'
@@ -219,16 +220,17 @@ class FeatureTestModels(TestCase):
         assert feature.moclo_compatible == 'not_evaluable'
 
         f1 = Feature.objects.get(uniquename='pDelila')
-        assert not f1.moclo_compatible
+        msg = "FALSE due to the part not in a compatible vector"
+        assert f1.moclo_compatible == msg
 
     def test_gb_category(self):
         feature = Feature.objects.get(uniquename='pAn11')
         assert feature.gb_category_sections == "(B3-B4-B5)"
         feature = Feature.objects.get(uniquename='GB0125')
-        assert feature.gb_category_sections is None
+        assert feature.gb_category_sections == "TU"
 
         feature = Feature.objects.get(uniquename='pUPD')
-        assert feature.gb_category_sections is None
+        assert feature.gb_category_sections == "Vector"
 
         feature = Feature.objects.get(uniquename='pAn11')
         assert feature.gb_category_name == 'CDS'
@@ -248,46 +250,42 @@ class FeatureTestModels(TestCase):
         assert f1.experiment_images == [(u'/api/excel_graph/1', u'excel'),
                                         (u'/api/excel_graph/2', u'columns')]
         f1 = Feature.objects.get(uniquename='GB0129')
-        print f1.experiment_images
         assert f1.experiment_images == [(u'/api/excel_graph/8', u'columns'),
                                         (u'/api/excel_graph/9', u'columns')]
 
     def test_sbol_image(self):
         f1 = Feature.objects.get(uniquename='GB_UA_15')
         assert f1.sbol_images == ['prom_5utr_ntag.png', 'cds.png',
-                                  '3utr_term.png', '3utr_term.png', 'cds.png',
-                                  'prom_5utr_ntag.png']
-
-    def test_combined_experiments(self):
-        f = Feature.objects.get(uniquename='GB0125')
-        print f.combined_experiment_images
+                                  '3utr_term.png', '3utr_term.rev.png',
+                                  'cds.rev.png',
+                                  'prom_5utr_ntag.rev.png']
 
 
 class FeatureExtraTestModels(TestCase):
-    fixtures = FIXTURES_TO_LOAD5
+    fixtures = ['auth.json'] + FIXTURES_TO_LOAD5
 
     def test_sbol_image(self):
         f1 = Feature.objects.get(uniquename='GB_UA_226')
-        assert f1.sbol_images == None
+        assert f1.sbol_images is None
 
     def test_gb_version(self):
         f1 = Feature.objects.get(uniquename='GB_UD_AC5')
-        print f1.gb_version
 
 
 class ExperimentTests(TestCase):
-    fixtures = FIXTURES_TO_LOAD4
+    fixtures = ['auth.json'] + FIXTURES_TO_LOAD4
 
     def test_experiment_excels(self):
         exp = Experiment.objects.get(uniquename='GB_EXP_2B')
         excel_exp = ExperimentPropExcel.objects.get(experiment=exp)
-        fhand = open(os.path.join(TEST_DATA, 'scatter.xlsx'))
+        fhand = open(os.path.join(TEST_DATA, 'scatter.xlsx'), 'rb')
         excel_exp.excel = File(fhand)
         excel_exp.save()
         excel_exp.excel.close()
         fhand.close()
 
-        assert excel_exp.drawed_image[1] == 'image/png'
+
+        assert excel_exp.drawed_image[1] == 'image/svg+xml'
 
         # image url from excel
         assert exp.image_urls == [(u'/api/excel_graph/1', u'excel',)]
@@ -295,8 +293,5 @@ class ExperimentTests(TestCase):
         exp = Experiment.objects.get(uniquename='GB_EXP_2A')
         assert not exp.image_urls
         exp = Experiment.objects.get(uniquename='GB_EXP_29')
-        assert exp.image_urls == [('/media/result_files/hayedo.jpg', 'Image1'),
-                                  ('/media/result_files/escocia.jpg',
-                                   'Image2')]
-
-        # print open(excelExp.excel).read()
+        assert exp.image_urls == [('/files/result_files/escocia.jpg', 'Image2'),
+                                  ('/files/result_files/hayedo.jpg', 'Image1')]

@@ -5,11 +5,12 @@ Created on 2015 mar. 26
 '''
 
 from os.path import join
+from itertools import chain
 
 from django.forms.utils import flatatt
 from django.forms.widgets import TextInput, SelectMultiple
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.conf import settings
 from django.utils.html import format_html
 
@@ -38,14 +39,14 @@ class AutocompleteTextInput(TextInput):
         self.result_limit = result_limit
         self.force_check = force_check
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         'It renders the html and the javascript'
         if value is None:
             value = ''
-        final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
+        final_attrs = self.build_attrs(attrs)
         if value != '':
             # Only add the 'value' attribute if a value is non-empty.
-            final_attrs['value'] = force_unicode(self._format_value(value))
+            final_attrs['value'] = force_text(self._format_value(value))
 
         html = u'<input%s />' % flatatt(final_attrs)
         javascript = self.render_js(attrs['id'])
@@ -109,10 +110,25 @@ class DinamicSelectMultiple(SelectMultiple):
         self._parent_class = parent_class
         self.choices = list(choices)
 
-    def render(self, name, value, attrs=None, choices=()):
+    def render_options(self, choices, selected_choices):
+        # Normalize to strings.
+        selected_choices = set(force_text(v) for v in selected_choices)
+        output = []
+        for option_value, option_label in chain(self.choices, choices):
+            if isinstance(option_label, (list, tuple)):
+                output.append(format_html('<optgroup label="{}">', force_text(option_value)))
+                for option in option_label:
+                    output.append(self.render_option(selected_choices, *option))
+                output.append('</optgroup>')
+            else:
+                output.append(self.render_option(selected_choices, option_value, option_label))
+        return '\n'.join(output)
+
+
+    def render(self, name, value, attrs=None, choices=(), renderer=None):
         if value is None:
             value = []
-        final_attrs = self.build_attrs(attrs, name=name)
+        final_attrs = self.build_attrs(attrs)
         output = [format_html('<select multiple="multiple"{0}>',
                               flatatt(final_attrs))]
         options = self.render_options(choices, value)

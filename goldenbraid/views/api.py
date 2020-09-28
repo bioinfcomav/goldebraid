@@ -6,6 +6,7 @@ Created on 2015 api. 1
 import json
 from tempfile import NamedTemporaryFile
 
+from os.path import join
 from django.http.response import HttpResponse, Http404, HttpResponseForbidden
 from django.db.models import Q
 from Bio.SeqIO import read
@@ -13,10 +14,10 @@ from goldenbraid.models import Feature, ExperimentPropExcel, ExperimentKeyword
 from goldenbraid.excel import draw_combined_graph
 from goldenbraid.sbol import convert_to_sbol
 
+MEDIA_DIR = "/home/golden/devel/gbdb/files"
 
 def feature_sbol(request, uniquename):
     user = request.user
-    print(uniquename)
     try:
         feat = Feature.objects.get(uniquename=uniquename)
     except Feature.DoesNotExist:
@@ -25,7 +26,8 @@ def feature_sbol(request, uniquename):
     if feat is None:
         return Http404
     if (feat.is_public or (user.is_staff or user == feat.owner)):
-        seq = read(feat.genbank_file, 'gb')
+        print(feat.genbank_file)
+        seq = read(join(MEDIA_DIR, feat.genbank_file.name), 'gb')
         response = HttpResponse(convert_to_sbol(seq), content_type='xml/plain')
         filename = seq.name + '.xml'
         response['Content-Disposition'] = 'attachment; '

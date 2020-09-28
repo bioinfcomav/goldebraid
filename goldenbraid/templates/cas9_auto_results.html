@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}CRISPR formulary {% endblock title %}
+{% block content %}
+<div class='tools'>
+    <h1>Multiplexing Cas9-gRNA result</h1>
+    </div>
+{% load goldenbraid_extras %}
+
+Alpha-1 TU added to multiplexing CRISPR construct
+
+<form action='/do/crispr_cas9_auto_omega/protocol/' method='POST'>{% csrf_token %}
+    <INPUT type="hidden" name="Vector" value="{{ Vector }}">
+    <INPUT type="hidden" name="part_1" value="{{ part_1 }}">
+    <INPUT type="hidden" name="part_2" value="{{ part_2 }}">
+    <p>You can download a detailed protocol to assemble this construct here <INPUT type="submit" value="here"></p>
+</form>
+
+<form action='/do/cripsr/cas9_auto_omega_add/' method='POST'>{% csrf_token %}
+    <INPUT type="hidden" name="Vector" value="{{ Vector }}">
+    <INPUT type="hidden" name="part_1" value="{{ part_1 }}">
+    <INPUT type="hidden" name="part_2" value="{{ part_2 }}">
+    <ul>
+        <li>
+            <label for="name">Name:</label><input id="id_name" maxlength="255" name="name" type="text" /><span class='addfeat'> We recomend using a descriptive name e.g. pYFP, pEGB 35S:DsRed:Tnos. </span>
+        </li>
+        <li>
+            <label for="name">Description:</label><input id="id_description" maxlength="255" name="description" type="text" />{{ form.description }} <span class='addfeat'> A short free text description associated with your construct.</span>
+            </li>
+        <li>
+            <label for="name">Reference:</label><input id="id_reference" maxlength="255" name="reference" type="text" /><span class='addfeat'> You can add bibliographic references here.</span>
+        </li>
+    <p>Assemble with TU <INPUT type="submit" value="assemble"></p>
+    </ul>
+</form>
+
+{% endblock content %}

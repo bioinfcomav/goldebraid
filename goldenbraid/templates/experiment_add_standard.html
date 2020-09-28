@@ -70,13 +70,13 @@
 
 {% block content %}
 
-{% if exp_cv_type.name = 'SE_001' %}
+{% if exp_cv_type.name == "SE_001" %}
 <h1>SE_001 Transcriptional activity tested in discs</h1>
-{% elif exp_cv_type.name = 'SE_002' %}
+{% elif exp_cv_type.name == 'SE_002' %}
 <h1>SE_002 Transcriptional activity tested in leaves</h1>
-{% elif exp_cv_type.name = 'SE_003' %}
+{% elif exp_cv_type.name == 'SE_003' %}
 <h1>SE_003 Transformation efficiency</h1>
-{% elif exp_cv_type.name = 'SE_004' %}
+{% elif exp_cv_type.name == 'SE_004' %}
 <h1>SE_004 Recombinant protein production</h1>
 {% else %}
 <h1>SE_005 CRISPR target efficiency</h1>
@@ -87,17 +87,17 @@
 <tr>
 <th><img class='exp_descrip' src='{{STATIC_URL}}style/images/{{exp_cv_type.name}}.jpg' alt="{{exp_cv_type.name}}"/></th>
 
-{% if exp_cv_type.name = 'SE_001' %}
+{% if exp_cv_type.name == 'SE_001' %}
 <td>Standard experiments type 1 (SE_001) aim is to characterize promoter strengths with relative promoter units (RPUs) measured
 as luciferase/renilla ratios. The nopaline synthase promoter (pNOS) is our reference standard promoter. These experiments can
 involve a chemical or physical induction and are performed in <b><em>N. benthamiana</em></b> leaf discs following the conditions specified below.</td>
-{% elif exp_cv_type.name = 'SE_002' %}
+{% elif exp_cv_type.name == 'SE_002' %}
 <td>Standard experiments type 2 (SE_002) were designed for promoter characterization with relative promoter units (RPUs) measured
 as luciferase/renilla ratios as measurement standard. The nopaline synthase promoter (pNOS) is our reference standard promoter.
 These experiments are performed in <b><em>N. benthamiana</em></b> leaves following the conditions specified below.</td>
-{% elif exp_cv_type.name = 'SE_003' %}
+{% elif exp_cv_type.name == 'SE_003' %}
 <td>Standard experiments type 3 (SE_003) aim is to provide an estimation of the transformation efficiency of different GBelements.</td>
-{% elif exp_cv_type.name = 'SE_004' %}
+{% elif exp_cv_type.name == 'SE_004' %}
 <td>Standard experiments type 4 (SE_004) aim is to estimate the yield of recombinant proteins.</td>
 {% else %}
 <td>Standard experiments type 5 (SE_005) aim is to provide an estimation of the mutation efficiency of different CRISPR/Cas9 targets.</td>
@@ -127,7 +127,7 @@ These experiments are performed in <b><em>N. benthamiana</em></b> leaves followi
 <td>{{form.chasis_2.errors}} <label>Chassis:</label></td>
 {% if chassis %}
 <td>{{chassis}}</td>
-<input type='hidden' id="id_chasis_2" name="chasis_2" value="{{chassis}}"> 
+<input type='hidden' id="id_chasis_2" name="chasis_2" value="{{chassis}}">
 {% else %}
 <td><strong>{{form.chasis_2}}</strong></td>
 {% endif %}

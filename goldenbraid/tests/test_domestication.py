@@ -28,17 +28,17 @@ from goldenbraid.domestication import (domesticate, _join_segments,
                                        domesticate_for_synthesis,
                                        get_ret_sites,
                                        change_nucl_in_intron_rec_site,
-    is_dna_palindrome)
+                                       is_dna_palindrome,
+                                       domestication_crispr)
 from goldenbraid.tests.test_fixtures import FIXTURES_TO_LOAD
 from goldenbraid.settings import MANDATORY_DOMEST_ENZYMES
-from goldenbraid.tags import PROM_5UTR_NTAG
 
 TEST_DATA = os.path.join(os.path.split(goldenbraid.__path__[0])[0],
                          'goldenbraid', 'tests', 'data')
 
 
 class DomesticationTest(TestCase):
-    fixtures = FIXTURES_TO_LOAD
+    fixtures = ['auth.json'] + FIXTURES_TO_LOAD
     multi_db = True
 
     def test_domestication(self):
@@ -48,13 +48,13 @@ class DomesticationTest(TestCase):
         seq = SeqRecord(Seq(seq))
         category = 'CDS (B3-B4-B5)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
-        assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC',
-                                'oligo_reverse': 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA',
-                                'oligo_forward': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAG'}
+        assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACTGCGAGACGGCGC',
+                                 'oligo_reverse': 'GCGCCGTCTCGCAGTCTCCTAGCACCTGCTA',
+                                 'oligo_forward': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAG'}
 
-        assert oligo_pcrs[1] == {'pcr_product': 'GCGCCGTCTCGACAGGGTCATGCTAGCTTCAGCTAGCTGATCGATCGACTAGCTGATCGATCTGATCGATGCTAGCTAGCTGTACGGAGACAGGCGAGACGGCGC',
-                                 'oligo_reverse': 'GCGCCGTCTCGCCTGTCTCCGTACAGCTAGC',
-                                 'oligo_forward': 'GCGCCGTCTCGACAGGGTCATGCTAGCTTCA'}
+        assert oligo_pcrs[1] == {'pcr_product': 'GCGCCGTCTCGACTGGGTCATGCTAGCTTCAGCTAGCTGATCGATCGACTAGCTGATCGATCTGATCGATGCTAGCTAGCTGTACGGAGACTGGCGAGACGGCGC',
+                                 'oligo_reverse': 'GCGCCGTCTCGCCAGTCTCCGTACAGCTAGC',
+                                 'oligo_forward': 'GCGCCGTCTCGACTGGGTCATGCTAGCTTCA'}
 
         domesticated_seq = domesticate(seq, category, 'CCAT', 'AATG')[1]
         assert ('TCGCATGCTCCCGGCCGCCATGGCGGCCGCGGGAATTCGATGGGCGATGAGTGGTCTCG') in domesticated_seq.seq
@@ -74,12 +74,10 @@ class DomesticationTest(TestCase):
         seq = SeqRecord(Seq(seq))
         category = 'CDS (B3-B4-B5)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG', with_intron=False)[0]
-        assert oligo_pcrs[0]['pcr_product'] == 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC'
-        assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA'
+
+        assert oligo_pcrs[0]['pcr_product'] == 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACTGCGAGACGGCGC'
+        assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCAGTCTCCTAGCACCTGCTA'
         assert oligo_pcrs[0]['oligo_forward'] == 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGAT'
-#         assert oligo_pcrs[0] == {'pcr_product': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGATCGATGCTAGCTAGCTGACTAGCTAGCAGGTGCTAGGAGACAGCGAGACGGCGC',
-#                                  'oligo_reverse': 'GCGCCGTCTCGCTGTCTCCTAGCACCTGCTA',
-#                                  'oligo_forward': 'GCGCCGTCTCGCTCGAAGGCTGACTATGTCAGCTAGAGATCGCTGACGA'}
 
         seq = 'aggctgactatgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacgCGTCTCgctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
@@ -87,32 +85,33 @@ class DomesticationTest(TestCase):
         seq = SeqRecord(Seq(seq.upper()))
         category = 'CDS (B3-B4-B5)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
-        assert oligo_pcrs[1] == {'pcr_product': 'GCGCCGTCTCGCTTGCTAGCAGGTGCTAGGAGACAGGGTCATGCTAGCTTCAGCTAGCTGATCGATCGACTAGCTGATCGATCTGATCGATGCTAGCTAGCTGTACGGAGACAGGCGAGACGGCGC',
-                                 'oligo_reverse': 'GCGCCGTCTCGCCTGTCTCCGTACAGCTAGC',
-                                 'oligo_forward': 'GCGCCGTCTCGCTTGCTAGCAGGTGCTAGGAGACAGGGTCATGC'}
+        assert oligo_pcrs[1] == {'pcr_product': 'GCGCCGTCTCGCTTGCTAGCAGGTGCTAGGAGACTGGGTCATGCTAGCTTCAGCTAGCTGATCGATCGACTAGCTGATCGATCTGATCGATGCTAGCTAGCTGTACGGAGACTGGCGAGACGGCGC',
+                                 'oligo_reverse': 'GCGCCGTCTCGCCAGTCTCCGTACAGCTAGC',
+                                 'oligo_forward': 'GCGCCGTCTCGCTTGCTAGCAGGTGCTAGGAGACTGGGTCATGC'}
 
         seq = 'aggctgactatgtcagctagctgacgatcgatgctagctagctgactatagaggaaacccgtaacgctacgtacggctagcaggtgctag'
         seq += 'GAGACCgggtcatgctagcttcagctagctgatcgatcgactagctgatcgatctgatcgatgctagctagctgtacg'
         seq += 'GAGACCgggtcatgctagctgatctgatcgctgcgtcgggcgtctgatgctagctagctCGTCTCgtacgtcatcttttcagtcgatcta'
         seq = SeqRecord(Seq(seq.upper()))
         category = 'CDS (B3-B4-B5)'
+        
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
-        assert oligo_pcrs[2] == {'pcr_product': 'GCGCCGTCTCGCAGGGTCATGCTAGCTGATCTGATCGCTGCGTCGGGCGTCTGATGCTAGCTAGCTCGTATCGTACGTCATCTTTTCAGTCGATCTAAATGCGAGCGAGACGGCGC',
-                                'oligo_reverse': 'GCGCCGTCTCGCTCGCATTTAGATCGACTGAAAAGATGACGTACGATACGAGCTAG',
-                                 'oligo_forward': 'GCGCCGTCTCGCAGGGTCATGCTAGCTGATC'}
+        assert oligo_pcrs[2] == {'pcr_product': 'GCGCCGTCTCGCTGGGTCATGCTAGCTGATCTGATCGCTGCGTCGGGCGTCTGATGCTAGCTAGCTCGTTTCGTACGTCATCTTTTCAGTCGATCTAAATGTGAGCGAGACGGCGC',
+                                 'oligo_reverse': 'GCGCCGTCTCGCTCACATTTAGATCGACTGAAAAGATGACGTACGAAACGAGCTAG',
+                                 'oligo_forward': 'GCGCCGTCTCGCTGGGTCATGCTAGCTGATC'}
 
         gb_path = os.path.join(TEST_DATA, 'GB_DOMEST_15.gb')
         seq = SeqIO.read(gb_path, 'gb')
         category = 'OP (A2)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
-        assert oligo_pcrs[1]['oligo_reverse'] == 'GCGCCGTCTCGCTCGCATTCGCGACCACTCGTCGCCCATC'
-        assert oligo_pcrs[1]['oligo_forward'] == 'GCGCCGTCTCGACAACTCATCGACCATCACTA'
+        assert oligo_pcrs[1]['oligo_reverse'] == 'GCGCCGTCTCGCTCACATTCGGGACCACTCATCGCCCAT'
+        assert oligo_pcrs[1]['oligo_forward'] == 'GCGCCGTCTCGACTACTCATCGCCCATCACT'
 
         gb_path = os.path.join(TEST_DATA, 'CHS.gb')
         seq = SeqIO.read(gb_path, 'gb')
         category = 'CDS (B3-B4-B5)'
         oligo_pcrs = domesticate(seq, category, 'CCAT', 'AATG')[0]
-        assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTCGCATTTCAAGCACCCACACTGTGAAGCACAACTGTCTCAACA'
+        assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTCACATTTCAAGCACCCACACTGTGAAGCACAACAGTCTCAACA'
         assert oligo_pcrs[0]['oligo_forward'] == 'GCGCCGTCTCGCTCGAATGGTGACCGTCGAAGAAGT'
 
     def test_domestication_with_intron(self):
@@ -183,8 +182,8 @@ class DomesticationTest(TestCase):
         fragments = ['ATGGCGGCTGCTGCCTCACCATCTCCATGTTTCTCCAAAACCCTACCTCCATCTTCCTCCAAATCTTCCACCATTCTACCTAGATCTACCTTCTCTTTCCACAATCACCCACAAAAAGCCTCACCCCTTCATCTCATCCACGCTCAACATAATCGTCGTGGTTTTGCCGTTGCCAATGTCGTCATATCCACTACCACCCATAACGACGTTTCTGAACCTGAAACATTCGTTTCCCGTTTCGCCCCTGACGAACCCAGAAAGGGTTGTGATGTTCTTGTGGAGGCACTTGAAAGGGAAGGTGTTACGGATGTATTTGCATACCCAGGAGGTGCTTCTATGGAGATTCATCAAGCTTTGACACGTTCGAATATTATTCGTAATGTGCTACCACGTCATGAGCAAGGTGGTGTGTTTGCTGCAGAGGGTTACGCACGGGCTACTGGGTTCCCTGGTGTTTGCATTGCTACCTCTGGTCCCGGAGCTACAAATCTTGTTAGTGGTCTTGCGGATGCTTTGTTAGATAGTATTCCGATTGTTGCTATTACAGGTCAAGTGCCAAGGAGGATGATTGGTACTGATGCGTTCCAGGAAACGCCTATTGTTGAGGTAACGAGATCTATTACGAAGCATAATTATCTTGTTATGGATGTAGAAGATATTCCTAGGGTTGTTCGTGAAGCATTTTTTCTTGCGAAATCGGGACGGCCTGGCCCAGTTTTGATTGATGTACCTAAGGATATTCAGCAACAATTGGTGATACCTAATTGGGATCAGCCAATGAGGTTGCCTGGTTACATGTCTAGGTTACCTAAATTGCCTAATGAAATGCTTTTGGAACAAATTGTTAGGCTGATTTCCGAGTCGAAGAAGCCTGTTTTGTATGTGGGTGGTGGGTGTTCGCAATCAAGTGAGGAGCT', 'ATTTGTGGAGCTTACAGGTATTCCTGTAGCGAGTACTTTGATGGGTCTTGGAGCTTTTCCAACTGGGGATGAGCTTTCACTTCAAATGTTGGGTATGCATGGAACTGTGTATGCTAATTATGCTGTGGATAGTAGTGATTTGTTGCTTGCATTTGGGGTGAGGTTTGATGATCGAGTTACTGGTAAATTGGAAGCTTTTGCTAGTCGAGCGAAAATTGTCCACATTGATATTGATTCGGCAGAGATTGGAAAAAACAAGCAACCTCATGTTTCCATTTGTGCAGATATCAAGTTGGCATTACAGGGTTTGAATTCCATATTGGAGGGTAAAGAAGGTAAGATGAAGTTAGATTTTTCTGCCTGGAGGCAGGAGTTAACGGAGCAGAAGATGAAGTACCCACTGAATTTTAAGACTTTTGGTGATGCCATCCCTCCACAATATGCTATTCAGGTTCTTGATGAGTTAACTAACGGAAATGCCATTATTAGTACTGGTGTGGGGCAACACCAGATGTGGGCTGCCCAATACTATAAGTACAAAAAGCCACGCCAATGGTTGACATCTGGTGGATTAGGAGCAATGGGATTTGGTTTGCCTGCTGCTATAGGTGCGGCTGTTGG', 'GGGTGAGATTGTGGTTGACATTGACGGTGATGGGAGTTTTATCATGAATGTGCAAGAGTTAGCAACAATTAAGGTGGAGAATCTCCCAGTTAAGATTATGTTGCTGAATAATCAACACTTGGGAATGGTGGTTCAATGGGAGGATCGATTCTATAAAGCTAACAGAGCACACACTTACTTGGGTGACCCTTCTAACGAGGAAGAGATCTTCCCTAATATGTTGAAATTTGCAGAGGCTTGTGGCGTACCTGCTGCAAGAGTGTCACACAGGGATGATCTTAGAGCTGCCATTCAAAAGATGTTAGACACTCCTGGGCCATACTTGTTGGATGTGATTGTACCTCATCAGGAGCACGTTCTACCTATGATTCCCAGCGGTGGTGCTTTCAAAGATGTGATCACGGAGG', 'GGAGATGTTCCTATTGA']
         segments = _get_pcr_segments(seq, rec_sites, fragments)
         assert segments == [{'start': 0, 'end': 921},
-                            {'start': 918, 'end': 1549},
-                            {'start': 1546, 'reverse_min': 1951, 'end': 1979}]
+                            {'start': 918, 'end': 1550},
+                            {'start': 1547, 'reverse_min': 1951, 'end': 1979}]
 
     def test_join_short_segments(self):
         segments = [(0, 10), (8, 33), (31, 60)]
@@ -233,9 +232,9 @@ class DomesticationTest(TestCase):
         seq += 'TCCCTCCTA'
 
         seqrec = SeqRecord(Seq(seq))
-        category = 'SP (B3)'
+        category = 'CDS1 (B3)'
         oligo_pcrs = domesticate(seqrec, category, 'AATG', 'AGCC')[0]
-        assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTCGGGCTGCTAGGAGGGACGGGAGAAGGA'
+        assert oligo_pcrs[0]['oligo_reverse'] == 'GCGCCGTCTCGCTCAGGCTGCTAGGAGGGACGGGAGAAGGA'
 
     def test_domestication_sintesis(self):
         seq = 'ATGATGATGGGCACTTCCTCTGTTTTTCTACTATTCCTTCTTTCTTTTCTTCTCCTTCTCCCG'
@@ -245,12 +244,13 @@ class DomesticationTest(TestCase):
         category = 'SP (B3)'
         prefix = 'AATG'
         suffix = 'AGCC'
+        enzymes = ()
         seq_sin, prep_seq = domesticate_for_synthesis(seqrec, category, prefix,
-                                                      suffix)
-        result = 'GCGCCGTCTCGCTCGAATGATGATGGGCACTTCCTCTGTTTTTCTACTATTCCTTCTTTC'
-        result += 'TTTTCTTCTCCTTCTCCCGTCCCTCCTAGCAGCCCGAGCGAGACGGCGC'
+                                                      suffix, enzymes)
+        result = 'GCGCCGTCTCGCTCGAATGATGATGATGGGCACTTCCTCTGTTTTTCTACTATTCCTTCT'
+        result += 'TTCTTTTCTTCTCCTTCTCCCGTCCCTCCTAAGCCTGAGCGAGACGGCGC'
         assert seq_sin == result
-        assert 'AATGATGATGGGCACTTCCTCTGTTTTTCTACTATTCCTTC' in str(prep_seq.seq)
+        assert 'AATGATGATGATGGGCACTTCCTCTGTTTTTCTACTATTCCTTC' in str(prep_seq.seq)
 
         # with rec site
         seq = 'ATGATGATGGGCACTTCCTCTGTTTGGTCTCTATTCCTTCTTTCTTTTCTTCTCCTTCTCCCG'
@@ -258,9 +258,9 @@ class DomesticationTest(TestCase):
 
         seqrec = SeqRecord(Seq(seq))
         category = 'SP (B3)'
-        seq_sin = domesticate_for_synthesis(seqrec, category, 'AATG', 'AGCC')[0]
-        result = 'GCGCCGTCTCGCTCGAATGATGATGGGCACTTCCTCTGTTTGGTCGCTATTCCTTCTTTC'
-        result += 'TTTTCTTCTCCTTCTCCCGTCCCTCCTAGCAGCCCGAGCGAGACGGCGC'
+        seq_sin = domesticate_for_synthesis(seqrec, category, 'AATG', 'AGCC', enzymes)[0]
+        result = 'GCGCCGTCTCGCTCGAATGATGATGATGGGCACTTCCTCTGTTTGGTCCCTATTCC'
+        result += 'TTCTTTCTTTTCTTCTCCTTCTCCCGTCCCTCCTAAGCCTGAGCGAGACGGCGC'
         assert seq_sin == result
 
     def test_change_nucl_in_intron_rec_site(self):
@@ -275,4 +275,16 @@ class DomesticationTest(TestCase):
         res = change_nucl_in_intron_rec_site(rec_site, rec_sites_regex)
         assert res == 'CGTCTa'
 
+    def test_check_crispr_domestication_error(self):
+        seq = "aatataatatgggacgagac".upper()
+        category = 'D Target (B3c-B4-B5c)'
+        prefix = "ATTG"
+        suffix = "GTTT"
+        self.assertRaises(ValueError, domestication_crispr, seq, category, prefix, suffix)
 
+    def test_crispr_multiplexing_domestication(self):
+        seq = "CGCTAGGATCGGACTGACGA"
+        category = "CRISPR Multiplexing"
+        prefix = ""
+        suffix = ""
+        seq = domestication_crispr(seq, category, prefix, suffix)

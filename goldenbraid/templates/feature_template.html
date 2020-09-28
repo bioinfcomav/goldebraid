@@ -2,6 +2,7 @@
 {% block title %}Feature {{feature.name}} {% endblock title %}
 {% block content %}
 {% load goldenbraid_extras %}
+
 <p>{{ info }}</p>
 {% if not feature %}
    <h1> This feature does not exist</h1>
@@ -75,7 +76,7 @@
      <tr><th>Public</th><td>{{ feature.is_public }}</td></tr>
      <tr><th>Genbank_file</th><td><a href="{{feature.genbank_file.url}}">{{ feature.uniquename }}</a></td></tr>
      <tr><th>SBOL_file</th><td><a href="{%url 'api_feature_sbol' uniquename=feature.uniquename %}">{{ feature.uniquename }}</a></td></tr>
-     
+
    </tbody>
   </table>
  </div>
@@ -181,8 +182,18 @@
                 <INPUT type="hidden" name="action" value="make_public">
               <p>Make the part public for everyone
               <INPUT type="submit" value="Make_public"></p>
+              <INPUT type="hidden" name="edit_description" value="">
            {% endif %}
         </form>
+   {% endif %}
+   {% if feature.owner == user or user.is_staff %}
+      <form action='' method='POST'>{% csrf_token %}
+      <INPUT type="hidden" name="feature" value="{{ feature.uniquename }}">
+      <INPUT type="text" size="100" maxlength="255" name="edit_description" value="">
+      <INPUT type="hidden" name="action" value="no_action">
+      <p>Edit the description for this feature
+      <INPUT type="submit" value="Edit_description"</p>
+      </form>
    {% endif %}
 
 {% endif %}

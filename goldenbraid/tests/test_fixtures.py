@@ -20,14 +20,14 @@ FIXTURES_TO_LOAD = ['initial_data.json', 'derives_from.json']
 FIXTURES_TO_LOAD = ['initial_data3.json', 'derives_from.json', 'pupd2.json']
 FIXTURES_TO_LOAD4 = ['initial_data4.json', 'derives_from.json']
 FIXTURES_TO_LOAD5 = ['initial_data5.json']
+FIXTURES_TO_LOAD6 = ['initial_data6.json']
 
 
 class TestFixtures(TestCase):
     'It tests that we can load the fixtures'
-    fixtures = FIXTURES_TO_LOAD + FIXTURES_TO_LOAD4
+    fixtures = ['auth.json'] + FIXTURES_TO_LOAD + FIXTURES_TO_LOAD4
     multi_db = True
 
     def test_initial(self):
         'It loads the fixtures.'
         assert Db.objects.all()
-

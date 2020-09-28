@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}CRISPR formulary {% endblock title %}
+{% block content %}
+<div class='tools'>
+    <h1>Multiplexing Cas9-gRNA result</h1>
+    </div>
+{% load goldenbraid_extras %}
+<p>You have domesticated the following targets:</p>
+{% for category, uniquename in domesticated_targets.items %}
+    <p>{{ key|capfirst|replaceunderscore }}{{ category }}: <a href='/feature/{{uniquename}}' target="_blank">{{ uniquename }}</a></p>
+
+{% endfor %}
+
+<p>With these targets, the following Level 0 parts were created:</p>
+{% for category, uniquename in level0_sequences.items %}
+    <p>{{ key|capfirst|replaceunderscore }}{{ category }}: <a href='/feature/{{uniquename}}' target="_blank">{{ uniquename }}</a></p>
+
+{% endfor %}
+<p>Level 0 parts were used in the assembly of the transcriptional unit <a href='/feature/{{auto_TU}}' target="_blank">{{ auto_TU }}</a></p></p>
+
+<form action='/do/crisper_cas9_auto/protocol/' method='POST'>{% csrf_token %}
+    <INPUT type="hidden" name="protocols" value="{{ protocols }}">
+    <p>You can download a detailed protocol to assemble these constructs here <INPUT type="submit" value="here"></p>
+</form>
+
+
+<form action='/do/crispr/cas9_multiplexing/auto_add_tu/' method='POST'>{% csrf_token %}
+    <INPUT type="hidden" name="auto_TU" value="{{ auto_TU }}">
+    <p>Now, you can add one of our recommended alpha-1 modules to your multiplexing CRISPR construct to get your final plasmid for plant transformation.</p>
+    {{ form.as_p}}
+    <ul>
+    <p>Assemble with TU <INPUT type="submit" value="assemble"></p>
+    </ul>
+</form>
+{% endblock content %}

@@ -1,13 +1,13 @@
 import re
 import json
-from StringIO import StringIO
+from io import StringIO
 
 from django import template
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape
 from django.template.defaultfilters import stringfilter
-from django.utils.encoding import force_unicode
-from django.utils.functional import allow_lazy
+from django.utils.encoding import force_text
+from django.utils.functional import keep_lazy
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.contrib.auth.models import User, AnonymousUser
@@ -49,19 +49,19 @@ def replaceunderscore(value):
 slugify = stringfilter(replaceunderscore)
 register.filter('replaceunderscore', replaceunderscore, is_safe=True)
 
-
+@keep_lazy(str)
 def wrap(text, width):
     """
     A word-wrap function that preserves existing line breaks and most spaces in
     the text. Expects that existing line breaks are posix newlines.
     """
-    text = force_unicode(text)
+    text = force_text(text)
 
     def _lines(text):
         for index in range(0, len(text), width):
             yield text[index: index + width] + '\n'
     return u''.join(_lines(text))
-wrap = allow_lazy(wrap, unicode)
+
 
 
 def letterwrap(value, arg):

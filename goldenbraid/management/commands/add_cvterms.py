@@ -54,11 +54,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         'Adds the given cvterms to the chado database'
-        if not args:
-            raise CommandError('No cvterm file given')
-        else:
-            cvterms_fpath = args[0]
+        # if not args:
+        #     raise CommandError('No cvterm file given')
+        # else:
+        #cvterms_fpath = args[0]
         try:
+            cvterms_fpath = "/home/marta/pyenv3/goldenbraid_11/goldenbraid/db_loading/tus.csv"
             run_command(open(cvterms_fpath), load_cvterms, MANDATORY_FIELDS)
         except Exception as error:
             raise CommandError(str(error))

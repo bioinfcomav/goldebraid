@@ -1,0 +1,2 @@
+name	type	vector	genbank_file	properties	owner	is_public
+pDGB2_alpha1	Vector		/home/golden/devel/goldenbraid/db_loading/genbank/pDGB2_alpha1.gb	Description=This is a pCambia destiny vector of the alpha level;Enzyme_in=BsaI; Enzyme_out=BsmBI;Resistance=Kanamycin	admin	1

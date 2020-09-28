@@ -1,0 +1,2 @@
+name	type	vector	genbank_file	properties	owner	is_public
+pLX-Z4_alpha1	Vector		/home/golden/devel/goldenbraid/db_loading/genbank/ky825158_plx-z4-alpha1.gb	Description=KY825158;Enzyme_in=BsaI;Enzyme_out=BsmBI;Resistance=Gentamicin	admin	1

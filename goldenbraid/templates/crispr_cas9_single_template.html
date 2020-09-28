@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}CRISPR formulary {% endblock title %}
+{% block content %}
+<div class='tools'>
+    <h1>GB CRISPR Domesticator: CAS9 Single</h1>
+    <p><span class='tools'>The first step for generating a CRISPR/Cas9 construct is the selection of the genomic target. The genomic target must contain a 20 nucleotides TARGET sequence
+    followed by the PAM sequence (usually NGG). To search your genomic targets minimizing off-targeting you can use online tools such as <a href=https://benchling.com/ target='blank'>Benchling</a> or <a href=http://cbi.hzau.edu.cn/crispr/ target='blank'>CRISPR-P</a>.</span></p>
+    <p><span class='tools'>Once you have selected your 20 nucleotides TARGET sequence, you can create your GB-adapted guide RNA part using the web tool below:</span></p>
+    </div>
+{% load goldenbraid_extras %}
+<form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
+{% if form.residues.errors %}
+    {{form.residues.errors}}
+{% else %}
+<fieldset>
+<legend>CRISPR Domestication</legend>
+    <ul>
+        <li>
+            {{ form.category.errors }}<label for="name">Select the type of TARGET (monocot or dicot):</label>{{ form.category }}<a href='/tools/crisprsassembler'  target="blank"><span class='gbdom'>What's this?</span></a>
+        </li>
+        <li>
+            {{ form.seq.errors }}<label for="name">Type or paste your 20 nt TARGET sequence here:</label>{{ form.seq }}
+        </li>
+              <li>
+              <p><span class="warning">Please, note that the target Dicot and Monocot sequences should start with 'G' and 'A' respectively. This constraint derives from the RNA polymerase III-dependent U6 and U3 promoters requirement of a 'G' or 'A' at the 5' end of the RNA to be transcribed.</span></p>
+              </li>
+        <li>
+        <p><span class='notes'>'The CRISPR domesticator tool will produce a domesticated sgRNA sequence flanked by standard GB overhangs (prefix and suffix). If you prefer to create your own non-standard flanking 4 nucleotide overhangs, please provide them in the boxes below (optional).
+        <span class='warningcrispr'>Please note that if you choose the custom option the resulting oligonucleotides will not assemble with the rest of GB standard CRISPR elements</span>.'</span></p>
+        </li>
+        <li>
+            {{ form.prefix.errors }}<label for="name">Custom prefix:</label>{{ form.prefix }}
+        </li>
+        <li>
+            {{ form.suffix.errors }}<label for="name">Custom suffix:</label>{{ form.suffix }}
+        </li>
+
+    </ul>
+</fieldset>
+    {{ form.non_field_errors }}
+    <input type="submit" value="Submit" />
+{% endif %}
+</form>
+{% endblock content %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{# Don't forget that one ! #}
+{% load static %}
+{% block title %}Bipartite formulary {% endblock title %}
+{% block content %}
+<config>
+    <forms>
+       <dependencies>
+          <css src="/custom/forms/custom-label-layout.css" />
+       </dependencies>
+    </forms>
+ </config>
+<div class='tools'>
+    <h1>GB Binary Assembler</h1>
+    <p><span class='tools'>This tool allows you to assemble two TUs/Modules. Your preassembled TUs and modules can be here binarily joined to produce increasingly complex multigenic structures.</span></p>
+    <p><span class='tools'>Note: If you are planning to use this module for a further GB Binary Assembly, you should be careful with the choice of the vector. The compatible vector pairs are: alpha1-alpha2, omega1-omega2.</span></p>
+    </div>
+    {% load goldenbraid_extras %}
+<script src="//code.jquery.com/jquery-1.12.4.js"></script>
+{{ form.media }}
+
+<div>
+    <form action="{{form_num}}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Submit" />
+    </form>
+</div>
+{% endblock %}

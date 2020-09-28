@@ -1,0 +1,2 @@
+name	type	vector	genbank_file	properties	owner	is_public
+NullVector	Vector		/home/golden/devel/goldenbraid/db_loading/genbank/NullVector.gb	Description=NullVectorl;Enzyme_in=BsaI; Enzyme_out=BsmBI;Resistance=Kanamycin	admin	1

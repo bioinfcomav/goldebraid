@@ -13,29 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth.views import LoginView
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = [
     # Examples:
     # url(r'^$', 'dj_goldenbraid.views.home', name='home'),
     # url(r'^dj_goldenbraid/', include('dj_goldenbraid.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-    (r'^accounts/login/$', 'django.contrib.auth.views.login'),
+    url(r'^accounts/login/$', LoginView.as_view()),
     # Uncomment the next line to enable the admin:
-    url(r'^admin/', include(admin.site.urls)),
-    (r'^genome_domestication/search/', include('restcmd_client.urls')),
-    (r'^genome_domestication/', include('gb_genome_domestication.urls')),
+    url(r'^admin/', admin.site.urls),
+    url(r'^genome_domestication/search/', include('restcmd_client.urls')),
+    url(r'^genome_domestication/', include('gb_genome_domestication.urls')),
     # (r'^cmd_client/', include('restcmd_client.urls')),
 
-    (r'', include('goldenbraid.urls')),
-)
+    url(r'', include('goldenbraid.urls')),
+]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 #     static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),

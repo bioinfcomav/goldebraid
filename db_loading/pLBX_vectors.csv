@@ -1,0 +1,5 @@
+name	type	vector	genbank_file	properties	owner	is_public
+pLX-B2_alpha1	Vector		/home/golden/devel/goldenbraid/db_loading/genbank/pLX-B2_alpha1_KY825137.gb	Description=KY825137;Enzyme_in=BsaI; Enzyme_out=BsmBI;Resistance=Kanamycin	admin	1
+pLX-B2_alpha2	Vector		/home/golden/devel/goldenbraid/db_loading/genbank/pLX-B2_alpha2_KY825139.gb	Description=KY825139;Enzyme_in=BsaI; Enzyme_out=BsmBI;Resistance=Kanamycin	admin	1
+pLX-B3_omega1	Vector		/home/golden/devel/goldenbraid/db_loading/genbank/pLX-B3_omega1_KY825145.gb	Description=KY825145;Enzyme_in=BsmBI; Enzyme_out=BsaI;Resistance=Spectinomycin	admin	1
+pLX-B3_omega2	Vector		/home/golden/devel/goldenbraid/db_loading/genbank/pLX-B3_omega2_KY825146.gb	Description=KY825146;Enzyme_in=BsmBI; Enzyme_out=BsaI;Resistance=Spectinomycin	admin	1

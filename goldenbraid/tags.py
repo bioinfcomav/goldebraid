@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+MONOCOT_TAXA = "Monocot"
+DICOT_TAXA = "Dicot"
+LEVEL_MINUS_1 = '-1'
 VECTOR_TYPE_NAME = 'Vector'
 ENZYME_TYPE_NAME = 'Enzyme'
 TU_TYPE_NAME = 'TU'
@@ -62,6 +65,55 @@ TARGET = 'Target (B4b)'
 FS3 = "'3FS (B5b)"
 TARGET_DICOT = 'D Target (B3c-B4-B5c)'
 TARGET_MONOCOT = 'M Target (B3d-B4-B5d)'
+TARGET_CAS12A = "D CAS12a target (B3e-B4-B5e)"
+GRNA_CAS12_DICOT = 'grna_CAS12a_dicot'
+PROM_CAS12 = "PROM DPolIII+DRCas12 (A1-A2-A3-B1-B2e)"
+CLEAVAGE_SIGNAL = "3_prime processing (B6c-C1)"
 PROM_DICOT = 'PROM DPolIII (A1-A2-A3-B1-B2c)'
 PROM_MONOCOT = 'PROM MPolIII (A1-A2-A3-B1-B2d)'
 TER_CRYSPER = 'sgRNA (B6b-C1)'
+CRISPR_EDITING = "CRISPR Multiplexing Editing"
+CRISPR_REGULATION = "CRISPR Multiplexing Regulation"
+CRISPR_MULTIPLEXING_TARGET = "CRISPR Multiplexing Target"
+
+CAS12_LEVEL_MINUS_ONE_2X = "CRISPR Multiplexing CAS12A_2X (B3e-B4-B5-B6-C1)"
+CAS12_LEVEL_MINUS_ONE_3X = "CRISPR Multiplexing CAS12A_3X (B3e-B4-B5-B6-C1)"
+CAS12_LEVEL_MINUS_ONE_4X = "CRISPR Multiplexing CAS12A_4X (B3e-B4-B5-B6-C1)"
+CAS12_LEVEL_MINUS_ONE_5X = "CRISPR Multiplexing CAS12A_5X (B3e-B4-B5-B6-C1)"
+CAS12_LEVEL_MINUS_ONE_6X = "CRISPR Multiplexing CAS12A_6X (B3e-B4-B5-B6-C1)"
+EDIT_E1 = "Multiplexing Dicot Edit (E1)"
+EDIT_E2 = "Multiplexing Edit (E2)"
+EDIT_E3 = "Multiplexing Edit (E3)"
+EDIT_E4 = "Multiplexing Edit (E4)"
+EDIT_E3_N_MINUS_ONE = "Multiplexing Edit (E3-E4-En-1)"
+EDIT_E4_N_MINUS_ONE = "Multiplexing Edit (E4-En-1)"
+EDIT_N_MINUS_1 = "Multiplexing Edit (En-1)"
+EDIT_NTERM = "Multiplexing Edit (EnC1)"
+EDIT_E1_N_MINUS_ONE = "Multiplexing Dicot Edit (E1-E2-E3-E4-En-1)"
+EDIT_E1_NTERM = "Multiplexing Dicot Edit (E1-E2-E3-E4-En-1-EnC1)"
+EDIT_E2_N = "Multiplexing Edit (E2-E3-E4-En-1)"
+EDIT_E1B = "Multiplexing Monocot Edit (E1b)"
+EDIT_E1B_N_MINUS_ONE = "Multiplexing Monocot Edit (E1b-E2-E3-E4-En-1)"
+
+
+REG_R1 = "Multiplexing Regulation R1"
+REG_RN_MINUS_ONE = "Multiplexing Regulation RN-1"
+REG_NTERM = "Multiplexing Regulation RnC-1"
+REG_ALL = "Multiplexing Regulation (R1-Rn-1-RnC-1)"
+SCAFFOLD = "scaffold"
+TRNA = "tRNA"
+
+
+
+#FungalBraid
+
+FUNGAL_PROM_5UTR = 'fungal_PROM+5UTR (A1-A2-A3-B1-B2)'
+FUNGAL_CDS = 'fungal_CDS (B3-B4-B5)'
+FUNGAL_UTR3_TERM = 'fungal_3UTR+TERM (B6-C1)'
+REVERSE_MARKER = "negative_marker (A1-A2-A3)"
+FORWARD_MARKER = "positive_marker (B3-B4-B5)"
+FLANK_5UTR = "5_prime_flank (B1-B2)"
+FLANK_3UTR = "3_prime flank (B6-C1)"
+FUNGAL_TU_TYPE_NAME = "Fungal TU"
+FUNGAL_KNOCK_OUT = "Fungi gene_knock-out"
+FUNGAL_MODULE_TYPE_NAME = "Fungal Module"

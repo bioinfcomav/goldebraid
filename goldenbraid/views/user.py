@@ -15,7 +15,7 @@
 
 
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.template.context import RequestContext
 
@@ -24,5 +24,5 @@ from django.template.context import RequestContext
 def user_view(request, username):
     context = RequestContext(request)
     user = User.objects.get(username=username)
-    return render_to_response('user_profile.html', {'user': user},
-                              context_instance=context)
+    context.update({'user': user})
+    return render(request, 'user_profile.html', context=context.flatten())

@@ -5,8 +5,8 @@ Created on 2014 uzt 16
 '''
 from django.shortcuts import render_to_response, redirect
 from django.template.context import RequestContext
-from django.core.context_processors import csrf
-from django.core.urlresolvers import reverse
+from django.views.decorators import csrf
+from django.urls import reverse
 # from django.views.decorators.csrf import csrf_exempt
 
 from gb_genome_domestication.models import Feature
