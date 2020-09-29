@@ -50,8 +50,8 @@ from goldenbraid.settings import (PARTS_TO_ASSEMBLE, UT_SUFFIX, UT_PREFIX,
                                   ASSEMBLED_SEQ, REBASE_FILE,
                                   CRYSPER_TARGETS_TO_DOMESTICATE,
                                   CRYSPR_MULTIPLEX_EDITING_LEVEL_MINUS_ONE,
-                                  CRYSPR_MULTIPLEX_REGULATION_LEVEL_MINUS_ONE
-                                  )
+                                  CRYSPR_MULTIPLEX_REGULATION_LEVEL_MINUS_ONE,
+                                  TU_ASSEMBLER_TITLES)
 from goldenbraid.tags import (VECTOR_TYPE_NAME, REVERSE, TU_TYPE_NAME,
                               MODULE_TYPE_NAME, TRNA,
                               SCAFFOLD, CRISPR_MULTIPLEXING_TARGET,
@@ -1039,6 +1039,8 @@ def multipartite_view(request, multi_type=None):
     else:
         request_data = None
     form_class = get_multipartite_form(multi_type, request.user)
+    title_to_display = TU_ASSEMBLER_TITLES.get(multi_type, "GB TU Assembler")
+    context.update({"title": title_to_display})
     if request_data:
         form = form_class(request_data)
         if form.is_valid():

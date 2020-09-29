@@ -553,3 +553,16 @@ SBOL_IMAGES = {FORWARD: {PROM_5UTR_NTAG: 'prom_5utr_ntag.png',
                          TARGET: 'target.rev.png',
                          TARGET_CAS12A: 'target_cas12a.png'}
                }
+TU_ASSEMBLER_TITLES = {"gRNA_dicot": "Single Cas9 gRNA Assembler, dicot (tS9A)",
+                       "gRNA_monocot": "Single Cas9 gRNA Assembler, monocot (tS9A)",
+                       'crispr_edit_dicot_1': "Multi Cas9 gRNA Assembler (tM9A)", 
+                       'crispr_edit_dicot_2': "Multi Cas9 gRNA Assembler (tM9A)", 
+                       'crispr_edit_dicot_3': "Multi Cas9 gRNA Assembler (tM9A)", 
+                       'crispr_edit_dicot_4': "Multi Cas9 gRNA Assembler (tM9A)",
+                       'crispr_edit_dicot_5': "Multi Cas9 gRNA Assembler (tM9A)",
+                       'crispr_edit_dicot_6': "Multi Cas9 gRNA Assembler (tM9A)",
+                       'crispr_edit_monocot_2': "Multi Cas9 gRNA Assembler, (tM9A)", 
+                       'crispr_edit_monocot_3': "Multi Cas9 gRNA Assembler, (tM9A)",
+                       'crispr_edit_monocot_4': "Multi Cas9 gRNA Assembler, (tM9A)",
+                       'crispr_edit_monocot_5': "Multi Cas9 gRNA Assembler, (tM9A)",
+                       'crispr_edit_monocot_6': "Multi Cas9 gRNA Assembler, (tM9A)"}
