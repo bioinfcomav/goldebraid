@@ -418,7 +418,6 @@ def level_0_editing(request, section):
     else:
         request_data = None
     form = None
-
     if section is None:
         form = TaxaChoiceForm()
         context['section'] = 'Position_Choice'
@@ -464,7 +463,7 @@ def level_0_editing(request, section):
                 return render(request, 'level0_result.html', context=context)
 
     context['form'] = form
-    template = 'crispr_level0.html'
+    template = 'crispr_level0_editing.html'
     content_type = None
     return render(request, template, context=context, content_type=content_type)
 
@@ -518,7 +517,7 @@ def level_0_regulation(request, section):
                 return render(request, 'level0_result.html', context=context)
 
     context['form'] = form
-    template = 'crispr_level0.html'
+    template = 'crispr_level0_regulation.html'
     content_type = None
     return render(request, template, context=context, content_type=content_type)
 
