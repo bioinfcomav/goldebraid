@@ -249,7 +249,8 @@ class Feature(models.Model):
             return self.props[RESISTANCE_TYPE_NAME]
         else:
             if self.type.name in (TARGET_DICOT, TARGET_MONOCOT, 
-                                  TARGET_CAS12A, CRISPR_MULTIPLEXING_TARGET):
+                                  TARGET_CAS12A, CRISPR_MULTIPLEXING_TARGET,
+                                  OTHER_TYPE_NAME):
                 return None
             else:
                 return self.vector.resistance
@@ -428,7 +429,6 @@ class Feature(models.Model):
     @property
     def gb_category_name(self):
         gb_category = self.gb_category
-        print("gb_category", gb_category)
         if gb_category == OTHER_TYPE_NAME:
             return gb_category
         if gb_category is not None:
