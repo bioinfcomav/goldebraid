@@ -335,17 +335,15 @@ def add_vector_view(request):
                 if 'feature already in db' in str(error):
                     # TODO choose a template
                     req_context = RequestContext(request)
-                    return render_to_response('feature_exists.html', {},
-                                              context_instance=req_context)
+                    return render(request, 'feature_exists.html', context={})
                 else:
                     return HttpResponseServerError(str(error))
 
             except Exception as error:
                 req_context = RequestContext(request)
-                return render_to_response('goldenbraid_info.html',
-                                          {'title': 'Error',
-                                           'info': str(error)},
-                                          context_instance=req_context)
+                return render(request, 'goldenbraid_info.html',
+                              context={'title': 'Error',
+                                       'info': str(error)})
             # if everithing os fine we show the just added feature
             return redirect(vector.url)
 
@@ -354,7 +352,7 @@ def add_vector_view(request):
 
     context['form'] = form
     template = 'vector_add_template.html'
-    return render_to_response(template, context)
+    return render(request, template, context=context.flatten())
 
 
 @login_required
