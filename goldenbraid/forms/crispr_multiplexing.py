@@ -3,7 +3,9 @@ from django.forms.widgets import Select
 
 from goldenbraid.tags import (MONOCOT_TAXA, DICOT_TAXA,
                               REG_R1, REG_RN_MINUS_ONE, REG_NTERM,
-                              REG_ALL, EDIT_E2_N, VECTOR_TYPE_NAME,
+                              REG_ALL, IREG_R1, IREG_RN_MINUS_ONE,
+                              IREG_NTERM, IREG_ALL,
+                              EDIT_E2_N, VECTOR_TYPE_NAME,
                               PROM_DICOT, PROM_MONOCOT)
 from goldenbraid.utils import has_rec_sites
 from goldenbraid.settings import (MONOCOT_EDIT_POS, DICOT_EDIT_POS,
@@ -15,6 +17,7 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 
 REGULATING_CATEGORIES = [REG_R1, REG_RN_MINUS_ONE, REG_NTERM, REG_ALL]
+INDUCIBLE_REGULATING_CATEGORIES = [IREG_R1, IREG_RN_MINUS_ONE, IREG_NTERM, IREG_ALL]
 
 
 def _seq_is_dna(string):
@@ -36,10 +39,14 @@ def populate_location_form(form, taxa):
     form.fields['taxa'].widget.choices = [(taxa, taxa)]
 
 
-def populate_regulation_location_form(form):
+def populate_regulation_location_form(form, mode):
     position_choices = [('', '')]
-    for item in REGULATING_CATEGORIES:
-        position_choices.append((item, item))
+    if mode == "regulation":
+        for item in REGULATING_CATEGORIES:
+            position_choices.append((item, item))
+    if mode == "inducible_regulation":
+        for item in INDUCIBLE_REGULATING_CATEGORIES:
+            position_choices.append((item, item))
     form.fields['position'].widget.choices = position_choices
 
 
@@ -88,6 +95,9 @@ def populate_sequence_form(form, taxa, position, user):
     if user.is_authenticated:
         targets = targets.filter(Q(featureperm__owner__username=user) |
                                  Q(featureperm__is_public=True))
+    else:
+        targets = targets.filter(featureperm__is_public=True)
+
     target_choices = [('', '')]
     for target in targets:
         target_name = "{} - {}".format(target.uniquename, target.name)
@@ -123,6 +133,9 @@ def populate_regulation_sequence_form(form, position, user):
     if user.is_authenticated:
         targets = targets.filter(Q(featureperm__owner__username=user) |
                                  Q(featureperm__is_public=True))
+    else:
+        targets = targets.filter(featureperm__is_public=True)
+        
     target_choices = [('', '')]
     for target in targets:
         target_name = "{} - {}".format(target.uniquename, target.name)

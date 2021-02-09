@@ -69,6 +69,7 @@ TMP_DIR = join("/home/golden/devel/gbdb", "files")
 
 
 def _get_feature_name(position):
+    # TEMPORARY BYPASS
     print(position)
 
     position_features = Feature.objects.filter(type__name=position).filter(featureperm__owner__username="admin")
@@ -405,8 +406,6 @@ def crispr_view_cas9_multiplexing_auto(request, section):
     return render(request, template, context=context, content_type=content_type)
 
 
-
-@login_required
 def level_0_editing(request, section):
     context = {}
     context.update(csrf(request))
@@ -468,8 +467,8 @@ def level_0_editing(request, section):
     return render(request, template, context=context, content_type=content_type)
 
 
-@login_required
-def level_0_regulation(request, section):
+
+def level_0_regulation(request, section, mode):
     context = {}
     context.update(csrf(request))
     user = request.user
@@ -483,7 +482,7 @@ def level_0_regulation(request, section):
 
     if section is None:
         form = RegulationLocationForm()
-        populate_regulation_location_form(form)
+        populate_regulation_location_form(form, mode)
         context['section'] = 'Position_Choice'
 
     elif section == 'Position_Choice':
@@ -502,6 +501,7 @@ def level_0_regulation(request, section):
                 position_part = cleaned_data["position"]
                 target_part = cleaned_data["target"]
                 part_types = PARTS_TO_ASSEMBLE['crispr_multiplexing']
+                print(position_part, target_part, part_types)
                 used_parts = OrderedDict()
                 parts_name = OrderedDict()
                 for part_type in part_types:
@@ -520,6 +520,8 @@ def level_0_regulation(request, section):
     template = 'crispr_level0_regulation.html'
     content_type = None
     return render(request, template, context=context, content_type=content_type)
+
+
 
 
 @login_required
