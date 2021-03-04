@@ -484,7 +484,6 @@ def level_0_regulation(request, section, mode):
         form = RegulationLocationForm()
         populate_regulation_location_form(form, mode)
         context['section'] = 'Position_Choice'
-
     elif section == 'Position_Choice':
         form = RegulationLocationForm(request_data)
         if form.is_valid():
@@ -493,7 +492,6 @@ def level_0_regulation(request, section, mode):
             context['section'] = position
             form = RegulationSequenceForm()
             populate_regulation_sequence_form(form, position, user)
-
     elif section in LOCATIONS:
             form = RegulationSequenceForm(request_data)
             if form.is_valid():
@@ -501,7 +499,6 @@ def level_0_regulation(request, section, mode):
                 position_part = cleaned_data["position"]
                 target_part = cleaned_data["target"]
                 part_types = PARTS_TO_ASSEMBLE['crispr_multiplexing']
-                print(position_part, target_part, part_types)
                 used_parts = OrderedDict()
                 parts_name = OrderedDict()
                 for part_type in part_types:

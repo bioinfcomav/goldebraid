@@ -431,7 +431,7 @@ def _domestication_view(request, kind):
     else:
         request_data = None
     if request_data:
-        form = DomesticationForm(request_data, request.FILES)
+        form = DomesticationForm(request_data, request.FILES, kind=kind)
         # do domestication
         if form.is_valid():
             seq = form.cleaned_data['seq']

@@ -29,13 +29,15 @@ from goldenbraid.tags import (MODULE_TYPE_NAME, TU_TYPE_NAME, TARGET_DICOT,
                               OTHER_TYPE_NAME, CRISPR_MULTIPLEXING_TARGET,
                               EDIT_E1, EDIT_E2, EDIT_E3, EDIT_E4, EDIT_E3_N_MINUS_ONE,
                               EDIT_N_MINUS_1, EDIT_NTERM, EDIT_E1_N_MINUS_ONE,
-                              EDIT_E2_N, EDIT_E1B, EDIT_E1B_N_MINUS_ONE,
+                              EDIT_E2_N, EDIT_E1B, EDIT_E1B_N_MINUS_ONE, EDIT_E1B_NTERM,
                               REG_R1, REG_RN_MINUS_ONE, REG_NTERM, REG_ALL,
                               CRISPR_EDITING, CRISPR_REGULATION,
                               TRNA, SCAFFOLD, EDIT_E1_N_MINUS_ONE,
                               EDIT_E4_N_MINUS_ONE, EDIT_E1_NTERM,
                               TARGET_CAS12A, PROM_CAS12,
                               CLEAVAGE_SIGNAL,
+                              IREG_R1, IREG_RN_MINUS_ONE,
+                              IREG_NTERM, IREG_ALL,
                               CAS12_LEVEL_MINUS_ONE_2X,
                               CAS12_LEVEL_MINUS_ONE_3X,
                               CAS12_LEVEL_MINUS_ONE_4X,
@@ -133,10 +135,15 @@ CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[EDIT_E1_NTERM] = (EDIT_E1_NTERM, 'CT
 CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[EDIT_E2_N] = (EDIT_E2_N, 'CTCG', 'GTGC')
 CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[EDIT_E1B] = (EDIT_E1B, 'CTCG', 'GTGC')
 CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[EDIT_E1B_N_MINUS_ONE] = (EDIT_E1B_N_MINUS_ONE, 'CTCG', 'GTGC')
+CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[EDIT_E1B_NTERM] = (EDIT_E1B_NTERM, 'CTCG', 'GTGC')
 CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[REG_R1] = (REG_R1, 'CTCG', 'GTGC')
 CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[REG_RN_MINUS_ONE] = (REG_RN_MINUS_ONE, 'CTCG', 'GTGC')
 CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[REG_NTERM] = (REG_NTERM, 'CTCG', 'GTGC')
 CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[REG_ALL] = (REG_ALL, 'CTCG', 'GTGC')
+CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[IREG_R1] = (IREG_R1, 'CTCG', 'GTGC')
+CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[IREG_RN_MINUS_ONE] = (IREG_RN_MINUS_ONE, 'CTCG', 'GTGC')
+CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[IREG_NTERM] = (IREG_NTERM, 'CTCG', 'GTGC')
+CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE[IREG_ALL] = (IREG_ALL, 'CTCG', 'GTGC')
 
 
 CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE = OrderedDict()
@@ -170,7 +177,12 @@ CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[REG_R1] = (REG_R1, 'ATTG', 'TCCC')
 CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[REG_RN_MINUS_ONE] = (REG_RN_MINUS_ONE, 'TCCC', 'CCAA')
 CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[REG_NTERM] = (REG_NTERM, 'CCAA', 'CGCT')
 CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[EDIT_E1_NTERM] = (EDIT_E1_NTERM, 'ATTG', 'CGCT')
+CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[EDIT_E1B_NTERM] = (EDIT_E1B_NTERM, 'GGCA', 'CGCT')
 CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[REG_ALL] = (REG_ALL, 'ATTG', 'CGCT')
+CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_R1] = (IREG_R1, 'AATG', 'GTCT')
+CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_RN_MINUS_ONE] = (IREG_RN_MINUS_ONE, 'GTCT', 'CCAA')
+CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_NTERM] = (IREG_NTERM, 'CCAA', 'GCTT')
+CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_ALL] = (IREG_ALL, 'AATG', 'GCTT')
 
 
 
@@ -178,7 +190,7 @@ CRYSPR_MULTIPLEX_MODES = [CRISPR_EDITING, CRISPR_REGULATION]
 
 MONOCOT_EDIT_POS = [EDIT_E1B, EDIT_E2, EDIT_E3, EDIT_E4, EDIT_N_MINUS_1,
                     EDIT_NTERM, EDIT_E1B_N_MINUS_ONE, EDIT_E4_N_MINUS_ONE,
-                    EDIT_E3_N_MINUS_ONE]
+                    EDIT_E3_N_MINUS_ONE, EDIT_E1B_NTERM]
 DICOT_EDIT_POS = [EDIT_E1, EDIT_E2, EDIT_E3, EDIT_E4, EDIT_N_MINUS_1,
                   EDIT_NTERM, EDIT_E1_N_MINUS_ONE, EDIT_E4_N_MINUS_ONE,
                   EDIT_E1_NTERM, EDIT_E3_N_MINUS_ONE]
@@ -314,6 +326,8 @@ PARTS_TO_ASSEMBLE = {'basic': [CATEGORIES[PROM_5UTR_NTAG],
                                              SCAFFOLD],
                      'crispr_edit_dicot_1': [CRYSPER_CATEGORIES[PROM_DICOT],
                                              CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[EDIT_E1_NTERM]],
+                     'crispr_edit_monocot_1': [CRYSPER_CATEGORIES[PROM_DICOT],
+                                             CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[EDIT_E1B_NTERM]],
                      'crispr_edit_monocot_6': [CRYSPER_CATEGORIES[PROM_MONOCOT],
                                                CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[EDIT_E1B],
                                                CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[EDIT_E2],
@@ -378,10 +392,17 @@ PARTS_TO_ASSEMBLE = {'basic': [CATEGORIES[PROM_5UTR_NTAG],
                                              CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[REG_R1],
                                              CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[REG_RN_MINUS_ONE],
                                              CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[REG_NTERM]],
-
+                    
                      'crispr_regulation_1': [CRYSPER_CATEGORIES[PROM_DICOT],
                                              CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[REG_ALL]],
 
+                     'crispr_inducible_regulation_1': [CRYSPER_CATEGORIES[PROM_DICOT],
+                                                       CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_ALL]],
+
+                     'crispr_inducible_regulation_3': [CRYSPER_CATEGORIES[PROM_DICOT],
+                                                       CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_R1],
+                                                       CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_RN_MINUS_ONE],
+                                                       CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_NTERM]],
 
                      'gene_disruption': [FUNGAL_CATEGORIES[REVERSE_MARKER],
                                          FUNGAL_CATEGORIES[FLANK_5UTR],
@@ -561,6 +582,7 @@ TU_ASSEMBLER_TITLES = {"gRNA_dicot": "Single Cas9 gRNA Assembler, dicot (tS9A)",
                        'crispr_edit_dicot_4': "Multiple Cas9 gRNA Assembler (tM9A)",
                        'crispr_edit_dicot_5': "Multiple Cas9 gRNA Assembler (tM9A)",
                        'crispr_edit_dicot_6': "Multiple Cas9 gRNA Assembler (tM9A)",
+                       'crispr_edit_monocot_1': "Multiple Cas9 gRNA Assembler (tM9A)",
                        'crispr_edit_monocot_2': "Multiple Cas9 gRNA Assembler, (tM9A)", 
                        'crispr_edit_monocot_3': "Multiple Cas9 gRNA Assembler, (tM9A)",
                        'crispr_edit_monocot_4': "Multiple Cas9 gRNA Assembler, (tM9A)",
@@ -569,4 +591,6 @@ TU_ASSEMBLER_TITLES = {"gRNA_dicot": "Single Cas9 gRNA Assembler, dicot (tS9A)",
                        'single_cas9_regulatory_monocot': 'Single regulatory Cas9 gRNA Assembler monocot (tSr9A)',
                        'single_cas9_regulatory_dicot': 'Single regulatory Cas9 gRNA Assembler dicot (tSr9A)',
                        'crispr_regulation_3': "Multiple Regulatory Cas9 gRNA Assembler, (tMr9A)",
-                       'crispr_regulation_1': "Multiple Regulatory Cas9 gRNA Assembler, (tMr9A)"}
+                       'crispr_regulation_1': "Multiple Regulatory Cas9 gRNA Assembler, (tMr9A)",
+                       'crispr_inducible_regulation_3': "Multiple Inducible Regulatory Cas9 gRNA Assembler, (tMr9A)",
+                       'crispr_inducible_regulation_1': "Multiple Inducible Regulatory Cas9 gRNA Assembler, (tMr9A)",}

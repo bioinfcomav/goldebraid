@@ -110,6 +110,10 @@ class DomesticationCas12Mult6XForm(DomesticationCas12Mult5XForm):
 
 
 class DomesticationForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self._kind = kwargs.pop('kind', "None")
+        super().__init__(*args, **kwargs)
+
     super_choice = [('', '')]
     choices = []
     for category_name in CATEGORIES.keys():
@@ -160,7 +164,7 @@ class DomesticationForm(forms.Form):
             msg = 'The given file contains seqs with not allowed nucleotides'
             msg += ' ATGC'
             raise ValidationError(msg)
-        if len(seq) < MINIMUN_PCR_LENGTH + 20:
+        if len(seq) < MINIMUN_PCR_LENGTH + 20 and self._kind != "synthesis":
             msg = 'Given seq must be at least 70 base pairs'
             raise ValidationError(msg)
         if self._data_in(self.cleaned_data, 'category'):
