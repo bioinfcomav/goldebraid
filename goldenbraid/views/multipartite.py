@@ -702,8 +702,8 @@ def assemble_unit_zero(parts, part_types):
 
 def assemble_parts(parts, part_types):
     'We build the parts using the form data'
-
-    part_types.append(VECTOR_TYPE_NAME)
+    if VECTOR_TYPE_NAME not in part_types:
+        part_types.append(VECTOR_TYPE_NAME)
     joined_seq = SeqRecord(Seq('', alphabet=generic_dna))
     names = {'parts': []}
     for part_type in part_types:
@@ -886,6 +886,7 @@ def multipartite_view_genbank(request, multi_type=None):
         if form.is_valid():
             multi_form_data = form.cleaned_data
             part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
+            print(part_types)
             assembled_seq = assemble_parts(multi_form_data, part_types)
             filename = assembled_seq.name + '.gb'
             response = HttpResponse(assembled_seq.format('genbank'),
@@ -944,7 +945,6 @@ def multipartite_view_add(request):
         return render(request, 'goldenbraid_info.html', context=context)
     if multi_type == 'free':
         part_types = request_data['order'].split(':')
-        print(2)
         print(request_data['order'])
     else:
         part_types = [p[0] for p in PARTS_TO_ASSEMBLE[multi_type]]
