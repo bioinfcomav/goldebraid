@@ -24,7 +24,7 @@ from goldenbraid.tags import (MODULE_TYPE_NAME, TU_TYPE_NAME, TARGET_DICOT,
                               TER_CRYSPER, PROM_5UTR_NTAG, PROM_5UTR, PROX,
                               DIST_PROX, CORE_5UTR, DIST, INTERACTION_ADAPTOR,
                               PROM_5UTR_MIR173, NTAG, CDS, CDS2_CTAG,
-                              CDS1_CDS2, CTAG, FS5, TARGET, FS3, GOI, INT, IOG,
+                              CDS1_CDS2, CDS2, CTAG, FS5, TARGET, FS3, GOI, INT, IOG,
                               FGOI, UTR3_TERM, CDS1, FORWARD, REVERSE,
                               OTHER_TYPE_NAME, CRISPR_MULTIPLEXING_TARGET,
                               EDIT_E1, EDIT_E2, EDIT_E3, EDIT_E4, EDIT_E3_N_MINUS_ONE,
@@ -81,6 +81,7 @@ CATEGORIES[PROM_5UTR_MIR173] = ('PROM+UTR+mir173', 'GGAG', 'CCAT')
 CATEGORIES[NTAG] = ('NT', 'CCAT', 'AATG')
 CATEGORIES[CDS] = ('CDS', 'AATG', 'GCTT')
 CATEGORIES[CDS1] = ('SP', 'AATG', 'AGCC')
+CATEGORIES[CDS2] = ('CDS', 'AGCC', 'TTCG')
 CATEGORIES[CDS2_CTAG] = ('CDS', 'AGCC', 'GCTT')
 CATEGORIES[CDS1_CDS2] = ('CDS', 'AATG', 'TTCG')
 CATEGORIES[CTAG] = ('CT', 'TTCG', 'GCTT')
@@ -458,6 +459,7 @@ SBOL_IMAGES = {FORWARD: {PROM_5UTR_NTAG: 'prom_5utr_ntag.png',
                          CDS1_CDS2: 'cds1_cds2.png',
                          CDS2_CTAG: 'cds2_ctag.png',
                          CDS1: 'cds1.png',
+                         CDS2: 'cds1.png',
                          NTAG: 'ntag.png',
                          CTAG: 'ctag.png',
                          UTR3_TERM: '3utr_term.png',
@@ -521,6 +523,7 @@ SBOL_IMAGES = {FORWARD: {PROM_5UTR_NTAG: 'prom_5utr_ntag.png',
                          CDS1_CDS2: 'cds1_cds2.rev.png',
                          CDS2_CTAG: 'cds2_ctag.rev.png',
                          CDS1: 'cds1.rev.png',
+                         CDS2: 'cds1.rev.png',
                          NTAG: 'ntag.rev.png',
                          CTAG: 'ctag.rev.png',
                          UTR3_TERM: '3utr_term.rev.png',

@@ -35,7 +35,7 @@ from goldenbraid.settings import (DOMESTICATION_DEFAULT_MELTING_TEMP,
                                   MANDATORY_DOMEST_ENZYMES)
 from goldenbraid.models import Feature, Count
 from Bio.SeqFeature import FeatureLocation, CompoundLocation, SeqFeature
-from goldenbraid.tags import (TARGET_MONOCOT, TARGET_DICOT, CDS, CDS1_CDS2,
+from goldenbraid.tags import (TARGET_MONOCOT, TARGET_DICOT, CDS, CDS1_CDS2, CDS2,
                               NTAG, CDS1, CRISPR_MULTIPLEXING_TARGET, TARGET_CAS12A)
 from goldenbraid.utils import (get_ret_sites, has_rec_sites,
                                get_prefix_and_suffix_index)
@@ -144,7 +144,6 @@ def domesticate(seqrec, category, prefix, suffix, enzymes=None, with_intron=Fals
     if with_intron:
         cds = _get_cds_from_seq(seq, prefix, reverse_orientation=reverse_orientation)
         new_seq_record.features.append(cds)
-
     return oligo_pcrs, new_seq_record
 
 
@@ -359,6 +358,8 @@ def _guess_prefix_suffix_tag(kind, prefix, suffix):
     elif kind == CDS1:
         prefix = 'A'
         suffix = 'GCAGCC'
+    elif kind == CDS2:
+        suffix = 'GGTTCG'
     elif kind == NTAG:
         prefix = 'CC'
         suffix = 'TCAATG'

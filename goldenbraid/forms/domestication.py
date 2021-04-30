@@ -18,7 +18,7 @@ from goldenbraid.settings import (CATEGORIES, MINIMUN_PCR_LENGTH,
                                   FUNGAL_CATEGORIES)
 from goldenbraid.utils import has_rec_sites
 from goldenbraid.tags import (TARGET_DICOT, TARGET_MONOCOT, CDS, CDS1, NTAG,
-                              CDS1_CDS2, CDS2_CTAG, CTAG, TARGET_CAS12A, FUNGAL_CDS,
+                              CDS1_CDS2, CDS2, CDS2_CTAG, CTAG, TARGET_CAS12A, FUNGAL_CDS,
                               FORWARD_MARKER, REVERSE_MARKER)
 
 def cas12a_seq_is_valid(seq):
@@ -179,13 +179,12 @@ class DomesticationForm(forms.Form):
                     msg = 'The provided seq must end with a end codon in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-            if category in (CDS, CDS1, NTAG, CDS1_CDS2, CDS2_CTAG, CTAG):
+            if category in (CDS, CDS1, CDS2, NTAG, CDS1_CDS2, CDS2_CTAG, CTAG):
                 if not _is_seq_3_multiple(seq.seq, with_intron):
                     msg = 'The provided seq must be multiple of three in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
-
-            if category in (CDS1_CDS2, NTAG, CDS1):
+            if category in (CDS1_CDS2, NTAG, CDS1, CDS2):
                 if _seq_has_codon_end(seq.seq, with_intron):
                     msg = 'The provided seq must not end with a stop codon in '
                     msg += 'order to use as choosen category'
