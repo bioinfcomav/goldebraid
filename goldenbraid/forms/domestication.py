@@ -184,6 +184,11 @@ class DomesticationForm(forms.Form):
                     msg = 'The provided seq must be multiple of three in '
                     msg += 'order to use as choosen category'
                     raise ValidationError(msg)
+            if category == CDS2:
+                if  _seq_has_codon_start(seq.seq, with_intron):
+                    msg = "Provided seq must not begin with a starting codon"
+                    msg += " in order to use this category"
+                    raise ValidationError(msg)
             if category in (CDS1_CDS2, NTAG, CDS1, CDS2):
                 if _seq_has_codon_end(seq.seq, with_intron):
                     msg = 'The provided seq must not end with a stop codon in '
