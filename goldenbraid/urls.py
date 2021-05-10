@@ -50,8 +50,10 @@ from goldenbraid.views.bipartite import (bipartite_view,
                                          fungal_bipartite_view)
 from goldenbraid.views.domestication import (domestication_view,
                                              domestication_view_genbank,
+                                             domestication_view_regular_genbank,
                                              domestication_view_protocol,
                                              domestication_view_add,
+                                             domestication_view_regular_add,
                                              domestication_view_sbol,
                                              synthesis_view,
                                              synthesis_view_genbank,
@@ -97,6 +99,8 @@ urlpatterns = [
     url(r'^user/(?P<username>.+)/$', user_view, name='user_view'),  # @IgnorePep8
     url(r'^do/domestication/$', domestication_view, name='domestication_view'),
     url(r'^do/domestication/add/$', domestication_view_add, name='domestication_view_add'),  # @IgnorePep8
+    url(r'^do/domestication/regular/add/$', domestication_view_regular_add, name='domestication_view_add'),  # @IgnorePep8
+    url(r'^do/domestication/regular/genbank/$', domestication_view_regular_genbank, name='domestication_view_regular_genbank'),  # @IgnorePep8
     url(r'^do/domestication/genbank/$', domestication_view_genbank, name='domestication_view_genbank'),  # @IgnorePep8
     url(r'^do/domestication/sbol/$', domestication_view_sbol, name='domestication_view_sbol'),  # @IgnorePep8
     url(r'^do/domestication/protocol/$', domestication_view_protocol, name='domestication_view_protocol'),  # @IgnorePep8

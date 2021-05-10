@@ -14,14 +14,14 @@
 # limitations under the License.
 
 import textwrap
-
+from io import StringIO
 from tempfile import NamedTemporaryFile
 from textwrap import fill, wrap
 from os.path import join
 from collections import OrderedDict
 import json
 
-
+from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import generic_dna
@@ -421,6 +421,11 @@ def crispr_view(request):
     return render(request, template, context=context, content_type=content_type)
 
 
+def _parse_feature(feature):
+    print(feature)
+    feature_start = feature.SeqFeature.location.start
+    print(feature_start)
+
 def _domestication_view(request, kind):
     context = {}
     context.update(csrf(request))
@@ -454,8 +459,8 @@ def _domestication_view(request, kind):
             with_intron_str = '1' if with_intron else '0'
             if kind == 'domestication':
                 try:
-                    pcr = domesticate(seq, category, prefix, suffix, enzymes,
-                                      with_intron=with_intron)[0]
+                    pcr, new_seq_record = domesticate(seq, category, prefix, suffix, enzymes,
+                                                      with_intron=with_intron)
                 except RuntimeError as error:
                     context = {'title': 'Can not domesticate sequence', 'info': error}
                     return render(request, 'goldenbraid_info.html',
@@ -465,15 +470,18 @@ def _domestication_view(request, kind):
                                'info': error}
                     return render(request, 'goldenbraid_info.html',
                                   context=context)
+                new_seq_record_handle = StringIO()
+                SeqIO.write(new_seq_record, new_seq_record_handle, "genbank")
                 context = {'category': category,
                            'prefix': prefix,
                            'suffix': suffix,
                            'pcrs': pcr,
                            'seq': str(seq.seq),
+                           'record': new_seq_record_handle.getvalue(),
                            'seq_name': seq.name,
                            'enzymes': enzymes,
                            'with_intron': with_intron_str}
-                return render(request, 'domestication_result.html', context=context)
+                return render(request, 'domestication_regular_result.html', context=context)
             elif kind == 'synthesis':
                 try:
                     seq_for_syn, prepared_seq = domesticate_for_synthesis(seq,
@@ -495,6 +503,7 @@ def _domestication_view(request, kind):
                            'suffix': suffix,
                            'seq_syn': seq_for_syn,
                            'seq': str(seq.seq),
+                           'record': seq,
                            'seq_name': prepared_seq.name,
                            'enzymes': enzymes,
                            'with_intron': with_intron_str,
@@ -700,6 +709,20 @@ def domestication_view_genbank(request):
     return _domestication_view_no_template(request, function)
 
 
+def  domestication_view_regular_genbank(request):
+    def function(record, category, prefix, suffix, enzymes, with_intron):
+        #seq = domesticate(seq, category, prefix, suffix, enzymes,
+                           #with_intron=with_intron)[1]
+        
+        parsed_record = SeqIO.read(StringIO(record), "genbank")
+        response = HttpResponse(record.format('genbank'),
+                                content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; '
+        response['Content-Disposition'] += 'filename="{0}.gb"'.format(parsed_record.id)
+        return response
+    return _domestication_view_genbank_no_template(request, function)
+
+
 def domestication_view_sbol(request):
     def function(seq, category, prefix, suffix, enzymes, with_intron):
         seq = domesticate(seq, category, prefix, suffix, enzymes,
@@ -901,8 +924,70 @@ def domestication_view_add(request):
     else:
         seq = domesticate(seq, category, prefix, suffix, enzymes=enzymes,
                           with_intron=with_intron)[1]
-    for feature in seq.features:
-        print(feature)
+    temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(seq.id),
+                                    suffix='.gb', dir=TMP_DIR)
+    temp_fhand.write(seq.format('gb').encode())
+    temp_fhand.flush()
+    temp_fhand.seek(0)
+    props = {'Description': [textwrap.fill(request_data['description'], width=70)],
+             'Reference': [request_data['reference']]}
+    try:
+        feature = add_feature(name=name, type_name=category_name,
+                              vector=DOMESTICATED_VECTOR, genbank=temp_fhand,
+                              props=props, owner=request.user, is_public=False)
+
+    except IntegrityError as error:
+        if 'feature already in db' in str(error):
+            # TODO choose a template
+            return render_to_response('feature_exists.html',
+                                      {},
+                                      context_instance=RequestContext(request))
+        else:
+            return HttpResponseServerError()
+    except Exception as error:
+        return HttpResponseServerError()
+    # if everithing os fine we show the just added feature
+    return redirect(feature.url)
+
+
+
+def _get_features(record):
+    parsed_record = SeqIO.read(StringIO(record), "genbank")
+    return parsed_record.features
+
+
+@login_required
+def domestication_view_regular_add(request):
+    context = RequestContext(request)
+    context.update(csrf(request))
+    request_data = request.POST
+    seq = request_data['seq']
+    features = _get_features(request_data['record'])
+    category = request_data['category']
+    prefix = request_data['prefix']
+    suffix = request_data['suffix']
+    seq_name = request_data['seq_name']
+    name = request_data['name']
+    # Enzymes not working ???
+    try:
+        enzymes = request_data['enzymes']
+        # it returns a unicode string, converting to list
+        if isinstance(enzymes, unicode):
+            enzymes = _parse_unicode_into_list(enzymes)
+
+    except:
+        enzymes = None
+
+    with_intron = bool(int(request_data['with_intron']))
+    if category == 'None':
+        category_name = 'Other'
+    else:
+        category_name = CATEGORIES[category][0]
+    seq = SeqRecord(Seq(seq), id=seq_name, name=seq_name)
+    seq = domesticate(seq, category, prefix, suffix, enzymes=enzymes,
+                          with_intron=with_intron)[1]
+    for feature in features:
+        seq.features.append(feature)
     temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(seq.id),
                                     suffix='.gb', dir=TMP_DIR)
     temp_fhand.write(seq.format('gb').encode())
@@ -1013,6 +1098,24 @@ def _domestication_view_no_template(request, function):
             seq.features.append(feature)
         
     return function(seq, category, prefix, suffix, enzymes, with_intron)
+
+
+def _domestication_view_genbank_no_template(request, function):
+    if not request.POST:
+        msg = "To show the protocol you need first to assemble parts"
+        return HttpResponseBadRequest(msg)
+    context = RequestContext(request)
+    context.update(csrf(request))
+    request_data = request.POST
+    category = request_data['category']
+    prefix = request_data['prefix']
+    suffix = request_data['suffix']
+    enzymes = json.loads(request_data['enzymes'])
+    with_intron = request_data['with_intron']
+    with_intron = bool(int(with_intron))
+    seq_name = request_data['seq_name']
+    record = request_data['record']
+    return function(record, category, prefix, suffix, enzymes, with_intron)
 
 
 def _fungal_domestication_view_no_template(request, function):

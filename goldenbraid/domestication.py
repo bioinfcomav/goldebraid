@@ -137,10 +137,16 @@ def domesticate(seqrec, category, prefix, suffix, enzymes=None, with_intron=Fals
     new_seq_record = SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
 
     start = len(prefix)
-    
-    part_feat = SeqFeature(FeatureLocation(start, len(new_seq) + start),
-                           type='misc_feature', id=new_seq_record.id)
-    new_seq_record.features.append(part_feat)
+    #Add original features with SimpleLocation
+    for feature in seqrec.features:
+        strand = feature.location.strand
+        part_feat = SeqFeature(FeatureLocation(feature.location.start+start, feature.location.end+start, feature.location.strand),
+                                               type=feature.type, id=new_seq_record.id, qualifiers=feature.qualifiers)
+        new_seq_record.features.append(part_feat)
+    if len(new_seq_record.features) == 0:
+        part_feat = SeqFeature(FeatureLocation(start, len(new_seq) + start),
+                    type='misc_feature', id=new_seq_record.id)
+        new_seq_record.features.append(part_feat)
     if with_intron:
         cds = _get_cds_from_seq(seq, prefix, reverse_orientation=reverse_orientation)
         new_seq_record.features.append(cds)
@@ -458,7 +464,6 @@ def _remove_rec_sites(seq, enzymes=None, reverse_orientation=False):
             new_rec_site = _domesticate_rec_site(rec_site_in_seq,
                                                  _cumulative_patch,
                                                  rec_sites_regex)
-            print(rec_site_in_seq, new_rec_site)
             rec_site_pairs.append({'original': rec_site_in_seq,
                                    'modified': new_rec_site})
 
