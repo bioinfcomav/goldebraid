@@ -83,11 +83,19 @@ def domesticate_for_synthesis(seqrec, category, prefix, suffix, enzymes,
     vector_features = _load_features_from_vector()
     prepared_new_seq = prefix + new_seq + suffix + vector_seq
     start = len(prefix)
-    part_feat = SeqFeature(FeatureLocation(start, len(new_seq) + start),
-                           type='misc_feature')
     seq_for_synthesis = str(seqs_for_sintesis[0])
     prepared_seq = SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
-    prepared_seq.features.append(part_feat)
+    
+    start = len(prefix)
+    for feature in seqrec.features:
+        strand = feature.location.strand
+        part_feat = SeqFeature(FeatureLocation(feature.location.start+start, feature.location.end+start, feature.location.strand),
+                                               type=feature.type, id=prepared_seq.id, qualifiers=feature.qualifiers)
+        prepared_seq.features.append(part_feat)
+    if len(seqrec.features) == 0:
+        part_feat = SeqFeature(FeatureLocation(start, len(new_seq) + start),
+                               type='misc_feature')
+        prepared_seq.features.append(part_feat)
     return seq_for_synthesis, prepared_seq
 
 

@@ -498,12 +498,16 @@ def _domestication_view(request, kind):
                 features_qualifiers = []
                 for feature in seq.features:
                     features_qualifiers.append(feature.qualifiers)
+                prepared_seq_handle = StringIO()
+                SeqIO.write(prepared_seq, prepared_seq_handle, "genbank")
+                print(prepared_seq_handle)
                 context = {'category': category,
                            'prefix': prefix,
                            'suffix': suffix,
                            'seq_syn': seq_for_syn,
                            'seq': str(seq.seq),
                            'record': seq,
+                           'record': prepared_seq_handle.getvalue(),
                            'seq_name': prepared_seq.name,
                            'enzymes': enzymes,
                            'with_intron': with_intron_str,
@@ -674,15 +678,14 @@ def fungal_domestication_view_sbol(request):
 
 
 def synthesis_view_genbank(request):
-    def function(seq, category, prefix, suffix, enzymes, with_intron):
-        seq = domesticate_for_synthesis(seq, category, prefix, suffix, enzymes,
-                                        with_intron)[1]
-        response = HttpResponse(seq.format('genbank'),
+    def function(record, category, prefix, suffix, enzymes, with_intron):
+        parsed_record = SeqIO.read(StringIO(record), "genbank")
+        response = HttpResponse(record.format('genbank'),
                                 content_type='text/plain')
         response['Content-Disposition'] = 'attachment; '
-        response['Content-Disposition'] += 'filename="{0}.gb"'.format(seq.id)
+        response['Content-Disposition'] += 'filename="{0}.gb"'.format(parsed_record.id)
         return response
-    return _domestication_view_no_template(request, function)
+    return _domestication_view_genbank_no_template(request, function)
 
 
 def synthesis_view_sbol(request):

@@ -20,7 +20,7 @@
 </form>
 
 <form action='/do/synthesis/genbank/' method='POST'>{% csrf_token %}
-    <INPUT type="hidden" name="seq" value="{{ seq }}">
+    <INPUT type="hidden" name="record" value="{{ record }}">
     <INPUT type="hidden" name="prefix" value="{{ prefix }}">
     <INPUT type="hidden" name="suffix" value="{{ suffix }}">
     <INPUT type="hidden" name="category" value="{{ category }}">
@@ -29,6 +29,8 @@
     <INPUT type="hidden" name="enzymes" value="{{ enzymes|jsonify }}">
     <p>You can download your new seq in genbank format <INPUT type="submit" value="here"></p>
 </form>
+
+
 
 <form action='/do/synthesis/sbol/' method='POST'>{% csrf_token %}
     <INPUT type="hidden" name="seq" value="{{ seq }}">
@@ -43,7 +45,7 @@
 {% if user.is_authenticated %}
   <a id="displayText" href="javascript:toggle();">+Add part</a>
   <div id="toggleText" style="display: none">
-    <form action='/do/domestication/add/' method='POST'>{% csrf_token %}
+    <form action='/do/domestication/regular/add/' method='POST'>{% csrf_token %}
 	 <div class='tools'>
 	 <p><span class='addfeat'>Once you have domesticated your DNA sequence, you can add the created GBpart/superpart to the GB database. This will allow you to use these GBpart/superparts in your next assemblies.</span></p>
 	 <p><span class='addfeat'>User-added GBdatabase entries are private and only accessible to the user who created them.</span></p>
@@ -59,6 +61,7 @@
             <label for="name">Reference:</label><input id="id_reference" maxlength="255" name="reference" type="text" /><span class='addfeat'> You can add bibliographic references here.</span>
         </li>
         </ul>
+        <INPUT type="hidden" name="record" value="{{ record }}">
         <INPUT type="hidden" name="seq" value="{{ seq }}">
         <INPUT type="hidden" name="prefix" value="{{ prefix }}">
         <INPUT type="hidden" name="suffix" value="{{ suffix }}">
