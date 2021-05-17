@@ -47,7 +47,7 @@ from goldenbraid.settings import (CATEGORIES, CRYSPER_CATEGORIES,
                                   CAS12_LEVEL_MINUS_ONE_6X,
                                   CRISPR_CAS12A_MULTIPLEX_CATEGORIES_LEVEL_MINUS_ONE,
                                   FUNGAL_CATEGORIES)
-from goldenbraid.tags import CRISPR_MULTIPLEXING_TARGET, FUNGAL_CDS, REVERSE_MARKER
+from goldenbraid.tags import CRISPR_MULTIPLEXING_TARGET, FUNGAL_CDS, REVERSE_MARKER, PROM_CAS12, PROM_DICOT, PROM_MONOCOT
 
 
 from goldenbraid.forms.domestication import (DomesticationForm,
@@ -421,11 +421,6 @@ def crispr_view(request):
     return render(request, template, context=context, content_type=content_type)
 
 
-def _parse_feature(feature):
-    print(feature)
-    feature_start = feature.SeqFeature.location.start
-    print(feature_start)
-
 def _domestication_view(request, kind):
     context = {}
     context.update(csrf(request))
@@ -500,7 +495,6 @@ def _domestication_view(request, kind):
                     features_qualifiers.append(feature.qualifiers)
                 prepared_seq_handle = StringIO()
                 SeqIO.write(prepared_seq, prepared_seq_handle, "genbank")
-                print(prepared_seq_handle)
                 context = {'category': category,
                            'prefix': prefix,
                            'suffix': suffix,
@@ -513,6 +507,7 @@ def _domestication_view(request, kind):
                            'with_intron': with_intron_str,
                            'seq_features': seq.features, 
                            'features_qualifiers': features_qualifiers}
+                print(context['seq'])
                 return render(request, 'synthesis_result.html', context=context)
     else:
         form = DomesticationForm()
@@ -980,10 +975,11 @@ def domestication_view_regular_add(request):
 
     except:
         enzymes = None
-
     with_intron = bool(int(request_data['with_intron']))
     if category == 'None':
         category_name = 'Other'
+    elif category in (PROM_CAS12, PROM_DICOT, PROM_MONOCOT):
+        category_name = CRYSPER_CATEGORIES[category][0]
     else:
         category_name = CATEGORIES[category][0]
     seq = SeqRecord(Seq(seq), id=seq_name, name=seq_name)
