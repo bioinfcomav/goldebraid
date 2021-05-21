@@ -986,7 +986,8 @@ def domestication_view_regular_add(request):
     seq = domesticate(seq, category, prefix, suffix, enzymes=enzymes,
                           with_intron=with_intron)[1]
     for feature in features:
-        seq.features.append(feature)
+        if feature.type != "domest_feature":
+            seq.features.append(feature)
     temp_fhand = NamedTemporaryFile(prefix='{0}.'.format(seq.id),
                                     suffix='.gb', dir=TMP_DIR)
     temp_fhand.write(seq.format('gb').encode())

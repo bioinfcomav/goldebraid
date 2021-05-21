@@ -87,14 +87,13 @@ def domesticate_for_synthesis(seqrec, category, prefix, suffix, enzymes,
     prepared_seq = SeqRecord(prepared_new_seq, name=seq_name, id=seq_name)
     
     start = len(prefix)
+    part_feat = SeqFeature(FeatureLocation(start, len(new_seq) + start),
+                            type="domest_feature", id=prepared_seq.id, qualifiers={"label": category})
+    prepared_seq.features.append(part_feat)
     for feature in seqrec.features:
         strand = feature.location.strand
         part_feat = SeqFeature(FeatureLocation(feature.location.start+start, feature.location.end+start, feature.location.strand),
                                                type=feature.type, id=prepared_seq.id, qualifiers=feature.qualifiers)
-        prepared_seq.features.append(part_feat)
-    if len(seqrec.features) == 0:
-        part_feat = SeqFeature(FeatureLocation(start, len(new_seq) + start),
-                               type='misc_feature')
         prepared_seq.features.append(part_feat)
     return seq_for_synthesis, prepared_seq
 
@@ -146,15 +145,18 @@ def domesticate(seqrec, category, prefix, suffix, enzymes=None, with_intron=Fals
 
     start = len(prefix)
     #Add original features with SimpleLocation
+    
+   
+    part_feat = SeqFeature(FeatureLocation(start, len(new_seq) + start),
+                            type="domest_feature", id=new_seq_record.id, qualifiers={"label": category})
+    new_seq_record.features.append(part_feat)
     for feature in seqrec.features:
-        strand = feature.location.strand
-        part_feat = SeqFeature(FeatureLocation(feature.location.start+start, feature.location.end+start, feature.location.strand),
+        if feature not in new_seq_record.features:
+            strand = feature.location.strand
+            part_feat = SeqFeature(FeatureLocation(feature.location.start+start, feature.location.end+start, feature.location.strand),
                                                type=feature.type, id=new_seq_record.id, qualifiers=feature.qualifiers)
-        new_seq_record.features.append(part_feat)
-    if len(new_seq_record.features) == 0:
-        part_feat = SeqFeature(FeatureLocation(start, len(new_seq) + start),
-                    type='misc_feature', id=new_seq_record.id)
-        new_seq_record.features.append(part_feat)
+            new_seq_record.features.append(part_feat)
+    
     if with_intron:
         cds = _get_cds_from_seq(seq, prefix, reverse_orientation=reverse_orientation)
         new_seq_record.features.append(cds)
