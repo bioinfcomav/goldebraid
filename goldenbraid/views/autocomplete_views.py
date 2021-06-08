@@ -22,22 +22,9 @@ class BipartitePart1Autocomplete(autocomplete.Select2QuerySetView):
         return str(result.uniquename)
 
     def get_queryset(self):
-        user = self.request.user
-        if user.is_staff:
-            queryset = Feature.objects.filter(Q(type__name__in=BIPARTITE_ALLOWED_PARTS)
-                                              & Q(prefix=SITE_A) & Q(suffix=SITE_C))
-        if user.is_authenticated:
-             queryset = Feature.objects.filter(Q(featureperm__owner__username=user) |
-                                               Q(featureperm__is_public=True))
-             queryset = queryset.filter(Q(type__name__in=BIPARTITE_ALLOWED_PARTS)
-                                        & Q(prefix=SITE_A) & Q(suffix=SITE_C))
-        else:
-            queryset = Feature.objects.filter(featureperm__is_public=True)
-            queryset.filter(Q(type__name__in=BIPARTITE_ALLOWED_PARTS)
-                            & Q(prefix=SITE_A) & Q(suffix=SITE_C))
-        
-
-        #queryset = filter_feature_by_user_perms(queryset, self.request.user)
+        queryset = Feature.objects.filter(Q(type__name__in=BIPARTITE_ALLOWED_PARTS)
+                                          & Q(prefix=SITE_A) & Q(suffix=SITE_C))
+        queryset = filter_feature_by_user_perms(queryset, self.request.user)
 
         if self.q:
             queryset = queryset.filter(Q(name__icontains=self.q) | Q(uniquename__icontains=self.q) | Q(vector__name__icontains=self.q))
