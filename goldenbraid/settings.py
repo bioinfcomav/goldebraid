@@ -401,6 +401,18 @@ PARTS_TO_ASSEMBLE = {'basic': [CATEGORIES[PROM_5UTR_NTAG],
                                                        CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_ALL],
                                                        CATEGORIES[UTR3_TERM]],
 
+                     'crispr_inducible_regulation_1b': [CATEGORIES[DIST_PROX],
+                                                        CATEGORIES[CORE_5UTR],
+                                                        CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_ALL],
+                                                        CATEGORIES[UTR3_TERM]],
+
+                     'crispr_inducible_regulation_3b': [CATEGORIES[DIST_PROX],
+                                                        CATEGORIES[CORE_5UTR],
+                                                        CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_R1],
+                                                        CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_RN_MINUS_ONE],
+                                                        CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_NTERM],
+                                                        CATEGORIES[UTR3_TERM]],
+
                      'crispr_inducible_regulation_3': [CATEGORIES[PROM_5UTR_NTAG],
                                                        CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_R1],
                                                        CRYSPR_MULTIPLEX_CATEGORIES_LEVEL_ZERO[IREG_RN_MINUS_ONE],
@@ -598,4 +610,6 @@ TU_ASSEMBLER_TITLES = {"gRNA_dicot": "Single Cas9 gRNA Assembler, dicot (tS9A)",
                        'crispr_regulation_3': "Multiple Regulatory Cas9 gRNA Assembler, (tMr9A)",
                        'crispr_regulation_1': "Multiple Regulatory Cas9 gRNA Assembler, (tMr9A)",
                        'crispr_inducible_regulation_3': "Multiple Inducible Regulatory Cas9 gRNA Assembler, (tMr9A)",
-                       'crispr_inducible_regulation_1': "Multiple Inducible Regulatory Cas9 gRNA Assembler, (tMr9A)",}
+                       'crispr_inducible_regulation_3b': "Multiple Inducible Regulatory Cas9 gRNA Assembler, (tMr9A)",
+                       'crispr_inducible_regulation_1': "Multiple Inducible Regulatory Cas9 gRNA Assembler, (tMr9A)",
+                       'crispr_inducible_regulation_1b': "Multiple Inducible Regulatory Cas9 gRNA Assembler, (tMr9A)",}
