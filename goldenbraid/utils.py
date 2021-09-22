@@ -18,6 +18,17 @@ def filter_feature_by_user_perms(query, user):
 
     return query
 
+def filter_feature_by_user_indexed(query, user):
+    if user.is_staff:
+        return query
+    if user.is_authenticated:
+        query = query.filter(Q(owner=user) |
+                             Q(is_public=True))
+    else:
+        query = query.filter(is_public=True)
+
+    return query
+
 def parse_rebase_file(fpath):
     'It parses the rebase enzyme file and return a list with all the enzymes'
     enzymes = {}

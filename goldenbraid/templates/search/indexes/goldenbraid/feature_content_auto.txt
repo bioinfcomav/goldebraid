@@ -1,0 +1,12 @@
+{{ object.uniquename }}
+{{ object.name }}
+{{ object.prefix }}
+{{ object.suffix }}
+{{ object.type }}
+{{ object.vector }}
+{{ object.vector_suffix }}
+{{ object.enzyme_out }}
+{{ object.enzyme_in }}
+{{ object.owner }}
+{{ object.is_public }}
+{{ object.vector_prefix }}
